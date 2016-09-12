@@ -1,0 +1,11 @@
+<apex:page controller="ProjectManagerHomePageController" sidebar="false" showHeader="false" >
+ 
+    <apex:pageBlock >
+            
+       <apex:outputLink target="_blank"  value="/01ZA0000000dRDR" id="theLink">Client Rank Dashboards</apex:outputLink>
+     
+    </apex:pageBlock>
+
+    <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+
+</apex:page>

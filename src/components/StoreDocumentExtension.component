@@ -1,0 +1,207 @@
+<apex:component layout="none">
+<script>
+setFocus = function() {};
+function checkDescriptionLength(words) {
+    var description = words;
+    console.log(description);
+    if(description != null && description.length > 255) {
+        return true;
+    } else {
+        return false;
+    }
+}
+var drawingsTitleField, lStoreDescriptionField, drawingNumberField, worktypeField;
+
+jQuery(document).ready(function($) {
+        drawingsTitleField = $("input[id$=DrawingsTitleField]");
+        lStoreDescriptionField = $("textArea[id$=LStoreDescriptionField]");
+        drawingNumberField = $("input[id$=DrawingNumberField]");
+        worktypeField = $("select[id$=WorktypeField]");
+        //$("input[id$=AuthorField]").attr('disabled', true);
+});
+    function isEmpty( inputStr ) { 
+        if ( null == inputStr || "" == inputStr ) {
+            return true; 
+        } 
+        return false; 
+    }
+
+    function requiredFields() {
+        if( isEmpty( drawingsTitleField.val() ) ) {
+            return true;
+        } else if( isEmpty( lStoreDescriptionField.val() ) ) {
+            return true;
+        } else if( isEmpty( drawingNumberField.val() ) ) {
+            return true;
+        } else if( isEmpty( worktypeField.val() ) ) {
+            return true;
+        }
+        return false;
+    }
+    
+    function parseDate(obj) {
+      var obj = jQuery(obj);
+      str = obj.val();
+      var m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        //, d = (m) ? new Date(m[3], m[1], m[2]) : null
+        //, nonRolling = (d&&(str==[d.getMonth(),d.getDate(),d.getFullYear()].join('/')));
+      if(!m) {
+        obj.val('');
+      }
+    }
+    function isLookupValid(id, obj) {
+        var obj = jQuery(obj);
+        if( obj.val() != '' ) {
+            var lkid =  jQuery("input[id$="+id+"_lkid]");
+            var lkold =  jQuery("input[id$="+id+"_lkold]").val();
+            if(lkid.val() == '000000000000000' || lkold != obj.val()){
+                obj.val('');
+            }
+        }
+    }
+    
+jQuery(document).ready(function($) {
+    setFieldsByObjectAction();
+});    
+    //drawingNumberField.bind("keyup", function(e) {isNumeric(e, this);});
+    //municipalitiesField.bind("keyup", function(e) {isLookupValid(e, this);});
+</script>
+<style>
+    .requiredBlockWrapper{
+        position: relative;
+    }
+    .requiredBlockMarker{
+        background-color: #c00 !important;
+        position: absolute;
+        left: -4px;
+        width: 3px;
+        top: 0px;
+        height: 18px;
+    }
+    .msg {
+        color: read;
+    }
+
+</style>
+<apex:attribute name="lStoreDocumentSObject" type="LStore__Stored_Document__c" required="true" description="This attribute should accept a LStore__Stored_Document__c"/>
+<apex:attribute name="workType" type="selectOption[]" required="true" description="" />
+<apex:attribute name="author" type="selectOption[]" required="true" description="" />
+<apex:attribute name="isRequired" type="Boolean" required="true" description="" />
+<apex:attribute name="relatedObjectId" type="String" required="false" description="" />
+
+<apex:outputPanel style="display:none;" id="hiddenLookupFieldBlockId">
+    <apex:inputField value="{!lStoreDocumentSObject.Proposal__c}" />
+</apex:outputPanel>
+<apex:outputPanel layout="block" styleClass="lStoreDocument">
+    <apex:pageBlockSection columns="1" id="lStoreDocumentSObjectId">
+        <apex:pageBlockSectionItem >
+            <apex:pageBlock mode="edit">
+                <apex:pageBlockSection columns="2">
+                    <!--Title-->
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Drawing Title:"/>
+                        <apex:outputPanel layout="block" id="DrawingsTitleOutputPanel">
+                            <apex:outputPanel layout="block" styleClass="requiredBlockWrapper" rendered="{!isRequired}"><div class="requiredBlockMarker"></div></apex:outputPanel>
+                            <apex:inputText id="DrawingsTitleField" value="{!lStoreDocumentSObject.Drawings_Title__c}" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+
+                    <!--Description-->
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Drawing Description:"/>
+                        <apex:outputPanel layout="block" id="LStoreDescriptionOutputPanel">
+                            <apex:outputPanel layout="block" styleClass="requiredBlockWrapper" rendered="{!isRequired}"><div class="requiredBlockMarker"></div></apex:outputPanel>
+                            <apex:inputField styleClass="lStoreDescriptionFieldClass" id="LStoreDescriptionField" value="{!lStoreDocumentSObject.LStore__Description__c}" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>  
+
+                    <!--Drawing Number-->
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Drawing #:"/>
+                        <apex:outputPanel layout="block" id="DrawingNumberOutputPanel">
+                            <apex:outputPanel layout="block" styleClass="requiredBlockWrapper" rendered="{!isRequired}"><div class="requiredBlockMarker"></div></apex:outputPanel>
+                            <apex:inputText id="DrawingNumberField" value="{!lStoreDocumentSObject.Drawing_Number__c}" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+
+                    <!--Drawing Revision Date-->
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Drawing Revision Date:"/>
+                        <apex:outputPanel layout="block" id="DrawingRevisionDateOutputPanel">
+                            <apex:inputField id="DrawingRevisionDateField" value="{!lStoreDocumentSObject.Drawing_Revision_Date__c}" onchange="parseDate(this);"/>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+
+                    <!--Drawing Author-->
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Drawing Author:"/>
+                        <apex:outputPanel layout="block" id="AuthorOutputPanel">
+                            <apex:inputField id="AuthorField"  onchange="isLookupValid('AuthorField', this); return false;" value="{!lStoreDocumentSObject.Account__c}" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>  
+
+                    <!--Work Type-->
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.LStore__Stored_Document__c.fields.Worktype__c.Label}:"/>
+                        <apex:outputPanel layout="block" id="WorktypeOutputPanel">
+                            <apex:outputPanel layout="block" styleClass="requiredBlockWrapper" rendered="{!isRequired}"><div class="requiredBlockMarker"></div></apex:outputPanel>
+                            <apex:selectList id="WorktypeField" value="{!lStoreDocumentSObject.Worktype__c}" multiselect="false" size="1">
+                                <apex:selectOptions value="{!workType}"/>
+                            </apex:selectList>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>  
+
+                    <!--Municipal Form Type Name-->
+                    <!-- <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.LStore__Stored_Document__c.fields.Municipal_Form_Type_Name__c.Label}:"/>
+                        <apex:outputPanel layout="block" id="MunicipalFormTypeNameOutputPanel">
+                            <apex:inputField id="MunicipalFormTypeNameField" value="{!lStoreDocumentSObject.Municipal_Form_Type_Name__c}" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem> -->
+
+                    <!--Municipal Description ID-->
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.LStore__Stored_Document__c.fields.Municipal_Description_ID__c.Label}:"/>
+                        <apex:outputPanel layout="block" id="MunicipalDescriptionIdOutputPanel">
+                            <apex:inputField id="MunicipalDescriptionIdField" value="{!lStoreDocumentSObject.Municipal_Description_ID__c}" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+
+                    <!--Municipal Agency Id-->
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.LStore__Stored_Document__c.fields.Municipal_Agency_Id__c.Label}:"/>
+                        <apex:outputPanel layout="block" id="MunicipalAgencyIdOutputPanel">
+                            <apex:inputField id="MunicipalAgencyIdField" value="{!lStoreDocumentSObject.Municipal_Agency_Id__c}" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+
+                    <!--Tenant-->
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.LStore__Stored_Document__c.fields.Tenant__c.Label}:"/>
+                        <apex:outputPanel layout="block" id="TenantOutputPanel">
+                            <apex:inputField id="TenantField" value="{!lStoreDocumentSObject.Tenant__c}" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+
+                    <!--Key Words-->
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.LStore__Stored_Document__c.fields.LStore__Keywords__c.Label}:"/>
+                        <apex:outputPanel layout="block" id="LStoreKeywordsOutputPanel">
+                            <apex:inputField id="LStoreKeywordsField" value="{!lStoreDocumentSObject.LStore__Keywords__c}" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+
+                    <!--Comments-->
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.LStore__Stored_Document__c.fields.Comments__c.Label}:"/>
+                        <apex:outputPanel layout="block" id="CommentsOutputPanel">
+                            <apex:inputField id="CommentsField" value="{!lStoreDocumentSObject.Comments__c}" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+
+                </apex:pageBlockSection>
+            </apex:pageBlock>
+        </apex:pageBlockSectionItem>
+    </apex:pageBlockSection>
+</apex:outputPanel>            
+</apex:component>

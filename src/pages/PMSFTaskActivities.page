@@ -1,0 +1,136 @@
+<apex:page controller="ProjectManagerHomePageController" sidebar="false" showHeader="false">
+    
+    <apex:stylesheet value="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/css/jquery.dataTables.css')}"/>
+    <apex:stylesheet value="{!$Resource.HomePage_CSS}"/>    
+    <style>
+        .sorting {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_both.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_asc {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_asc.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_desc {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_desc.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_asc_disabled {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_asc_disabled.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_desc_disabled {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_desc_disabled.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        
+        .dataTable2 th.headerRow:first-child, .dataTable2 td.dataCell:first-child   {width: 21% !important; }
+        .dataTable2 th.headerRow:nth-child(2), .dataTable2 td.dataCell:nth-child(2) {width: 9%  !important; }
+        .dataTable2 th.headerRow:nth-child(3), .dataTable2 td.dataCell:nth-child(3) {width: 13% !important; }
+        .dataTable2 th.headerRow:nth-child(4), .dataTable2 td.dataCell:nth-child(4) {width: 8%  !important; }
+        .dataTable2 th.headerRow:nth-child(5), .dataTable2 td.dataCell:nth-child(5) {width: 10% !important; }
+        .dataTable2 th.headerRow:nth-child(6), .dataTable2 td.dataCell:nth-child(6) {width: 7%  !important; }
+        .dataTable2 th.headerRow:last-child, .dataTable2 td.dataCell:last-child     {width: 32% !important; }
+    </style>
+    
+    <apex:pageMessages id="msgs"></apex:pageMessages>
+    <apex:pageBlock id="pgblock">
+        
+        <apex:tabPanel switchType="client" selectedTab="report1" id="theTabPanel" >
+            <apex:tab label="Assigned to me" name="report1" id="tabOne" style="overflow:hidden;width:100%;height:270px">
+                 <apex:pageBlockSection columns="1">
+                     <apex:outputPanel styleClass="tableContainer" layout="block">
+                        <apex:pageBlockTable value="{!tasksForProjectManager}" var="item" styleClass="dataTable">
+                            <apex:column headerValue="Task Name" >
+                                <apex:outputLink value="/{!tasksForProjectManager[item].Id}" target="_blank">{!tasksForProjectManager[item].Subject}</apex:outputLink>
+                            </apex:column>
+                            <apex:column headerValue="{!IF(isProposalSpecialist, 'Proposal #', 'Related to')}">
+                                <apex:outputLink value="{!IF( tasksForProjectManager[item].What.Name != '- None -', '/' + tasksForProjectManager[item].WhatId, '')}" target="_blank">{!IF( tasksForProjectManager[item].What.Name != '- None -', tasksForProjectManager[item].What.Name, '')}</apex:outputLink>
+                            </apex:column>
+                            <apex:column headerValue="Created Date" value="{!tasksForProjectManager[item].CreatedDate}" />
+                            <apex:column headerValue="Due Date" value="{!tasksForProjectManager[item].ActivityDate}" />
+                            <apex:column headerValue="Assigned By" >
+                                <apex:outputLink value="/{!tasksForProjectManager[item].CreatedById}" target="_blank">{!tasksForProjectManager[item].CreatedBy.Name}</apex:outputLink>
+                            </apex:column>
+                            <apex:column headerValue="Priority" value="{!tasksForProjectManager[item].Priority}" />
+                            <apex:column headerValue="Comments" value="{!tasksForProjectManager[item].Description}" />
+                        </apex:pageBlockTable>
+                    </apex:outputpanel> 
+                    
+                </apex:pageBlockSection>
+                 
+            </apex:tab>
+            <apex:tab label="I've assigned to others" name="report2" id="tabTwo" style="overflow:auto;width:100%;height:270px">
+                <apex:pageBlockSection columns="1">
+                    <apex:outputPanel styleClass="tableContainer" layout="block">
+                        <apex:pageBlockTable value="{!tasksByProjectManager}" var="item" styleClass="dataTable2">
+                            <apex:column headerValue="Task Name">
+                                <apex:outputLink value="/{!tasksByProjectManager[item].Id}" target="_blank">{!tasksByProjectManager[item].Subject}</apex:outputLink>
+                            </apex:column>
+                            <apex:column headerValue="{!IF(isProposalSpecialist, 'Proposal #', 'Related to')}">
+                                <apex:outputLink value="{!IF( tasksByProjectManager[item].What.Name != '- None -', '/' + tasksByProjectManager[item].WhatId, '')}" target="_blank">{!IF( tasksByProjectManager[item].What.Name != '- None -', tasksByProjectManager[item].What.Name, '')}</apex:outputLink>
+                            </apex:column>
+                            <apex:column headerValue="Created Date" value="{!tasksByProjectManager[item].CreatedDate}" />
+                            <apex:column headerValue="Due Date" value="{!tasksByProjectManager[item].ActivityDate}" />
+                            <apex:column headerValue="Assigned To">
+                                <apex:outputLink value="/{!tasksByProjectManager[item].OwnerId}" target="_blank">{!tasksByProjectManager[item].Owner.Name}</apex:outputLink>
+                            </apex:column>
+                            <apex:column headerValue="Priority" value="{!tasksByProjectManager[item].Priority}"/>
+                            <apex:column headerValue="Comments" value="{!tasksByProjectManager[item].Description}" />
+                        </apex:pageBlockTable>
+                    </apex:outputpanel>
+                    
+                </apex:pageBlockSection>
+            </apex:tab>
+        </apex:tabPanel>
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+    </apex:pageBlock>
+<script type="text/javascript" language="javascript" src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.js')}"></script>
+<script type="text/javascript" language="javascript" src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.dataTables.js')}"></script>
+<script src="{!URLFOR($Resource.DatetimeUS)}"></script>
+<script src="{!URLFOR($Resource.DateUS)}"></script>
+<script type="text/javascript" language="javascript">
+    var j$ = jQuery.noConflict();
+    var oTable = j$('table.dataTable').dataTable({
+        sPaginationType: "full_numbers",
+        bLengthChange: false,
+        bAutoWidth: false,
+        aoColumns: [ { "sWidth": "21%" },{ "sWidth": "9%" },{ "sWidth": "13%" },{ "sWidth": "8%" },{ "sWidth": "10%" },
+                     { "sWidth": "7%" },{ "sWidth": "32%" }
+        ],
+        aoColumnDefs: [ 
+            { "sSortDataType": "datetime-us", sType: "datetime-us", aTargets: [2] },
+            { "sSortDataType": "date-us", sType: "date-us", aTargets: [3] }
+        ],
+        sScrollY: (jQuery(window).height() - 170)
+    });
+    oTable.fnSort( [ [3,'desc'] ]);
+    
+    var b$ = jQuery.noConflict();
+    var oTable2 = b$('table.dataTable2').dataTable({
+        sPaginationType: "full_numbers",
+        bLengthChange: false,
+        aoColumnDefs: [ 
+            { "sSortDataType": "datetime-us", sType: "datetime-us", aTargets: [2] },
+            { "sSortDataType": "date-us", sType: "date-us", aTargets: [3] }
+        ],
+        sScrollY: (jQuery(window).height() - 170)
+    });
+    oTable2.fnSort( [ [3,'desc'] ]);
+    
+    jQuery('.dataTables_scrollHeadInner').has('.dataTable2').css('width', '100%');
+    jQuery('.dataTable2').css('width', '100%');    
+    jQuery(window).resize(function () {    
+        jQuery('.dataTables_scrollHeadInner').width(100 + '%');
+        jQuery('.dataTable').width(100 + '%');
+        if (jQuery('.dataTables_scrollBody>.dataTable').height() > 230 ) {
+            jQuery('.dataTables_scrollHeadInner').width(jQuery('.dataTables_scrollHeadInner').width() - 17 + 'px');
+        };
+        if (jQuery('.dataTables_scrollBody>.dataTable2').height() > 230 ) {
+            jQuery('.dataTables_scrollHeadInner').has('.dataTable2').css('width', '100%');
+            jQuery('.dataTables_scrollHeadInner').has('.dataTable2').css('width', '-=17px');
+        };
+    }); 
+    
+    </script>      
+</apex:page>

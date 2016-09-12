@@ -1,0 +1,136 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:variable var="displayColumn" value="{!IF(OR(projectView), 'table-cell', 'none')}"/>
+    <apex:variable var="display2Column" value="{!IF(OR(projectView, AND(!projectView, show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="display3Column" value="{!IF(OR(projectView, AND(!projectView, !show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="colspanValue" value="{!IF(projectView, 2, 1)}"/>
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="{!IF(projectView, 3, 2)}" style="text-align: left;">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: {!IF(projectView, '33', '50')}%; display :{!display2Column}">Application Permit Response</th>
+                <th style="width: {!IF(projectView, '33', '50')}%; display :{!display3Column}">Application Sign Off Response</th>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader"><apex:outputText value="Signing/Sealing & License #"/></span></td>
+                <td style="display :{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Signing_Sealing_License_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Signing_Sealing_License_Sign_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Project Manager</span></td>
+                <td style="display :{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Project_Manager_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Project_Manager_Sign_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Linear Footage of Ductwork (added/removed)</span></td>
+                <td style="display :{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Linear_Footage_of_Ductwork_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Linear_Footage_of_Ductwork_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Description of mechanical work to be completed</span></td>
+                <td style="display :{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Description_of_mechanical_work_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Description_of_mechanical_work_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td>
+                    <span class="mainRequestHeader">A/C Units Cooled by Refrigerant </span><br></br>
+                    <span class="t-italic">If yes, provide quantity.<br></br>
+                    If non-refrigerant unit installed, provide mounting location.</span>
+                </td>
+                <td style="display :{!display2Column}" class="secondColumn">
+                    <apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.ACUnits_Cooled_by_Refrigerant_App__c}"/>
+                </td>
+                <td style="display :{!display3Column}" class="secondColumn">
+                    <apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.ACUnits_Cooled_by_Refrigerant_Off__c}" />
+                </td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Provide list of Energy Code Inspections </span><br></br><i>(Click <a href="{!TR8Hyperlink}" target="blank">TR8</a> to see the list of all possible inspections)</i></td>
+                <td style="display :{!display2Column}" class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Provide_Energy_Code_Inspections_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Provide_Energy_Code_Inspections_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Provide list of Special/Progress Inspections  </span><br></br><i>(Click <a href="{!TR1Hyperlink}" target="blank">TR1</a> to see the list of all possible inspections)</i></td>
+                <td style="display :{!display2Column}" class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Provide_Special_Progress_Inspect_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Provide_Special_Progress_Inspect_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td style="display :{!display3Column}"><span class="mainRequestHeader">Provide the Information for HVAC Units to be Installed </span>
+                    <ul>
+                        <li>Review the attached HVAC schedule and confirm the units listed are what have been be installed</li>
+                        <li>Please confirm/provide the information for each unit.</li>
+                        <li>Provide pictures of mechanical unit(s) installed showing complete tag</li>
+                    </ul>
+                    <p style="margin-left: 15%;">-OR-</p>
+                    Provide us with the Mechanical As-Built Schedule and Specification Sheets.
+                </td>
+                <td style="display :{!displayColumn}" class="secondColumn permission-massage"><apex:outputText value="{!notRequiredPermission}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn td-table" >
+                    <table style="width:100%" class="hvac">
+                        <tr>
+                           <td><span class="mainRequestHeader">Equipment Name/ Model</span></td>
+                           <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Equipment_Name_Model_1_Off__c}" /></td>
+                           <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Equipment_Name_Model_2_Off__c}" /></td>
+                           <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Equipment_Name_Model_3_Off__c}" /></td>
+                           <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Equipment_Name_Model_4_Off__c}" /></td>
+                           <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Equipment_Name_Model_5_Off__c}" /></td>
+                        </tr>
+                        <tr>
+                            <td><span class="mainRequestHeader">Refrigerant?</span></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Refrigerant_1_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Refrigerant_2_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Refrigerant_3_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Refrigerant_4_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Refrigerant_5_Off__c}" /></td>
+                        </tr>
+                        <tr>
+                            <td><span class="mainRequestHeader">Location <i>(floor mounted or ceiling /roof mounted)</i></span></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Location_1_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Location_2_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Location_3_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Location_4_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Location_5_Off__c}" /></td>
+                        </tr>
+                        <tr>
+                            <td><span class="mainRequestHeader">Floor</span></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Floor_1_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Floor_2_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Floor_3_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Floor_4_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Floor_5_Off__c}" /></td>
+                        </tr>
+                        <tr>
+                            <td><span class="mainRequestHeader">Capacity <i>(BTU/CFM/TONS)</i></span></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Capacity_1_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Capacity_2_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Capacity_3_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Capacity_4_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Capacity_5_Off__c}" /></td>
+                        </tr>
+                        <tr>
+                            <td><span class="mainRequestHeader">Number of  Units</span></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Number_of_Units_1_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Number_of_Units_2_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Number_of_Units_3_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Number_of_Units_4_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Number_of_Units_5_Off__c}" /></td>
+                        </tr>
+                        <tr>
+                            <td><span class="mainRequestHeader">MEA/Serial/UL#</span></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.MEA_Serial_UL_1_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.MEA_Serial_UL_2_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.MEA_Serial_UL_3_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.MEA_Serial_UL_4_Off__c}" /></td>
+                            <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.MEA_Serial_UL_5_Off__c}" /></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

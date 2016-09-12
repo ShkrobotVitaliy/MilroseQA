@@ -1,0 +1,88 @@
+<apex:page showHeader="true" sidebar="true" controller="TestingResultsController">
+	<apex:includeScript value="//code.jquery.com/jquery-2.1.1.min.js"/>
+	<apex:includeScript value="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.18.3/js/jquery.tablesorter.js"/>
+	<apex:includeScript value="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.18.3/js/jquery.tablesorter.widgets.js"/>
+	<apex:stylesheet value="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.18.3/css/theme.jui.css"/>
+	<script>
+		$(document).ready(function(){
+			setTableSorter();
+		});
+		function setTableSorter() {
+			$("table").tablesorter({
+				headerTemplate : '{content} {icon}',
+				widgets : ['uitheme', 'zebra'],
+				widgetOptions : {
+					zebra   : ["even", "odd"],
+				}
+			});
+		}
+	</script>
+	<apex:form >
+		<apex:actionFunction name="versionHasBeenChanged" action="{!rerenderExtendedData}" reRender="extendedTable" oncomplete="setTableSorter();"/>
+
+		<apex:pageBlock id="mainPageBlock" title="Test Coverage">
+			<apex:pageBlockSection title="Settings">
+				<apex:outputText value="Total estimated coverage is {0}%">
+					<apex:param value="{!totalCoverage}"/>
+				</apex:outputText>
+				<apex:selectList value="{!selectedClass}" size="1" onchange="versionHasBeenChanged();">
+					<apex:selectOptions value="{!classesAndTriggers}"/>
+				</apex:selectList>
+			</apex:pageBlockSection>
+			<apex:pageBlockSection title="Results">
+				<apex:pageBlockTable value="{!content}" var="item">
+					<apex:column >
+						<apex:facet name="header">Class or Trigger</apex:facet>
+						<apex:outputText value="{0}">
+							<apex:param value="{!item.name}"/>
+						</apex:outputText>
+					</apex:column>
+					<apex:column style="text-align: right;">
+						<apex:facet name="header">Lines Covered</apex:facet>
+						<apex:outputText value="{0, number, 0}">
+							<apex:param value="{!item.linesCovered}"/>
+						</apex:outputText>
+					</apex:column>
+					<apex:column style="text-align: right;">
+						<apex:facet name="header">Lines Uncovered</apex:facet>
+						<apex:outputText value="{0, number, 0}">
+							<apex:param value="{!item.linesUncovered}"/>
+						</apex:outputText>
+					</apex:column>
+					<apex:column style="text-align: right;">
+						<apex:facet name="header">% covered</apex:facet>
+						<apex:outputText value="{0, number, 0}">
+							<apex:param value="{!item.covered}"/>
+						</apex:outputText>
+					</apex:column>
+				</apex:pageBlockTable>
+				<apex:pageBlockTable id="extendedTable" value="{!extendedContent}" var="item">
+					<apex:column >
+						<apex:facet name="header">Class or Trigger</apex:facet>
+						<apex:outputText value="{0}">
+							<apex:param value="{!item.name}"/>
+						</apex:outputText>
+					</apex:column>
+					<apex:column style="text-align: right;">
+						<apex:facet name="header">Lines Covered</apex:facet>
+						<apex:outputText value="{0, number, 0}">
+							<apex:param value="{!item.linesCovered}"/>
+						</apex:outputText>
+					</apex:column>
+					<apex:column style="text-align: right;">
+						<apex:facet name="header">Lines Uncovered</apex:facet>
+						<apex:outputText value="{0, number, 0}">
+							<apex:param value="{!item.linesUncovered}"/>
+						</apex:outputText>
+					</apex:column>
+					<apex:column style="text-align: right;">
+						<apex:facet name="header">% covered</apex:facet>
+						<apex:outputText value="{0, number, 0}">
+							<apex:param value="{!item.covered}"/>
+						</apex:outputText>
+					</apex:column>
+				</apex:pageBlockTable>
+			</apex:pageBlockSection>
+		</apex:pageBlock>
+	</apex:form>
+</apex:page>

@@ -1,0 +1,207 @@
+<apex:page standardController="Task_Item__c" extensions="VendorRequestExtension" sidebar="false" showHeader="false" showChat="false">
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}"/>
+    
+    <script src="{!$Resource.jquery_tablednd_js}"></script>
+    <script src="{!URLFOR($Resource.jquery_vfFloatingHeaders)}"></script>
+    
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    
+    <script type="text/javascript">
+        function checkAll(cb, cbid) {
+            var inputElem = document.getElementsByTagName("input");
+
+            for (var i = 0; i < inputElem.length; i++) {
+                if (-1 != inputElem[i].id.indexOf(cbid)) {
+                    inputElem[i].checked = cb.checked;
+                
+                }
+            
+            }
+        
+        }
+        
+        function showOverlay() {
+            $('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);
+        
+        }
+        
+        function hideOverlay() {
+            $('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });
+        
+        }
+        
+        function changePassExpense(state) {
+            if (state.checked) {
+                $('#popupOverlayId').height($('.vendorRequestPanelJQ').outerHeight() + $('.acceptedActivitiesPanelJQ').outerHeight());
+                $('#confirmationPopup').show();
+            
+            }
+        
+        }
+    </script>
+    
+    <apex:form >
+        <apex:actionStatus id="allPanelsOverlay" onstart="$('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);" onstop="$('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });"/>
+        
+        <!-- ------------------- Begin Callback From Email Component-------------------------- -->
+        <apex:actionFunction name="containerUpdateParentRecordCC" action="{!updateCCEmailsAddressForDrawLoop}" reRender="msgError, vendorRequestPanelId" status="allPanelsOverlay">
+            <apex:param name="emailCC" value="" assignTo="{!emailsAddressForDrawLoop}"/>
+        </apex:actionFunction>
+        
+        <apex:actionFunction name="containerPerformAfterSaveAction" action="{!updateAfterSend}" oncomplete="hideOverlay();"  reRender="msgError, vendorRequestPanelId, buttonOutputPanelID">
+            <apex:param name="reminderDatetime" value="" assignTo="{!reminderDatetime}" />
+        </apex:actionFunction>
+        <!-- ------------------- End Callback From Email Component -------------------------- -->        
+                
+        <apex:actionFunction name="refreshVendorTable"  status="allPanelsOverlay" reRender="vendorRequestPanelId, msgError" action="{!showOnlyAcceptedActivities}" />
+        <apex:actionFunction name="updateVendorRequest" status="allPanelsOverlay" reRender="msgError"                       action="{!saveChanges}" />
+        <apex:actionFunction name="reRenderTable"       status="allPanelsOverlay" reRender="vendorRequestPanelId, msgError" action="{!saveChanges}" />
+        <apex:actionFunction name="fillScheduledDate"   status="allPanelsOverlay" reRender="vendorRequestPanelId, msgError" action="{!fillScheduledDate}">
+            <apex:param name="vendorId" value="" assignTo="{!selectedVendorId}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="fillProposalDate"    status="allPanelsOverlay" reRender="vendorRequestPanelId, msgError" action="{!fillProposalReceivedDate}">
+            <apex:param name="vendorId" value="" assignTo="{!selectedVendorId}"/>
+        </apex:actionFunction>
+        
+        <div style="height:800px; overflow:auto;">
+            <apex:pageMessages id="msgError"/>
+    
+            <div class="AllInfoPanelHolder" style="min-height: 400px; position: relative; overflow: auto; -webkit-overflow-scrolling: touch;">
+                <div class="overlay" id="AllPannelOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"/>
+                <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+                    <div style="text-align: center;">
+                        <img src="{!$Resource.loading_bar}" />
+                        <p style="color: #000; margin-bottom: 0px; font-size: 24px;">Please wait</p>
+                    </div>
+                </div>
+                
+                <apex:outputPanel layout="block" styleClass="acceptedActivitiesPanelJQ">
+                    <apex:outputLabel styleClass="labelText">Show only Accepted Activities</apex:outputLabel>
+                    <apex:inputCheckbox value="{!taskItem.Show_only_Accepted_Activities__c}" onchange="refreshVendorTable();"/>
+                </apex:outputPanel>
+                
+                <!-- -------------------------------------------- Begin Vendor Request Table -------------------------------------------------------- -->
+                <apex:outputPanel id="vendorRequestPanelId" styleClass="vendorRequestPanelJQ">
+                    <table id="tableSectionId" class="BlogForce9Table generalTableStyle" style="width: 100%;">
+                        <thead class="rich-table-thead" border="solid 1px black">
+                            <tr class="headerRow">
+                                <th class="headerRow floatingStyle" style="width: 3%;"> <apex:inputCheckbox onclick="checkAll(this, 'vendorRequest');"/> </th>
+                                <th class="headerRow floatingStyle" style="width: 10%;"> Vendor                     </th>
+                                <th class="headerRow floatingStyle" style="width: 10%;"> Vendor Contact             </th>
+                                <th class="headerRow floatingStyle" style="width: 25%;"> Description of Work        </th>
+                                <th class="headerRow floatingStyle" style="width: 7%;"> Activity<br />Request Date  </th>
+                                <th class="headerRow floatingStyle" style="width: 5%;"> Status of Request           </th>
+                                <th class="headerRow floatingStyle" style="width: 7%;"> Proposal<br />Received Date </th>
+                                <th class="headerRow floatingStyle" style="width: 5%;"> Cost                        </th>
+                                <th class="headerRow floatingStyle" style="width: 7%;"> Vendor Notified             </th>
+                                <th class="headerRow floatingStyle" style="width: 7%;"> Scheduled<br />Start Date   </th>
+                                <th class="headerRow floatingStyle" style="width: 7%;"> Scheduled<br />End Date     </th>
+                                <th class="headerRow floatingStyle" style="width: 5%;"> Pass Through<br />Expense   </th>
+                                <th class="headerRow floatingStyle" style="width: 5%;"> Activity Status             </th>
+                            </tr>
+                        </thead>
+                        
+                        <apex:repeat value="{!vendors}" var="vendor">
+                            <tr>
+                                <td class="data dragHandle" style="vertical-align: middle;"> <apex:inputCheckbox id="vendorRequest" value="{!vendor.isSelected}" />                                                   </td>
+                                <td class="data dragHandle" style="vertical-align: middle;"> <apex:inputField value="{!vendor.vendor.Vendor__c}" onchange="updateVendorRequest(); return false;" />                   </td>
+                                <td class="data dragHandle" style="vertical-align: middle;"> <apex:inputField value="{!vendor.vendor.Vendor_Contact__c}" onchange="reRenderTable();"/>                                </td>
+                                <td class="data dragHandle" style="vertical-align: middle;"> <apex:inputText value="{!vendor.vendor.Description_of_Work__c}" style="width: 98%;"/>                                    </td>
+                                <td class="data dragHandle" style="vertical-align: middle;"> <apex:inputField value="{!vendor.vendor.Activity_Request_Date__c}"/>                                                     </td>
+                                <td class="data dragHandle" style="vertical-align: middle;"> <apex:inputField value="{!vendor.vendor.Status_of_Request__c}" onchange="fillProposalDate('{!vendor.vendor.Id}');"/>     </td>
+                                <td class="data dragHandle" style="vertical-align: middle;"> <apex:inputField value="{!vendor.vendor.Proposal_Received_Date__c}"/>                                                    </td>
+                                <td class="data dragHandle" style="vertical-align: middle;"> <apex:inputField value="{!vendor.vendor.Cost__c}"/>                                                                      </td>
+                                <td class="data dragHandle" style="vertical-align: middle;"> <apex:inputField value="{!vendor.vendor.Vendor_Notified__c}"/>                                                           </td>
+                                <td class="data dragHandle" style="vertical-align: middle;"> <apex:inputField value="{!vendor.vendor.Scheduled_Start_Date__c}" onchange="fillScheduledDate('{!vendor.vendor.Id}');"/> </td>
+                                <td class="data dragHandle" style="vertical-align: middle;"> <apex:inputField value="{!vendor.vendor.Scheduled_End_Date__c}"   onchange="fillScheduledDate('{!vendor.vendor.Id}');"/> </td> 
+                                <td class="data dragHandle" style="vertical-align: middle;"> <apex:inputCheckbox value="{!vendor.vendor.Pass_Through_Expense__c}" onchange="changePassExpense(this);" disabled="{! OR(ISBLANK(vendor.vendor.Status_of_Request__c), !Contains(vendor.vendor.Status_of_Request__c, "Vendor Proposal Accepted"), AND(NOT(ISBLANK(taskItem.Actual_End_Date__c)), vendor.vendor.Pass_Through_Expense__c, vendor.vendor.Is_Reimbursable_Line_Item_Created__c)) }" /> </td>
+                                <td class="data dragHandle" style="vertical-align: middle;"> <apex:inputField value="{!vendor.vendor.Activity_Status__c}"/>                                                           </td>
+                            </tr>
+                        </apex:repeat>
+                    </table>
+                    
+                    <script type="text/javascript">$('.vendorRequestPanelJQ .dateFormat').hide();  $('.vendorRequestPanelJQ span.dateInput input').attr('size', '16');</script>
+                </apex:outputPanel>
+                <!-- -------------------------------------------- Begin Vendor Request Table -------------------------------------------------------- -->
+               
+                <!-- ---------------------------------------- Begin Button Section ---------------------------------------- -->
+                <div id="buttonSectionID">
+                    <apex:outPutpanel id="buttonOutputPanelID" layout="block" style="text-align: right;">
+                        <apex:commandButton value="Add New"       action="{!addVendor}"           styleClass="milroseBtnStyle" status="allPanelsOverlay" reRender="msgError, vendorRequestPanelId"/>
+                        <apex:commandButton value="Save"          action="{!saveChanges}"         styleClass="milroseBtnStyle" status="allPanelsOverlay" reRender="msgError, vendorRequestPanelId" />
+                        <apex:commandButton value="Email Request" action="{!showTemplateEditing}" styleClass="milroseBtnStyle" status="allPanelsOverlay" />
+                        <apex:commandButton value="Notify Vendor" action="{!notifyVendor}"        styleClass="milroseBtnStyle" status="allPanelsOverlay" />
+                    </apex:outPutpanel>
+                </div>
+                <!-- ---------------------------------------- End Button Section ---------------------------------------- -->
+                
+                <!-- Disable Table 'Send Check Requests' & Buttons -->
+                <script>
+                    if ('true' == '{!reviewEmail}') {
+                        /*$('#tableSectionId').find('input').attr('disabled', 'disabled');
+                        $('#tableSectionId').find('select').attr('disabled', 'disabled');*/
+                        $('#buttonSectionID').find('input').attr('disabled', 'disabled').addClass('btnDisabled').removeClass('btn');
+                        
+                    }
+                </script>
+                
+                <!-- ----------------------------------------------- Begin Notification Popup ------------------------------------------------- -->
+                 <div id="confirmationPopup" style="display: none;">
+                    <div id="popupOverlayId" style="z-index:40; opacity:0.7; filter:alpha(opacity=70); position: fixed; top:0px; left:0px; width:100%; height:100%; background-color: #8AC;"/>
+                    <div style="z-index:41; position: absolute; top:0px; left:0px; width:100%; height:100%; background-color: transparent;">
+                        <div style="width:400px; height: 100px; position: fixed; left:25%; top:20%; border:1px solid #888; background-color:#F0F8FF; box-shadow:5px 5px 25px #115577;">
+                            <div style="text-align: center; padding: 10px;">
+                                <div style="cursor: default; width:100%; font-weight:bold; text-align:center;">Please ensure that this vendor expense is being billed to Milrose and that we will in turn bill our client for it (Typically SIPS or Legal services).</div>
+                                
+                                <apex:commandButton value="OK" onclick="$('#confirmationPopup').hide(); return false;" action="{!passThroughExpenseAction}" styleClass="milroseBtnStyle" style="width: 40%; margin: 0px !important; margin-top: 3px !important;"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>          
+                <!-- ----------------------------------------------- End Notification Popup ------------------------------------------------- -->
+                
+                <!-- ----------------------------------------------- Begin Email Editing ------------------------------------------------- -->
+                <apex:outputPanel id="emailTemplatePanel" layout="block" rendered="{!reviewEmail}">
+                    <c:PreviewAndSendEmail defaultBody="true" parentDDPRecordId="{!taskItem.Id}" DDPRecordName="{!drawloopName}" 
+                                           emailTemplate="{!emailTemplateName}" 
+                                           draftTemplate="{!draftTemplateName}" 
+                                           sendAddressTo="{!sendTo}" 
+                                           attachIds="{!attachmentIds}" 
+                                           projectProfileRecord="{!project}" 
+                                           emailTypeRecord="{!emailTypeRecord}" 
+                                           linkToCloseButton="{!linkToCloseTemplate}" 
+                                           showTemplateSelection="{!displaySelectionTemplate}" 
+                                           showReminderSection="true" 
+                                           contactId="{!contactRecipient}"/>
+                </apex:outputPanel>
+                <!-- ----------------------------------------------- End Email Editing ------------------------------------------------- -->
+
+            </div>
+        </div>
+        
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+        
+        <apex:inputField value="{!Task_Item__c.Project_Profile__c}"                               rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Project_Profile__r.Proposal__c}"                   rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Project_Profile__r.Municipal_Agency_ID__c}"        rendered="false"/>        
+        <apex:inputField value="{!Task_Item__c.Project_Profile__r.Project_Address__c}"            rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Project_Profile__r.Accounting_Contact__c}"         rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Project_Profile__r.Accounting_Contact_Company__c}" rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Project_Profile__r.Billing_Method__c}"             rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Project_Profile__r.Building__c}"                   rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Project_Profile__r.Billing_Company_Name__c}"       rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Project_Profile__r.Primary_Company_Contact__c}"    rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Project_Profile__r.Billing_Company_Contact__c}"    rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Service_Item__c}"                                  rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Service_Item__r.Actual_End_Date__c}"               rendered="false"/>        
+        <apex:inputField value="{!Task_Item__c.Service_Item__r.Description__c}"                   rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Service_Item__r.Type__c}"                          rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Actual_End_Date__c}"                               rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Show_only_Accepted_Activities__c}"                 rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.RecordType.Name}"                                  rendered="false"/>
+        
+    </apex:form>
+    
+    
+    
+</apex:page>

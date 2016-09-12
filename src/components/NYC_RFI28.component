@@ -1,0 +1,36 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:variable var="display2Column" value="{!IF(OR(projectView, AND(!projectView, show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="display3Column" value="{!IF(OR(projectView, AND(!projectView, !show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="colspanValue" value="{!IF(projectView, 2, 1)}"/>
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="{!IF(projectView, 3, 2)}" style="text-align: left;">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: {!IF(projectView, '33', '50')}%; display :{!display2Column}">Application Permit Response</th>
+                <th style="width: {!IF(projectView, '33', '50')}%; display :{!display3Column}">Application Sign Off Response</th>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader"><apex:outputText value="Describe the type of FPP system being installed"/></span></td>
+                <td style="display :{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Describe_the_type_of_FPP_system_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Describe_the_type_of_FPP_system_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">System components Removed/Relocated/</span></td>
+                <td style="display :{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.System_components_Removed_Relocate_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.System_components_Removed_Relocate_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Provide list of Special/Progress Inspections</span></td>
+                <td style="display :{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Provide_SpecialProgress_Inspections_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Provide_SpecialProgress_Inspections_Off__c}" /></td>
+            </tr>
+            
+        </table>
+    </apex:outputPanel>
+</apex:component>

@@ -1,0 +1,7 @@
+<apex:page title="Documents" showHeader="false" sidebar="false" standardcontroller="Billing_Line_Item__c" extensions="LStore.storedDocInline" id="aP">
+    <LStore:storedDocInlinePageComponent componentController="{!customControllerInline}" />
+    <script>
+        document.getElementsByClassName('treeViewCol')[0].style.display="none";
+        document.getElementsByClassName('bOverviewSearch')[0].style.display="none";
+    </script>
+</apex:page>

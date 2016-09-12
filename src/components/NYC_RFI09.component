@@ -1,0 +1,80 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:variable var="displayColumn" value="{!IF(OR(projectView), 'table-cell', 'none')}"/>
+    <apex:variable var="display2Column" value="{!IF(OR(projectView, AND(!projectView, show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="display3Column" value="{!IF(OR(projectView, AND(!projectView, !show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="colspanValue" value="{!IF(projectView, 2, 1)}"/>
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="{!IF(projectView, 3, 2)}" style="text-align: left;">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: {!IF(projectView, '33', '50')}%; display :{!display2Column}">Application Permit Response</th>
+                <th style="width: {!IF(projectView, '33', '50')}%; display :{!display3Column}">Application Sign Off Response</th>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader"><apex:outputText value="Signing/Sealing & License #"/></span></td>
+                <td style="display :{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Signing_Sealing_License_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Signing_Sealing_License_Sign_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Project Manager</span></td>
+                <td style="display :{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Project_Manager_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Project_Manager_Sign_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Description of plumbing work to be completed</span></td>
+                <td style="display :{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Description_plumbing_work_completed_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Description_plumbing_work_completed_Off__c}" /></td>
+            </tr>
+            <tr class="aCUnitsSection">
+                <td class="mainRequestHeader"><apex:outputText value="Plumbing fixture components (per floor/fixture)"/></td>
+                <td style="display :{!display2Column}" class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.ACUnitsPlumbing_fixture_components_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.ACUnitsPlumbing_fixture_components_Off__c}" /></td>
+            </tr>
+            <tr class="aCUnitsSection">
+                <td class="mainRequestHeader"><apex:outputText value="Remove:"/></td>
+                <td style="display :{!display2Column}" class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.ACUnits_Remove_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.ACUnits_Remove_Off__c}" /></td>
+            </tr>
+            <tr class="aCUnitsSection">
+                <td class="mainRequestHeader"><apex:outputText value="Replace:"/></td>
+                <td style="display :{!display2Column}" class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.ACUnits_Replace_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.ACUnits_Replace_Off__c}" /></td>
+            </tr>
+            <tr class="aCUnitsSection">
+                <td class="mainRequestHeader"><apex:outputText value="Relocate:"/></td>
+                <td style="display :{!display2Column}" class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.ACUnits_Relocate_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.ACUnits_Relocate_Off__c}" /></td>
+            </tr>
+            <tr class="aCUnitsSection">
+                <td><span class="mainRequestHeader">Install New : </span><br></br><i>(Click <a href="{!SchBHyperlink}" target="blank">Sch.B</a> for list of possible System Components )</i></td>
+                <td style="display :{!display2Column}" class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Install_New_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Install_New_Off__c}" /></td>
+            </tr>
+            <tr class="aCUnitsSection">
+                <td><span class="mainRequestHeader">Provide list of Energy Code Inspections </span><br></br><i>(Click <a href="{!TR8Hyperlink}" target="blank">TR8</a> to see the list of all possible inspections)</i></td>
+                <td style="display :{!display2Column}" class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Provide_Energy_Code_Inspections_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Provide_Energy_Code_Inspections_Off__c}" /></td>
+            </tr>
+            <tr class="aCUnitsSection">
+                <td><span class="mainRequestHeader">Provide list of Special/Progress Inspections  </span><br></br><i>(Click <a href="{!TR1Hyperlink}" target="blank">TR1</a> to see the list of all possible inspections)</i></td>
+                <td style="display :{!display2Column}" class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Provide_Special_Progress_Inspect_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Provide_Special_Progress_Inspect_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td style="display :{!display3Column}">
+                    Confirm that sprinkler inspections have been successfully completed and the results submitted to the DOB, by the plumbing subcontractor.
+                </td>
+                <td style="display :{!displayColumn}" class="permission-massage"><apex:outputText value="{!notRequiredPermission}"/></td>
+                <td style="display :{!display3Column}" class="secondColumn">
+                    <apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Confirm_Sprinkler_Inspections_Off__c}" />
+                </td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

@@ -1,0 +1,476 @@
+<apex:page standardController="Task_Item__c" extensions="ScanAndSendToClientExtention" showChat="false" sidebar="false" showHeader="false">
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}" />
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}"/>
+
+    <script type="text/javascript">function setFocusOnLoad() {}</script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('span .dateFormat').hide();
+        });
+        function showOverlay(){
+            $('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);
+        }
+        function hideOverlay(){
+            $('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });
+        }
+        function containerPerformAfterSaveAction(){
+            showOverlay();
+            updateRecordToSendEmail();
+        }
+        function generatePDF(){
+            showOverlay();
+            generateAndAttachPDF();
+        }
+
+        function isDeleteable(isDisabled){
+           if (!!isDisabled) {
+                return false;
+           }
+        }
+    </script>
+
+    <style>
+        .tableContainer {
+            width: 100%;
+            margin: 0px;
+            overflow: auto;
+        }
+        .floatingStyle {
+            position:relative;
+            background:#F2F3F3;
+        }
+        body {
+            margin: 0px !important;
+        }
+        .currentRecordForEmail{
+            background-color: #FFEFD5;
+        }
+        .inlineEditField:hover{
+            background-color, #E0F0F9;
+        }
+    </style>
+
+    <apex:form id="form" style="height: 1000px; overflow: auto;">
+        <apex:actionFunction name="saveTransmittal" action="{!saveTransmittal}" oncomplete="generatePDF()" reRender="pageMessages, formsTableOutputPanel"/>
+        <apex:actionFunction name="generateAndAttachPDF" action="{!attachPDF}" oncomplete="hideOverlay(); window.top.location='/{!taskItem.Id}'" reRender="pageMessages, formsTableOutputPanel"/>
+        <apex:actionFunction name="handleRowDelete" action="{!deleteDataRowAction}" reRender="pageMessages, formsTableOutputPanel" status="allPanelsOverlay">
+            <apex:param name="rowIdToRemove" value="" assignTo="{!scanAndSaveItemId}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="handleRowsUpdate" action="{!updateDataRowsAction}" reRender="pageMessages, formsTableOutputPanel, emailRecipients" status="allPanelsOverlay" />
+        <apex:actionStatus id="allPanelsOverlay" onstart="showOverlay();" onstop="hideOverlay();"/>
+        <apex:actionFunction name="containerUpdateParentRecordCC" action="{!updateRecordCCField}" reRender="" status="allPanelsOverlay">
+            <apex:param name="emailCC" value="" assignTo="{!emailsToDDP}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="updateRecordToSendEmail" action="{!updateRecordToSendEmail}" oncomplete="hideOverlay(); location.reload();" reRender="pageMessages, formsTableOutputPanel"/>
+        <div class="overlay" id="AllPannelOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"/>
+        <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+            <div style="text-align: center;">
+                <img src="{!$Resource.loading_bar}" />
+                <p style="color: #000; margin-bottom: 0px; font-size: 24px;">Please wait</p>
+            </div>
+        </div>
+        <apex:pageMessages id="pageMessages"/>
+
+        <apex:pageBlock >
+            <div style="max-height: 800px; overflow-y:scroll; width: 100%; margin:0px;" id="formsTableOutputArea">
+                <apex:outputPanel style="max-height: 300px; min-height: 100px; verflow:auto;" layout="block" id="formsTableOutputPanel">
+                    <table id="formTable" class="generalTableStyle">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" style="width: 2%;">Sent<br/>Email</th>
+                                <th rowspan="2" style="display:table-cell; width: 10%;">Artifacts</th>
+                                <th rowspan="2" style="display:table-cell; width: 5%;">Role</th>
+                                <th rowspan="2" style="display:table-cell; width: 8%;">Name</th>
+                                <th colspan="3" style="display:table-cell; width: 31%;">Sent</th>
+                                <th rowspan="2" style="width: 2%;">Delete<br/>Row</th>
+                            </tr>
+                            <tr class="nodrop nodrag">
+                                <th style="display:table-cell; width: 7%;">Date/Time</th>
+                                <th style="display:table-cell; width: 5%;">VIA</th>
+                                <th style="display:table-cell; width: 10%;">Tracking</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <apex:repeat value="{!scanAndSaveDataRows}" var="dataItem">
+                                <tr class="{!IF(dataItem.Is_Email_Sent__c,'currentRecordForEmail','')}">
+                                    <td class="data">
+                                        <apex:inputCheckbox value="{!dataItem.Is_Email_Sent__c}" disabled="{!disabledButton || isInactiveService}">
+                                            <apex:actionSupport event="onchange" reRender="formsTableOutputPanel" status="allPanelsOverlay"/>
+                                        </apex:inputCheckbox>
+                                    </td>
+                                    <td class="data inlineEditField">
+                                        <apex:inputText value="{!dataItem.Artifacts__c}" disabled="{!disabledButton || isInactiveService}"/>
+                                    </td>
+                                    <td class="data">
+                                        <apex:selectList value="{!dataItem.Project_Roster__c}" size="1" disabled="{!disabledButton || isInactiveService}">
+                                            <apex:actionSupport event="onchange" onsubmit="if({!dataItem.Id == scanAndSaveItemId}){$('#emailTemplateEditor').hide();} handleRowsUpdate(); return false;" status="allPanelsOverlay"/>
+                                            <apex:selectOptions value="{!rosterIdToRoleOptions}" />
+                                        </apex:selectList>
+                                    </td>
+                                    <td class="data">
+                                        <apex:outputText value="{!dataItem.Project_Roster_Name__c}"/>
+                                    </td>
+                                    <td class="data inlineEditField" >
+                                        <apex:outputField value="{!dataItem.Sent_Date_Time__c}" rendered="{!dataItem.Sent_Date_Time__c != null}" />
+                                    </td>
+                                    <td class="data inlineEditField" >
+                                        <apex:inputField value="{!dataItem.Sent_VIA__c}" rendered="{!!disabledButton && !isInactiveService}"/>
+                                        <apex:inputText value="{!dataItem.Sent_VIA__c}" rendered="{!disabledButton}" disabled="{!disabledButton || isInactiveService}"/>
+                                    </td>
+                                    <td class="data inlineEditField" >
+                                        <apex:inputText value="{!dataItem.Sent_Tracking__c}" disabled="{!disabledButton || isInactiveService}"/>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <apex:commandLink onclick="if({!dataItem.Id == scanAndSaveItemId}){$('#emailTemplateEditor').hide();} handleRowDelete('{!dataItem}'); return false;" rendered="{!dataItem.Sent_Date_Time__c == null && NOT(showTemplateEditor) && !isInactiveService}">
+                                            <img src="/img/func_icons/remove12.gif" alt="delete" title="delete" class="deleteItemImage" onmouseover="this.src='/img/func_icons/remove12_on.gif'" onmouseout="this.src='/img/func_icons/remove12.gif'"/>
+                                        </apex:commandLink>
+                                    </td>
+                                </tr>
+                            </apex:repeat>
+                        </tbody>
+                    </table>
+                    <script type="text/javascript">$('#formsTableOutputArea .dateFormat').hide();  $('#formsTableOutputArea span.dateInput input').attr('size', '16');</script>
+                </apex:outputPanel>
+                <apex:pageBlockButtons location="bottom" style="text-align: center;">
+                    <apex:outPutpanel id="buttonPanel">
+                        <apex:commandButton action="{!updateDataRowsAction}" value="Update All Rows" id="updateDataRowsButton" styleClass="milroseBtnStyle" status="allPanelsOverlay" reRender="transmittalArea, pageMessages, formsTableOutputPanel, buttonPanel" rendered="{!!disabledButton}" disabled="{!isInactiveService}"/>
+                        <apex:commandButton value="Add New Row" action="{!addNewDataRowAction}" id="addNewRowButton" styleClass="milroseBtnStyle" reRender="transmittalArea, pageMessages, formsTableOutputPanel, buttonPanel" status="allPanelsOverlay" rendered="{!!disabledButton}" disabled="{!isInactiveService}"/>
+                        <apex:commandButton value="Create Transmittal" action="{!previewTransmittal}" styleClass="milroseBtnStyle" status="allPanelsOverlay" reRender="transmittalArea, pageMessages, formsTableOutputPanel, buttonPanel" rendered="{!!disabledButton}" disabled="{!isInactiveService}"/>
+                        <apex:commandButton value="Send Email"  action="{!previewEmailForCurrentRecordAction}" styleClass="milroseBtnStyle" id="previewEmailButton" status="allPanelsOverlay" rendered="{!!disabledButton}" disabled="{!isInactiveService}"/>
+                    </apex:outPutpanel>
+                </apex:pageBlockButtons>
+            </div>
+        </apex:pageBlock>
+
+        <apex:outputPanel id="previewEmailArea">
+            <apex:outputPanel rendered="{!showTemplateEditor}" >
+                <c:PreviewAndSendEmail defaultBody="true" parentDDPRecordId="{!recordToSendEmailId}" taskItemRecord="{!taskItem}" DDPRecordName="{!DDPName}" emailTemplate="{!emailTemplateName}" draftTemplate="{!draftTemplateName}" sendAddressTo="{!recordToSendEmail.Project_Roster_Name__c} ({!recordToSendEmail.Email_To__c})" projectProfileRecord="{!projectProfileItem}" attachIds="{!recordsForAttachmentsIds}" emailTypeRecord="{!emailTypeRecord}" linkToCloseButton="{!linkToCloseTemplate}" contactId="{!contactRecipient}"/>
+            </apex:outputPanel>
+        </apex:outputPanel>
+
+        <!-- -------------------------- TRANSMITTAL ------------------------------------------------------------------------------ -->
+        <apex:outputPanel id="transmittalArea" layout="block" styleClass="transmittalAreaJQ" style="max-height: 600px; display: {!IF(showTransmittalEditor, 'block', 'none' )};" >
+            <table class="generalTableStyle" style="" layout="block">
+                <tr>
+                    <th class="headerRow" style=""> <apex:outputLabel value="TRANSMITTAL" styleClass="labelText"/> </th>
+                </tr>
+                <tr>
+                    <td>
+                        <table style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%;">  </th>
+                                    <th style="width: 5%;">Role</th>
+                                    <th style="width: 5%;">Name</th>
+                                    <th style="width: 5%;">Company Name</th>
+                                    <th style="width: 5%;">Company Address</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="width: 7%;"> Send to </td>
+                                    <td class="data" style="width: 10%;">
+                                        <apex:selectList value="{!rosterId}" size="1" disabled="true">
+                                            <apex:actionSupport event="onchange" action="{!rosterSendToAction}" rerender="transmittalArea, pageMessages" status="allPanelsOverlay"/>
+                                            <apex:selectOptions value="{!rosterIdToContact}" />
+                                        </apex:selectList>
+                                    </td>
+                                    <td class="data" style="width: 10%;">
+                                        <apex:outputText value="{!rosterForTransmittalSendTo.Name__c}"/>
+                                    </td>
+                                    <td class="data" style="width: 10%;">
+                                        <apex:outputField value="{!rosterForTransmittalSendTo.Company_Name__c}"/>
+                                    </td>
+                                    <td class="data" style="width: 10%;">
+                                        <apex:outputField value="{!rosterForTransmittalSendTo.Company_Address__c}"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 7%;">Reply to</td>
+                                    <td class="data" style="width: 10%;">
+                                        <apex:selectList value="{!rosterReplyToId}" size="1" disabled="false">
+                                            <apex:actionSupport event="onchange" action="{!rosterReplyToAction}" rerender="transmittalArea, pageMessages" status="allPanelsOverlay"/>
+                                            <apex:selectOptions value="{!rosterIdToContact}" />
+                                        </apex:selectList>
+                                    </td>
+                                    <td class="data" style="width:10%;">
+                                        <apex:outputText value="{!rosterForTransmittalReplyTo.Name__c}"/>
+                                    </td>
+                                    <td class="data" style="width:10%;">
+                                        <apex:outputField value="{!rosterForTransmittalReplyTo.Company_Name__c}"/>
+                                    </td>
+                                    <td class="data" style="width:10%;">
+                                        <apex:outputField value="{!rosterForTransmittalReplyTo.Company_Address__c}"/>
+                                    </td>
+                                </tr>
+                                <apex:repeat value="{!wrapoutRosters}" var="item1" >
+                                    <tr>
+                                        <td style="width: 7%;"> CC to </td>
+                                        <td class="data" style="width: 10%;">
+                                            <apex:selectList value="{!item1.rosterIdCCToInWrapper}" size="1" >
+                                                <apex:actionSupport event="onchange" action="{!rosterCCToAction}" rerender="transmittalArea, addCCButon, pageMessages" status="allPanelsOverlay"/>
+                                                <apex:selectOptions value="{!rosterIdToContact}" />
+                                            </apex:selectList>
+                                        </td>
+                                        <td class="data" style="width: 10%;">
+                                            <apex:outputField value="{!item1.rosterForTransmittal.Name__c}"/>
+                                        </td>
+                                        <td class="data" style="width: 10%;">
+                                            <apex:outputField value="{!item1.rosterForTransmittal.Company_Name__c}"/>
+                                        </td>
+                                        <td class="data" style="width: 10%;">
+                                            <apex:outputField value="{!item1.rosterForTransmittal.Company_Address__c}"/>
+                                        </td>
+                                    </tr>
+                                </apex:repeat>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            <apex:outputPanel layout="block">
+                <div style="display: inline-block;">
+                    <apex:outputLabel value="VIA: " styleClass="labelText" style="padding-left: 10px; padding-right: 10px;"/>
+                    <apex:inputField value="{!transmittal.VIA__c}" rendered="true" />
+                    <apex:outputLabel value="" styleClass="labelText" style="padding-left: 10px; padding-right: 10px;"/>
+                    <apex:commandButton action="{!addCCToRoster}" id="addCCButon" value="Add CC" style="" styleClass="milroseBtnStyle" rerender="transmittalArea" disabled="{!disableAddCCButton}" status="allPanelsOverlay"/>
+                </div>
+            </apex:outputPanel>
+
+            <table class="generalTableStyle" style="margin-top: 10px;" layout="block">
+                <tr>
+                    <th class="headerRow" style=""> <apex:outputLabel value="REASON" styleClass="labelText"/> </th>
+                </tr>
+                <tr>
+                    <td>
+                        <table style="width:100%;">
+                            <tr>
+                                <td class="data" style="text-align: right; border: 0;"> <apex:inputField value="{!transmittal.For_Approval__c}"/> </td>
+                                <td class="data" style="text-align: left;  border: 0;"> For Approval </td>
+                                <td class="data" style="text-align: right;  border: 0;"> <apex:inputField value="{!transmittal.Approved__c}"/> </td>
+                                <td class="data" style="text-align: left;  border: 0;"> Approved </td>
+                                <td class="data" style="text-align: right;  border: 0;"> Resubmit </td>
+                                <td class="data" style="text-align: left;  border: 0;"> <apex:inputField value="{!transmittal.Resubmit__c}"/> </td>
+                            </tr>
+                            <tr>
+                                <td class="data" style="text-align: right;  border: 0;"> <apex:inputField value="{!transmittal.For_your_use__c}"/> </td>
+                                <td class="data" style="text-align: left;  border: 0;"> For your use </td>
+                                <td class="data" style="text-align: right;  border: 0;"> <apex:inputField value="{!transmittal.Approved_as_notes__c}"/> </td>
+                                <td class="data" style="text-align: left;  border: 0;"> Approved as noted </td>
+                                <td class="data" style="text-align: right;  border: 0;"> Submit </td>
+                                <td class="data" style="text-align: left;  border: 0;"> <apex:inputField value="{!transmittal.Submit__c}"/> </td>
+                            </tr>
+                            <tr>
+                                <td class="data" style="text-align: right;  border: 0;"> <apex:inputField value="{!transmittal.As_requested__c}"/> </td>
+                                <td class="data" style="text-align: left;  border: 0;"> As requested </td>
+                                <td class="data" style="text-align: right;  border: 0;"> <apex:inputField value="{!transmittal.Return_for_Correction__c}"/> </td>
+                                <td class="data" style="text-align: left;  border: 0;"> Returned for Correction </td>
+                                <td class="data" style="text-align: right;  border: 0;"> Return </td>
+                                <td class="data" style="text-align: left;  border: 0;"> <apex:inputField value="{!transmittal.Return__c}"/> </td>
+                            </tr>
+                            <tr>
+                                <td class="data" style="text-align: right;  border: 0;"> <apex:inputField value="{!transmittal.Signature__c}"/> </td>
+                                <td class="data" style="text-align: left;  border: 0;"> Signature </td>
+                                <td class="data" style="text-align: right;  border: 0;"> <apex:inputField value="{!transmittal.Notary__c}"/> </td>
+                                <td class="data" style="text-align: left;  border: 0;"> Notary </td>
+                                <td class="data" style="text-align: right;  border: 0;"> Other </td>
+                                <td class="data" style="text-align: left;  border: 0;"> <apex:inputField value="{!transmittal.Other__c}"/> </td>
+                            </tr>
+                            <tr>
+                                <td class="data" style="text-align: right;  border: 0;"> <apex:inputField value="{!transmittal.Signature_Seal__c}"/> </td>
+                                <td class="data" style="text-align: left;  border: 0;"> Signature and Seal </td>
+                                <td class="data" style="text-align: right;  border: 0;"> <apex:inputField value="{!transmittal.For_review__c}"/> </td>
+                                <td class="data" style="text-align: left;  border: 0;"> For Review </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            <apex:outputPanel layout="block">
+                <div style="display: inline-block;">
+                    <apex:outputLabel value="Comments: " styleClass="labelText" style="padding-left: 10px; padding-right: 10px;"/>
+                    <apex:selectList value="{!transmittal.Comments__c}" size="1" >
+                        <apex:selectOptions value="{!comments}" />
+                    </apex:selectList>
+                </div>
+            </apex:outputPanel>
+
+            <apex:outputPanel layout="block" style="padding-top: 10px;">
+                <div style="display: inline-block;">
+                    <div style="display: inline-block;vertical-align: top;">
+                        <apex:outputLabel value="Additional Comments: " styleClass="labelText" style="padding-left: 10px; padding-right: 10px;"/>
+                    </div>
+                    <div style="display: inline-block;">
+                        <apex:inputField style="width: 500px;" value="{!transmittal.Additional_Comments__c}" rendered="true" />
+                    </div>
+                </div>
+            </apex:outputPanel>
+
+            <table id="FormsTableAtTransmittal" class="generalTableStyle" style="margin-top: 10px;" layout="block">
+                <tr>
+                    <th class="headerRow" style=""> <apex:outputLabel value="ARTIFACTS" styleClass="labelText"/> </th>
+                </tr>
+                <tr>
+                    <td>
+                        <table style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%;">Quantity</th>
+                                    <th style="width: 5%;">Artifact ID</th>
+                                    <th style="width: 5%;">Artifact Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                <apex:repeat value="{!recordsToSendMap}" var="item2">
+                                    <tr>
+                                        <td class="data" style="width: 10%;">
+                                            <apex:inputField value="{!recordsToSendMap[item2].Quantity__c}"/>
+                                        </td>
+                                        <td class="data" style="width: 10%; text-align: left;">
+                                            <apex:outputField value="{!recordsToSendMap[item2].Artifact_Id__c}"/>
+                                        </td>
+                                        <td class="data" style="width: 10%; text-align: left;">
+                                            <apex:outputField value="{!recordsToSendMap[item2].Artifacts__c}"/>
+                                        </td>
+                                    </tr>
+                                </apex:repeat>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            <apex:outputPanel layout="block">
+                <div style="text-allign: center; display: inline-block;">
+
+                    <apex:outputLabel value="" styleClass="labelText" style="text-align: center; padding: 0 10px 0;"/>
+                    <apex:actionFunction name="attachPDF" action="{!attachPDF}" reRender="msgError1" oncomplete="if($('.messageText').length == 0) { window.top.location = '/{!taskItem.Id}'; } hideOverlay(); return false;"/>
+                    <apex:commandButton action="{!saveTransmittal}" value="Create Transmittal" style="" styleClass="milroseBtnStyle" reRender="transmittalArea, msgError1, formsTableOutputPanel, buttonPanel" oncomplete="if($('.messageText').length == 0) { showOverlay(); attachPDF(); } return false;" status="allPanelsOverlay"/>
+                    <apex:outputLabel value="" styleClass="labelText" style="text-align: center; padding: 0 10px 0 1px;"/>
+                    <apex:actionFunction name="attachPDF1" action="{!attachPDF}" reRender="msgError1" />
+                    <apex:commandButton action="{!shippingRequestAction}" value="Create Transmittal and Shipping Request" style="" styleClass="milroseBtnStyle" reRender="ShippingRequestPanel, transmittalArea, msgError1, formsTableOutputPanel, buttonPanel" oncomplete="if($('.messageText').length == 0) { showOverlay(); attachPDF1(); } return false;" status="allPanelsOverlay"/>
+                    <apex:outputLabel value="" styleClass="labelText" style="text-align: center; padding: 0 10px 0 1px;"/>
+                    <apex:commandButton action="{!cancelAction}" value="Cancel" styleClass="milroseBtnStyle" reRender="ShippingRequestPanel, transmittalArea, msgError1, formsTableOutputPanel, buttonPanel" status="allPanelsOverlay"/>
+
+                </div>
+            </apex:outputPanel>
+
+        </apex:outputPanel>
+
+        <!--Shipping Request-->
+        <apex:outputPanel id="ShippingRequestPanel" layout="block" style="max-height: 600px; display: {!IF(isShippingRequestPanel, 'block', 'none' )};">
+            <apex:pageMessages id="msgError2"/>
+
+            <table id="GeneralTable" class="generalTableStyle" style="margin-top: 10px;" layout="block">
+                <tr>
+                    <th class="headerRow" style="text-align:left; border:0;"> <apex:outputLabel value="Shipping Method & Reference" styleClass="labelText"/> </th>
+                </tr>
+                <tr>
+                    <td>
+                        <table style="width:100%;">
+                            <tr>
+                                <td class="data" style="text-align:right; border:0;">Requested By</td>
+                                <td class="data" style="text-align:left; border:0;"><apex:outputField value="{!shippingRequest.Requested_By__c}"/></td>
+                                <td class="data" style="text-align:right; border:0;">Shipping Method</td>
+                                <td class="data" style="text-align:left; border:0;"><apex:outputField value="{!shippingRequest.Shipping_Method__c}" /></td>
+
+                            </tr>
+                            <tr>
+                                <td class="data" style="text-align: right; border: 0;"> Date </td>
+                                <td class="data" style="text-align: left; border: 0;"> <apex:outputField value="{!shippingRequest.Date__c}" /> </td>
+                                <td class="data" style="text-align: right; border: 0;"> MRC# Reference </td>
+                                <td class="data" style="text-align: left; border: 0;"> <apex:outputField value="{!shippingRequest.MRC_Reference__c}" /> </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            <table id="GeneralTable" class="generalTableStyle" style="margin-top: 10px;" layout="block">
+                <tr>
+                    <th class="headerRow" style="text-align:left; border:0;"> <apex:outputLabel value="Ship To && CC" styleClass="labelText"/> </th>
+                </tr>
+                <tr>
+                    <td>
+                        <table style="width:100%;">
+                            <tr>
+                                <td class="data" style="text-align:right; border:0;">Name</td>
+                                <td class="data" style="text-align:left; border:0;"><apex:inputField value="{!shippingRequest.Send_To_Name__c}"/></td>
+                                <td class="data" style="text-align:right; border:0;">Name</td>
+                                <td class="data" style="text-align:left; border:0;"><apex:inputField value="{!shippingRequest.CC_To_Name__c}"/></td>
+                            </tr>
+                            <tr>
+                                <td class="data" style="text-align: right; border: 0;"> Company </td>
+                                <td class="data" style="text-align: left; border: 0;"> <apex:inputField value="{!shippingRequest.Send_To_Company__c}"/> </td>
+                                <td class="data" style="text-align: right; border: 0;"> Company </td>
+                                <td class="data" style="text-align: left; border: 0;"> <apex:inputField value="{!shippingRequest.CC_To_Company__c}"/> </td>
+                            </tr>
+                            <tr>
+                                <td class="data" style="text-align: right; border: 0;"> Phone </td>
+                                <td class="data" style="text-align: left; border: 0;"> <apex:inputField value="{!shippingRequest.Phone__c}"/> </td>
+                                <td class="data" style="text-align: right; border: 0;"> Phone </td>
+                                <td class="data" style="text-align: left; border: 0;"> <apex:inputField value="{!shippingRequest.CC_Phone__c}"/> </td>
+                            </tr>
+                            <tr>
+                                <td class="data" style="text-align: right; border: 0;"> Address </td>
+                                <td class="data" style="text-align: left; border: 0;"> <apex:inputField value="{!shippingRequest.Address__c}"/> </td>
+                                <td class="data" style="text-align: right; border: 0;"> Address </td>
+                                <td class="data" style="text-align: left; border: 0;"> <apex:inputField value="{!shippingRequest.CC_Address__c}"/> </td>
+                            </tr>
+                            <tr>
+                                <td class="data" style="text-align: right; border: 0;"> Special Instructions </td>
+                                <td class="data" style="text-align: left; border: 0;"> <apex:inputField value="{!shippingRequest.Special_Instructions__c}"/> </td>
+                                <td class="data" style="text-align: right; border: 0;"> Special Instructions </td>
+                                <td class="data" style="text-align: left; border: 0;"> <apex:inputField value="{!shippingRequest.CC_Special_Instructions__c}"/> </td>
+                            </tr>
+
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            <table id="GeneralTable" class="generalTableStyle" style="margin-top: 10px;" layout="block">
+                <tr>
+                    <th class="headerRow" style="text-align:left; border:0;"> <apex:outputLabel value="Status & Tracking Information (For Mailroom Use Only)" styleClass="labelText"/> </th>
+                </tr>
+                <tr>
+                    <td>
+                        <table style="width:100%;">
+                            <tr>
+                                <td class="data" style="text-align:right; border:0;">Status</td>
+                                <td class="data" style="text-align:left; border:0;"><apex:inputField value="{!shippingRequest.Status__c}"/></td>
+                                <td class="data" style="text-align:right; border:0;">Tracking Number</td>
+                                <td class="data" style="text-align:left; border:0;"><apex:inputField value="{!shippingRequest.Tracking_Number__c}"/></td>
+
+                            </tr>
+
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            <apex:outputPanel layout="block">
+                <div style="text-allign: center; display: inline-block;">
+                    <apex:outputLabel value="" styleClass="labelText" style="text-align: center; padding: 0 10px 0;"/>
+                    <apex:commandButton action="{!sendShippingRequestAction}" value="Send Request" style="" styleClass="milroseBtnStyle" reRender="ShippingRequestPanel, FormsPanel, PrintPendingFormsPanel, TransmittalPanel, msgError2" oncomplete="if($('.messageText').length == 0) { window.top.location = '/{!taskItem.Id}'; } hideOverlay(); return false;" status="allPanelsOverlay"/>
+                    <apex:outputLabel value="" styleClass="labelText" style="text-align: center; padding: 0 10px 0 1px;"/>
+                    <apex:commandButton action="{!cancelFromShipping}" value="Cancel" styleClass="milroseBtnStyle" oncomplete="if($('.messageText').length == 0) { window.top.location = '/{!taskItem.Id}'; } hideOverlay(); return false;" status="allPanelsOverlay"/>
+                </div>
+            </apex:outputPanel>
+
+        </apex:outputPanel>
+        <!-- End Shipping Request-->
+
+        <!-- -------------------------- END TRANSMITTAL ---------------------------------------------------------------------- -->
+
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+
+        <apex:inputField value="{!Task_Item__c.Project_Profile__c}" rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Service_Item__c}" rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Project_Profile__r.Proposal__c}"   rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Service_Item__r.Status__c}" rendered="false"/>
+    </apex:form>
+</apex:page>

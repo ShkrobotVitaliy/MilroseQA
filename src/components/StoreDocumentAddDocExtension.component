@@ -1,0 +1,111 @@
+<apex:component layout="none">
+    <script>
+    var drawingsTitleField;
+
+    jQuery(document).ready(function($) {
+            drawingsTitleField = $("input[id$=DrawingsTitleField]");
+    });
+        function isEmpty( inputStr ) { 
+            if ( null == inputStr || "" == inputStr ) {
+                return true; 
+            } 
+            return false; 
+        }
+
+        function requiredFields() {
+            if( isEmpty( drawingsTitleField.val() ) ) {
+                return true;
+            }
+            return false;
+        }    
+        setFocus = function() {};
+        function checkDescriptionLength(words) {
+            var description = words;
+            console.log(description);
+            if(description != null && description.length > 255) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    </script>    
+    <style>
+        .requiredBlockWrapper{
+            position: relative;
+        }
+        .requiredBlockMarker{
+            background-color: #c00 !important;
+            position: absolute;
+            left: -4px;
+            width: 3px;
+            top: 0px;
+            height: 18px;
+        }
+    </style>
+    <apex:attribute name="lStoreDocumentSObject" type="LStore__Stored_Document__c" required="true" description="This attribute should accept a LStore__Stored_Document__c"/>
+    <apex:attribute name="isRequired" type="Boolean" required="true" description="" />
+    <apex:attribute name="author" type="selectOption[]" required="true" description="" />
+    <apex:attribute name="relatedObjectId" type="String" required="false" description="" />
+    <apex:attribute name="authorSelect" type="String" required="false" description="" />
+    <apex:attribute name="noAuthorMessage" type="String" required="false" description="The message will be displayed if author picklist is empty." />
+    <script>
+        
+        jQuery(document).ready(function($) {
+            setFieldsByObjectAction();
+        });    
+    </script>
+    <apex:outputPanel style="display:none;" id="hiddenLookupFieldBlockId">
+        <apex:inputField value="{!lStoreDocumentSObject.Proposal__c}" />
+    </apex:outputPanel>
+    <apex:pageBlockSection columns="1" id="lStoreDocumentSObjectId">
+        <apex:pageBlockSectionItem >
+            <apex:pageBlock mode="edit">
+                <apex:pageBlockSection columns="2">
+                    <!--Title-->
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Document Title:"/>
+                        <apex:outputPanel layout="block" id="DrawingsTitleOutputPanel">
+                            <apex:outputPanel layout="block" styleClass="requiredBlockWrapper" rendered="{!isRequired}"><div class="requiredBlockMarker"></div></apex:outputPanel>
+                            <apex:inputText id="DrawingsTitleField" value="{!lStoreDocumentSObject.Drawings_Title__c}" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+
+                    <!--Description-->
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Document Description:"/>
+                        <apex:outputPanel layout="block" id="LStoreDescriptionOutputPanel">
+                            <apex:inputField styleClass="lStoreDescriptionFieldClass" id="LStoreDescriptionField" value="{!lStoreDocumentSObject.LStore__Description__c}" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+
+                    <!--File Format-->
+
+                    <!--Document Author-->
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Document Author:"/>
+                        <apex:outputPanel layout="block" id="DrawingAuthorPanel">
+                            <apex:selectList value="{!authorSelect}" multiselect="false" size="1">
+                                <apex:selectOptions value="{!author}"/>
+                                <apex:selectOption itemValue="" itemLabel="-- None --" 
+                                    rendered="{! author.size == 0 && NOT(ISBLANK(noAuthorMessage)) }"/>
+                            </apex:selectList>
+                            <br/>
+                            <apex:pageMessage summary="{! noAuthorMessage }" severity="info" strength="2" 
+                                rendered="{! author.size == 0 && NOT(ISBLANK(noAuthorMessage)) }"/>
+                        </apex:outputPanel>
+
+                    </apex:pageBlockSectionItem>  
+
+                    <!--Key Words-->
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.LStore__Stored_Document__c.fields.LStore__Keywords__c.Label}:"/>
+                        <apex:outputPanel layout="block" id="LStoreKeywordsOutputPanel">
+                            <apex:inputField id="LStoreKeywordsField" value="{!lStoreDocumentSObject.LStore__Keywords__c}" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+
+                </apex:pageBlockSection>
+            </apex:pageBlock>
+        </apex:pageBlockSectionItem>
+    </apex:pageBlockSection>
+</apex:component>

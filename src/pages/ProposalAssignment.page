@@ -1,0 +1,55 @@
+<apex:page standardController="Proposal__c" extensions="ProposalAssignmentContExt" standardStylesheets="true" sidebar="false" showHeader="false">
+	<apex:includeScript value="{!URLFOR($Resource.ProposalWizardResources, 'jquery-162.min.js')}" />
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('a').attr('onblur', '').attr('onfocus', '').attr('onmouseover', '').attr('onmouseout', '');
+			$('a').click(function(event) {
+				window.parent.location = $(this).attr('href');
+				return false;
+			});
+		});
+	</script>
+	<apex:pageBlock mode="maindetail">
+		<apex:pageBlockSection columns="2" showHeader="false">
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="{!$ObjectType.Proposal__c.fields.Account_Executive__c.label}"/>
+				<apex:outputField value="{!assingmentProposal.Account_Executive__c}"/>
+			</apex:pageBlockSectionItem>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="{!$ObjectType.Project_Team__c.fields.Production_Manager__c.label}"/>
+				<apex:outputField value="{!assingmentProposal.Project_Profile__r.Production_Manager__c}"/>
+			</apex:pageBlockSectionItem>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="{!$ObjectType.Proposal__c.fields.Partner__c.label}"/>
+				<apex:outputField value="{!assingmentProposal.Partner__c}"/>
+			</apex:pageBlockSectionItem>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="{!$ObjectType.Project_Team__c.fields.Project_Manager__c.label}"/>
+				<apex:outputField value="{!assingmentProposal.Project_Profile__r.Project_Manager__c}"/>
+			</apex:pageBlockSectionItem>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="{!$ObjectType.Proposal__c.fields.Salesperson__c.label}"/>
+				<apex:outputField value="{!assingmentProposal.Salesperson__c}"/>
+			</apex:pageBlockSectionItem>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="{!$ObjectType.Project_Team__c.fields.Project_Member__c.label}"/>
+				<apex:outputField value="{!assingmentProposal.Project_Profile__r.Project_Member__c}"/>
+			</apex:pageBlockSectionItem>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="{!$ObjectType.Project_Profile__c.fields.Project_Team__c.label}"/>
+				<apex:outputField value="{!assingmentProposal.Project_Profile__r.Project_Team__c}"/>
+			</apex:pageBlockSectionItem>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="{!$ObjectType.Project_Team__c.fields.FREP__c.label}"/>
+				<apex:outputField value="{!assingmentProposal.Project_Profile__r.FREP__c}"/>
+			</apex:pageBlockSectionItem>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="Proposal Creator"/>
+				<apex:outputPanel layout="none">
+					<apex:outputField rendered="{!assingmentProposal.Proposal_Specialist__c != null}" value="{!assingmentProposal.Proposal_Specialist__c}"/>
+					<apex:outputField rendered="{!assingmentProposal.Proposal_Specialist__c == null}" value="{!assingmentProposal.OwnerId}"/>
+				</apex:outputPanel>
+			</apex:pageBlockSectionItem>
+		</apex:pageBlockSection>
+	</apex:pageBlock>
+</apex:page>

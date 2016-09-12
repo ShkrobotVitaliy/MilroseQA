@@ -1,0 +1,29 @@
+<apex:page standardController="Form_Meta_Data_Object_1__c"  extensions="CommonFormController" >
+<head>
+<script src="/soap/ajax/25.0/connection.js"></script>
+<script src="/soap/ajax/25.0/apex.js"></script>
+</head>
+
+
+<img src="/img/loading32.gif" id="SkyeditorLoagingImage" style="display:none;"/>
+
+<table border="0" cellpadding="0" cellspacing="0" style="width:100%;" ><tr><td>
+<apex:outputPanel rendered="{! NOT(hidePageBody)}" id="pagePanel" styleClass="base" layout="block">
+<apex:outputPanel style="position:relative;" >
+</apex:outputPanel><apex:form id="sve_form1"   styleClass="sve_form1"   >
+<apex:outputPanel layout="block"   style="position:relative;width:816px;height:1056px;" >
+<img   src="{!URLFOR($Resource.FPA9_2)}"   style="width:816px;height:1056px;left:0px;top:0px;position:absolute;" /><apex:commandButton action="{!prevPage}"   id="Component2"   immediate="false"   value="Previous"   style="left:11px;top:7px;position:absolute;width:66px;" >
+</apex:commandButton><apex:commandButton action="{!cancelPage}"   id="Component3"   immediate="false"   value="Cancel"   style="left:317px;top:7px;position:absolute;width:66px;" >
+</apex:commandButton><apex:commandButton action="{!savePage}"   id="Component4"   immediate="false"   value="Save"   style="left:405px;top:7px;position:absolute;width:66px;" >
+</apex:commandButton><apex:commandButton action="{!nextPage}"   id="Component5"   immediate="false"   value="Next"   style="left:717px;top:7px;position:absolute;width:66px;" >
+</apex:commandButton><apex:outputPanel styleclass="fieldwrapper " style="left:45px;top:712px;position:absolute;" >
+<apex:inputField id="Component1"   style="width:246px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Signator_2_Full_Name__c}">
+</apex:inputField>
+</apex:outputPanel>
+ </apex:outputPanel></apex:form><script type="text/javascript">
+function aggregateCalc_all(triggerId) {
+}
+</script>
+</apex:outputPanel>
+</td></tr></table>
+</apex:page>

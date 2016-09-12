@@ -1,0 +1,5 @@
+<apex:page standardController="Project_Profile__c" extensions="CreateProjectLabelController" action="{!autoRun}" sidebar="false" showHeader="false" showChat="false">
+    <apex:form >
+        <apex:pageMessages id="msgs"/>
+    </apex:form>
+</apex:page>

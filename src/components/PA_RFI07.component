@@ -1,0 +1,44 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId"    description="Id of RFI Scope Record"                            type="String"  required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown"                  type="Boolean" required="false" />
+    
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="2" style="text-align: left;">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: 50%;">Application Permit Response</th>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Signing/Sealing &amp; License \#</span></td>
+                <td class="secondColumn"> <apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_PA__r.Low_Voltage_Electrician_Signing_App__c}" /> </td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Project Manager &amp; Information</span> (address, phone, fax &amp; mobile)</td>
+                <td class="secondColumn"> <apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_PA__r.Project_Manager_Information_App__c}" /> </td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Contractor ID \#</span></td>
+                <td class="secondColumn"> <apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_PA__r.Contractor_Id_App__c}" /> </td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Description of work to be completed</span></td>
+                <td class="secondColumn"> <apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_PA__r.Description_Of_Work_To_Be_Completed_App__c}" /> </td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Estimated Construction Cost </span> (filing fees may be issued by the Plumbing Contractor only. Fees must be issued prior to the issuance of the permits)</td>
+                <td class="secondColumn"> <apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_PA__r.Estimated_Construction_Cost_App__c}" /> </td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">AUTHORIZATION LETTER: </span> For the this trade an authorization letter is required for Milrose to file and or pick-up the permits on the Sub Contractors behalf</td>
+                <td class="secondColumn">Please attach the letter to your response  
+                    <br /> <apex:inputCheckbox value="{!rfiScopeRecord.RFI_Scope_Description_PA__r.Letter_provided_attached__c}" /> Letter provided/ attached 
+                    <br /> <apex:inputCheckbox value="{!rfiScopeRecord.RFI_Scope_Description_PA__r.Letter_not_yet_available__c}" /> Letter not yet available 
+                </td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

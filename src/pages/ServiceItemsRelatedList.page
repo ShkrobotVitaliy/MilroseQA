@@ -1,0 +1,552 @@
+<apex:page standardController="Project_Profile__c" extensions="ServiceItemsExtension" showHeader="{!showHeader}">
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script src="{!$Resource.jquery_tablednd_js}"></script>
+    <!-- <script src="{!URLFOR($Resource.jquery_vfFloatingHeaders)}"></script> -->
+    <!-- <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}"/> -->
+    <!-- <apex:includeScript value="{!URLFOR($Resource.jqQueryTableSorter, 'jquery.tablesorter.min.js')}"/> -->
+    <!-- <apex:includeScript value="{!URLFOR($Resource.jqQueryTableSorter, 'jquery.tablesorter.pager.js')}"/> -->
+    <!-- apex:stylesheet value="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/css/jquery.dataTables.css')}"/> -->
+    <!-- <script type="text/javascript" language="javascript" src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.js')}"></script> -->
+    <!--script type="text/javascript" language="javascript" src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.dataTables.js')}"></script> -->
+    <script>function setFocusOnLoad() {}</script>
+    <style type="text/css">
+        body { margin: 0 !important; }
+        th, td { white-space: normal; /*word-break: break-word;*/ }
+        .phaseTH { text-align: left !important; color: blue !important; } /* G300 MRS-6637 */
+        .phaseTH:hover { background-color: #D0E8F3 !important; cursor: pointer !important; } /* G300 MRS-6637 */
+        .phaseTH:active { background-color: #C6E0EA !important; } /* G300 MRS-6637 */
+        .addedCoServiceTD { color: green; font-weight: 700; }
+        .addedCoServiceTR { background: #EFE; }
+        .removedCoServiceTD, .canceledCoServiceTD { color: red; font-weight: 700; }
+        .removedCoServiceTR, .canceledCoServiceTR { background: #FEE; }
+        .pendingCoServiceTD, .otherCoServiceTD { color: #777; font-weight: 700; }
+        .pendingCoServiceTR, .otherCoServiceTR { background: #EEE; }
+        .floatingStyle { background: #F2F3F3; position: relative; }
+        .expander { display: inline-block; margin: 0px 4px 0px 2px; width: 9px; height: 9px; }
+        .expandImage { background-image: url('/img/setup_plus.gif'); }
+        .contractImage { background-image: url('/img/setup_minus.gif'); }
+        /* DataTables style */
+        /*table.dataTable tr.odd,
+        table.dataTable tr.even,
+        table.dataTable tr.odd td.sorting_1,
+        table.dataTable tr.odd td.sorting_2,
+        table.dataTable tr.odd td.sorting_3,
+        table.dataTable tr.even td.sorting_1,
+        table.dataTable tr.even td.sorting_2,
+        table.dataTable tr.even td.sorting_3 { background: #FFF; }*/
+    </style>
+
+    <script type="text/javascript">
+        // Apply DataTables Plugin
+        $(document).ready(function () {
+            //applyDataTablePlugin();
+            calculateHeaderWidth();
+            calculateHeaderWidthMilestones();
+        });
+
+        window.onresize = function() {
+            calculateHeaderWidth();
+            calculateHeaderWidthMilestones();
+        }
+
+        function applyDataTablePluginAndScroll(){
+            //applyDataTablePlugin();
+            calculateHeaderWidthMilestones();
+            scrollTableServices();
+            scrollTableMilestone();
+            calculateHeaderWidth();
+        }
+        function calculateHeaderWidth() {
+            if( {!atLeastOneServiceExist} ) {
+                var servicesTableColumnsCount = $('#servicesTable tbody tr[id]:visible:first td').length;
+                for( i = 0; i < servicesTableColumnsCount; i++ ) {
+                    var servicesTableColumnsExtender = i < servicesTableColumnsCount - 1 ? 1 : 0;
+                    $('#servicesTableHeader th:eq(' + i + ')').attr( 'width', $('#servicesTable tbody tr[id]:visible:first td:eq(' + i + ')').width() + servicesTableColumnsExtender );
+                }
+            }
+        }
+        // Fix header width --- Milestones
+        function calculateHeaderWidthMilestones() {
+            if( {!atLeastOneMilestoneExist} ) {
+                var milestonesTableColumnsCount = $('#milestonesTable tbody tr[id]:first td').length;
+                for( i = 0; i < milestonesTableColumnsCount; i++ ) {
+                    var milestonesTableColumnsExtender = i < milestonesTableColumnsCount - 1 ? 1 : 0;
+                    $('#milestonesTableHeader th:eq(' + i + ')').attr( 'width', $('#milestonesTable tbody tr[id]:first td:eq(' + i + ')').width() + milestonesTableColumnsExtender );
+                }
+            }
+            jQuery('#milestoneDivHeader').width(100 + '%');
+            if (jQuery('#milestonesTable').height() > 250 ) {
+                jQuery('#milestoneDivHeader').width(jQuery('#milestoneDivHeader').width() - 17 + 'px');
+            };
+        }
+        function serializeServices() {
+            var result = '';
+            var tableRows = $('#servicesTable tbody tr[id]');
+                for( var trIndex = 0; trIndex < tableRows.length; trIndex++ ) {
+                    result += tableRows[trIndex].id;
+                    if( trIndex != tableRows.length - 1 ) result += '{!getServiceItemSplitter}';
+                }
+                if( result.lastIndexOf('{!getServiceItemSplitter}') === result.length - 1 ) result = result.substr(0, result.length - 1);
+            console.log(result);
+            return result;
+        }
+
+        // Get Scroll Position --- Standard Services
+        var rowToScrollServices = 0;
+        function handleEditPredecessorNameOnAction( itemId, rowIndex, enableEditByUser){
+            if ('false' == enableEditByUser) {
+                return true;
+
+            }
+
+            rowToScrollServices = rowIndex;
+            editPredecessorNameOnAction( itemId );
+        }
+        function handleEditSuccessorNameOnAction( itemId, rowIndex, enableEditByUser) {
+            if ('false' == enableEditByUser) {
+                return;
+
+            }
+
+            rowToScrollServices = rowIndex;
+            editSuccessorNameOnAction( itemId );
+        }
+        // Set Scroll Position --- Standard Services
+        function scrollTableServices(){
+            $('#servicesTable').parent('div').scrollTop( $('#servicesTable tr').eq(rowToScrollServices).offset().top - $('#servicesTable tr').first().offset().top - $('#serviceTableDivHeader').outerHeight() - 6 );
+        }
+        // Get Scroll Position --- Milestones
+        function handleEditMilestoneName( itemRecordId, rowIndex ){
+            rowToScrollMilestone = rowIndex;
+            editMilestoneName(itemRecordId);
+        }
+        // Set Scroll Position --- Milestones
+        function scrollTableMilestone(){
+            $('#milestonesTable').parent('div').scrollTop( $('#milestonesTable tr').eq(rowToScrollMilestone).offset().top - $('#milestonesTable tr').first().offset().top - $('#milestoneDivHeader').outerHeight() - 6 );
+        }
+
+        // Apply DragAndDrop
+        function attachDndToTables( table ) {
+            $('#'+table).tableDnD({
+                onDragClass: 'rowDnD',
+                dragHandle: '.dragHandle'
+            });
+        }
+
+        // collapses / expands phases
+        function togglePhase( id, theader, eventA ) { //G300 MRS-6637
+            if( eventA.target.tagName != 'A' ) {
+                $("." + id).toggle();
+                var image = $(theader).find('.expander');
+                if( $(image).hasClass( 'contractImage' ) ) {
+                    $(image).removeClass( 'contractImage' ).addClass( 'expandImage' );
+                } else {
+                    $(image).removeClass( 'expandImage' ).addClass( 'contractImage' );
+                }
+                calculateHeaderWidth();
+            }
+        }
+
+    </script>
+
+    <apex:form >
+        <apex:pageMessages id="message"/>
+        <apex:actionStatus id="allPanelsOverlay" onstart="$('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);" onstop="$('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });"/>
+        <apex:actionFunction name="updateServiceRowPositions" action="{!updateServiceRowPositions}" reRender="message, servicesTable" oncomplete="calculateHeaderWidth();" status="allPanelsOverlay">
+            <apex:param name="serializedServiceIds" value="" assignTo="{!serializedServiceIds}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="changeMunicipalAgency" action="{!changeMunicipalAgency}" status="allPanelsOverlay" reRender="message, rep1, servicesTable" oncomplete="applyDataTablePluginAndScroll();">
+            <apex:param name="serviceItemId" value="" assignTo="{!serviceItemId}"/>
+            <apex:param name="serializedServiceIds" value="" assignTo="{!serializedServiceIds}"/>
+        </apex:actionFunction>
+
+        <!-- Add new Milestone buttons-->
+        <apex:actionFunction name="createNewMilestone" action="{!createNewMilestone}" oncomplete="applyDataTablePluginAndScroll();" reRender="servicesCoTable, message2, rep1, servicesTable, addMilestoneOutputPanel" status="allPanelsOverlay"/>
+        <apex:actionFunction name="saveNewMilestoneAction" action="{!saveNewMilestoneAction}" oncomplete="applyDataTablePluginAndScroll();" reRender="servicesCoTable, message2, rep1, servicesTable, addMilestoneOutputPanel" status="allPanelsOverlay">
+            <apex:param name="saveAndNew" value="" assignTo="{!saveAndNew}"/>
+        </apex:actionFunction>
+
+        <!-- Manage existing Milestones buttons-->
+        <apex:actionFunction name="applyService" action="{!applyService}" reRender="servicesCoTable, message, rep1, servicesTable" oncomplete="applyDataTablePluginAndScroll();" status="allPanelsOverlay">
+            <apex:param name="serviceIdToApply" value="" assignTo="{!serviceIdToApply}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="editMilestoneName" action="{!editMilestoneName}" reRender="servicesCoTable, message2, rep1, servicesTable" oncomplete="applyDataTablePluginAndScroll();"  status="allPanelsOverlay">
+            <apex:param name="milestoneIdToProcess" value="" assignTo="{!milestoneIdToProcess}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="deleteMilestone" action="{!deleteMilestone}" oncomplete="applyDataTablePluginAndScroll();" reRender="servicesCoTable, message2, rep1, servicesTable" status="allPanelsOverlay">
+            <apex:param name="milestoneIdToProcess" value="" assignTo="{!milestoneIdToProcess}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="applyMilestoneName" action="{!applyMilestoneName}" oncomplete="applyDataTablePluginAndScroll();" reRender="servicesCoTable, message2, rep1, servicesTable" status="allPanelsOverlay">
+            <apex:param name="milestoneIdToProcess" value="" assignTo="{!milestoneIdToProcess}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="cancelMilestoneNameChanges" action="{!cancelMilestoneNameChanges}" oncomplete="applyDataTablePluginAndScroll();" reRender="servicesCoTable, message2, rep1, servicesTable, myTableBlogForce9" status="allPanelsOverlay">
+            <apex:param name="milestoneIdToProcess" value="" assignTo="{!milestoneIdToProcess}"/>
+        </apex:actionFunction>
+
+        <!-- Change Milestones in Services functions -->
+        <apex:actionFunction name="editPredecessorNameOnAction" action="{!editPredecessorNameOnAction}" oncomplete="applyDataTablePluginAndScroll();" reRender="servicesCoTable, message, rep1, servicesTable" status="allPanelsOverlay" >
+            <apex:param name="selectedPredecessorServiceId" value="" assignTo="{!selectedPredecessorServiceId}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="editSuccessorNameOnAction" action="{!editSuccessorNameOnAction}" oncomplete="applyDataTablePluginAndScroll();" reRender="servicesCoTable, message, rep1, servicesTable" status="allPanelsOverlay">
+            <apex:param name="selectedSuccessorServiceId" value="" assignTo="{!selectedSuccessorServiceId}"/>
+        </apex:actionFunction>
+
+        <div class="AllInfoPanelHolder" style="position: relative;">
+            <div class="overlay" id="AllPannelOverlay" style="opacity: .2; filter:alpha(opacity=20);"></div>
+            <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background: #E0F2FF; top: 35%;">
+                <div style="text-align: center;">
+                    <img src="{!$Resource.loading_bar}" />
+                    <p style="color: #000; margin-bottom: 0; font-size: 24px;">Please wait</p>
+                </div>
+            </div>
+
+            <apex:outputPanel layout="block" id="servicesCoTable">
+                <div style="max-height: 300px; overflow: auto; margin-bottom: 10px; ">
+                <!-- CO Services -->
+                    <apex:repeat value="{!coServicesList}" var="co" id="rep1">
+                        <table id="servicesCoTable" class="generalTableStyle" style="width:100%; padding: 0; margin: 0; border-collapse: collapse;">
+                            <thead>
+                                <tr>
+                                    <th width="2%">Status</th>
+                                    <th width="10%">Service Number</th>
+                                    <th width="24%">Service Name</th>
+                                    <th width="6%" style="display: {!IF(Project_Profile__c.Proposal__r.Is_Floors_To_Services__c == true, 'table-cell', 'none')};">Floors</th>
+                                    <th width="8%">Municipal Agency #</th>
+                                    <th width="10%">Phase</th>
+                                    <th width="10%">Activity Status</th>
+                                    <th width="17%">Predecessor Milestone</th>
+                                    <th width="17%">Successor Milestone</th>
+                                    <th width="2%">Act</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th colspan="{!IF(Project_Profile__c.Proposal__r.Is_Floors_To_Services__c == true, '10', '9')}" style="display: {!IF(co.changeOrderDate != null, 'table-cell', 'none')}; text-align: center; color: blue">Change Order {!co.changeOrderNumber}: {!co.changeOrderStatus} {!co.changeOrderDate}</th>
+                                </tr>
+                                <apex:repeat value="{!co.serviceItems}" var="si">
+                                    <tr id="{!si.Id}" class="{!IF(co.isPending, 'pendingCoServiceTR', IF(co.isCanceled, 'canceledCoServiceTR', IF( !co.isApproved, 'otherCoServiceTR', IF(!si.Is_Amendmend_Deleted__c, 'addedCoServiceTR', 'removedCoServiceTR'))))}">
+                                        <td class="data {!IF(co.isPending, 'pendingCoServiceTD', IF(co.isCanceled, 'canceledCoServiceTD', IF(!si.Is_Amendmend_Deleted__c, 'addedCoServiceTD', 'removedCoServiceTD')))}" align="center">
+                                            {!IF(si.Is_Amendmend_Added__c, '+', '-')}
+                                        </td>
+                                        <td>
+                                            <apex:outputLink target="_blank" value="/{!si.Id}">
+                                                <apex:outputText value="{!serviceIdToAdditionalFields[si.Id].Name}" title="Owner: {!serviceIdToAdditionalFields[si.Id].Owner.Name}"/> <!-- MRS 6946 -->
+                                            </apex:outputLink>
+                                        </td>
+                                        <td align="left" class="name {!IF(co.isPending, 'pendingCoServiceTD', IF(co.isCanceled, 'canceledCoServiceTD', IF( !co.isApproved, 'otherCoServiceTD', IF(!si.Is_Amendmend_Deleted__c, 'addedCoServiceTD', 'removedCoServiceTD'))))}">
+                                            <!-- MRS 7053 -->
+                                            <apex:outputText value="{!IF( serviceIdToAdditionalFields[si.Id].Custom_Work_Type_Service__c, serviceIdToAdditionalFields[si.Id].Short_Service_Name_Worktype__c, IF( serviceIdToAdditionalFields[si.Id].Service_Name_Short__c == null, serviceIdToAdditionalFields[si.Id].Service_Name_Full__c, serviceIdToAdditionalFields[si.Id].Service_Name_Short__c ) )}"/>
+                                        </td>
+                                        <td class="name" style="display: {!IF(Project_Profile__c.Proposal__r.Is_Floors_To_Services__c == true, 'table-cell', 'none')}; text-align:center;">
+                                            {!serviceIdToAdditionalFields[si.Id].Floor__c}
+                                        </td>
+                                        <td align="left" class="name" style="text-align: left;">
+                                            <apex:outputPanel layout="none" rendered="{!!co.isApproved || si.Is_Amendmend_Deleted__c}">
+                                                <input disabled="disabled" style="width: 80px;" value="{!si.Municipal_Agency_ID__c}"></input>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{!!(!co.isApproved || si.Is_Amendmend_Deleted__c)}">
+                                                <apex:inputText value="{!si.Municipal_Agency_ID__c}" style="width: 80px;" onchange="changeMunicipalAgency( '{!si.Id}', serializeServices() );"/>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{!serviceIdToAdditionalFields[si.Id].Municipal_Agency_Hyperlink__c != null}">
+                                                <a href="{!serviceIdToAdditionalFields[si.Id].Municipal_Agency_Hyperlink__c}" target="_blank">Bis&nbsp;Link</a>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{!serviceIdToAdditionalFields[si.Id].Municipal_Agency_Hyperlink__c == null}">
+                                                <!-- <span style="color: #AAA;">Bis&nbsp;Link</span> -->
+                                            </apex:outputPanel>
+                                        </td>
+                                        <td class="name">
+                                            <apex:outputLink target="_blank" value="/{!si.Phase__c}" styleClass="generalTableStyle">
+                                                <apex:outputText value="{!si.Phase__r.Name__c}"/>
+                                            </apex:outputLink>
+                                        </td>
+                                        <td align="left" class="name"><apex:outputText value="{!IF( si.Is_Amendmend_Deleted__c, 'Inactive', IF( si.Actual_End_Date__c != null, 'Completed', IF( si.Actual_Start_Date__c != null, 'Started', 'Not Started' ) ) )}"/></td>
+                                        <td class="name">
+                                            <apex:selectList value="{!si.Predecessor_Milestone__c}" size="1" style="width:70%" rendered="{!enableEditByUser && co.isApproved && !si.Is_Amendmend_Deleted__c && !si.Applied_Amendment__c}">
+                                                <apex:selectOptions value="{!milestoneNameSelectOptionsList}"/>
+                                            </apex:selectList>
+                                            <apex:inputText value="{!si.Predecessor_Milestone__c}" disabled="true" rendered="{!!enableEditByUser && co.isApproved && !si.Is_Amendmend_Deleted__c && !si.Applied_Amendment__c}"/>
+                                            <apex:outputText rendered="{!!(co.isApproved && !si.Is_Amendmend_Deleted__c && !si.Applied_Amendment__c)}" value="{!si.Predecessor_Milestone__c}"/>
+                                        </td>
+                                        <td class="name">
+                                            <apex:selectList value="{!si.Successor_Milestone__c}" size="1" style="width:70%" rendered="{!enableEditByUser && co.isApproved && !si.Is_Amendmend_Deleted__c && !si.Applied_Amendment__c}">
+                                                <apex:selectOptions value="{!milestoneNameSelectOptionsList}"/>
+                                            </apex:selectList>
+                                            <apex:inputText value="{!si.Successor_Milestone__c}" disabled="true" rendered="{!!enableEditByUser && co.isApproved && !si.Is_Amendmend_Deleted__c && !si.Applied_Amendment__c}"/>
+                                            <apex:outputText rendered="{!!(co.isApproved && !si.Is_Amendmend_Deleted__c && !si.Applied_Amendment__c)}" value="{!si.Successor_Milestone__c}"/>
+                                        </td>
+                                        <td align="left" class="data {!IF(co.isPending, 'pendingCoServiceTD', IF(co.isCanceled, 'canceledCoServiceTD', IF(!si.Is_Amendmend_Deleted__c && !si.Applied_Amendment__c, 'addedCoServiceTD', 'removedCoServiceTD')))}">
+                                            <apex:commandLink rendered="{!enableEditByUser && co.isApproved && !si.Is_Amendmend_Deleted__c && !si.Applied_Amendment__c}" onclick="applyService('{!si.Id}'); return false;">
+                                                <img src="/img/permissions_confirm16.gif" alt="apply" title="Apply" class="deleteItemImage" onmouseover="this.src='/img/permissions_confirm16.gif'" onmouseout="this.src='/img/permissions_confirm16.gif'"/>
+                                            </apex:commandLink>
+                                        </td>
+                                    </tr>
+                                </apex:repeat>
+                            </tbody>
+                        </table>
+                    </apex:repeat>
+                </div>
+                <div style="text-align: right;{!IF(AND(enableEditByUser, showApplyAllButton), '', ' display: none;')}" id="applyAll">
+                    <apex:commandButton onclick="applyService(''); return false;" reRender="" value="Apply all Services" styleClass="milroseBtnStyle" style="margin-bottom: 10px;margin-right: 10px !important;"/>
+                </div>
+
+                <apex:outputPanel id="servicesTable">
+                    <!-- Standard Services -->
+                    <div style="height: 30px; position: absolute;{!IF(atLeastOneServiceExist, '', ' display: none;')}" id="serviceTableDivHeader">
+                        <table id="servicesTableHeader" class="generalTableStyle" style="margin: 0;">
+                            <thead border="1px solid black">
+                                <tr class="nodrop nodrag">
+                                    <th width="7%">Service Number</th>
+                                    <th width="15%">Service Name</th>
+                                    <th width="6%" style="display: {!IF(Project_Profile__c.Proposal__r.Is_Floors_To_Services__c == true, 'table-cell', 'none')};">Floors</th>
+                                    <th width="8%">Municipal Agency #</th>
+                                    <th width="4%">Service Group</th>
+                                    <th width="4%">Status</th>
+                                    <th width="10%">Predecessor Milestone</th>
+                                    <th width="6%">Planned Start Date</th>
+                                    <th width="4%">Planned Duration</th>
+                                    <th width="6%">Planned End Date</th>
+                                    <th width="6%">Expected Start Date</th>
+                                    <th width="4%">Expected Duration</th>
+                                    <th width="6%">Expected End Date</th>
+                                    <th width="10%">Successor Milestone</th>
+                                    <th width="5%">Issue Date</th>
+                                    <th width="5%">Disapproved Date</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <div style="width: 100%; margin: 0 0 2px; max-height: 600px; border: 1px solid black" id="serviceTableDiv" class="tableContainer">
+                        <table id="servicesTable" class="BlogForce generalTableStyle dataTable1" style="margin-bottom: 0;">
+                            <thead class="rich-table-thead" border="1px solid black">
+                                <tr class="nodrop nodrag">
+                                    <th width="7%">Service Number</th>
+                                    <th width="15%">Service Name</th>
+                                    <th width="6%" style="display: {!IF(Project_Profile__c.Proposal__r.Is_Floors_To_Services__c == true, 'table-cell', 'none')};">Floors</th>
+                                    <th width="8%">Municipal Agency #</th>
+                                    <th width="4%">Service Group</th>
+                                    <th width="4%">Status</th>
+                                    <th width="10%">Predecessor Milestone</th>
+                                    <th width="6%">Planned Start Date</th>
+                                    <th width="4%">Planned Duration</th>
+                                    <th width="6%">Planned End Date</th>
+                                    <th width="6%">Expected Start Date</th>
+                                    <th width="4%">Expected Duration</th>
+                                    <th width="6%">Expected End Date</th>
+                                    <th width="10%">Successor Milestone</th>
+                                    <th width="5%">Issue Date</th>
+                                    <th width="5%">Disapproved Date</th>
+                                </tr>
+                            </thead>
+                            <apex:repeat value="{!servicesList}" var="siT">
+                                <tbody>
+
+                                    <tr class="nodrop nodrag">
+                                        <th colspan="{!IF(Project_Profile__c.Proposal__r.Is_Floors_To_Services__c == true, '16', '15')}" onclick="togglePhase( '{!siT.phaseId}', this, event );" class="phaseTH">
+                                            <div class="expander contractImage"/> <!-- //G300 MRS-6637 -->
+                                            <apex:outputLink target="_blank" value="/{!siT.phaseId}">
+                                                <apex:outputText value="{!siT.phaseName}"/>
+                                            </apex:outputLink> <!--  onMouseOver="this.style.backgroundColor='#add8e6'; this.style.cursor='hand'" onMouseOut="this.style.backgroundColor='#E0F0F9'; this.style.cursor='pointer';" phaseHRow -->
+                                        </th>
+                                    </tr>
+
+                                    <apex:repeat value="{!siT.serviceItems}" var="si">
+                                        <tr id="{!si.Id}" class="{!siT.phaseId} {!IF(!AND(si.Is_Amendmend_Deleted__c && si.Change_Order__r.Approved_Date__c != null ), '', 'removedCoServiceTR')}" > <!-- //G300 MRS-6637 -->
+                                            <td class="name dragHandle" style="min-width: 65px;">
+                                                <apex:outputLink target="_blank" value="/{!si.Id}">
+                                                    <apex:outputText value="{!serviceIdToAdditionalFields[si.Id].Name}" title="Owner: {!serviceIdToAdditionalFields[si.Id].Owner.Name}"/> <!-- MRS 6946 -->
+                                                </apex:outputLink>
+                                            </td>
+                                            <td class="name dragHandle {!IF(!AND(si.Is_Amendmend_Deleted__c && si.Change_Order__r.Approved_Date__c != null ), '', 'removedCoServiceTD')}" align="left">
+                                                <!-- MRS 7053 -->
+                                                <apex:outputText value="{!IF( serviceIdToAdditionalFields[si.Id].Custom_Work_Type_Service__c, serviceIdToAdditionalFields[si.Id].Short_Service_Name_Worktype__c, IF( serviceIdToAdditionalFields[si.Id].Service_Name_Short__c == null, serviceIdToAdditionalFields[si.Id].Service_Name_Full__c, serviceIdToAdditionalFields[si.Id].Service_Name_Short__c ) )}"/>
+                                            </td>
+                                            <td class="name dragHandle" style="display: {!IF(Project_Profile__c.Proposal__r.Is_Floors_To_Services__c == true, 'table-cell', 'none')}; text-align:center;">
+                                                {!serviceIdToAdditionalFields[si.Id].Floor__c}
+                                            </td>
+                                            <td class="name" align="left" style="text-align: left;">
+                                                <apex:outputPanel layout="none" rendered="{!si.Is_Amendmend_Deleted__c}">
+                                                    <input disabled="disabled" style="width: 80px;" value="{!si.Municipal_Agency_ID__c}"></input>
+                                                </apex:outputPanel>
+                                                <apex:outputPanel layout="none" rendered="{!!si.Is_Amendmend_Deleted__c}">
+                                                    <apex:inputText value="{!si.Municipal_Agency_ID__c}" style="width: 80px;" onchange="changeMunicipalAgency( '{!si.Id}', serializeServices() );"/>
+                                                </apex:outputPanel>
+                                                <apex:outputPanel layout="none" rendered="{!serviceIdToAdditionalFields[si.Id].Municipal_Agency_Hyperlink__c != null}">
+                                                    <a href="{!serviceIdToAdditionalFields[si.Id].Municipal_Agency_Hyperlink__c}" target="_blank">Bis&nbsp;Link</a>
+                                                </apex:outputPanel>
+                                                <apex:outputPanel layout="none" rendered="{!serviceIdToAdditionalFields[si.Id].Municipal_Agency_Hyperlink__c == null}">
+                                                    <!-- <span style="color: #AAA;">Bis&nbsp;Link</span> -->
+                                                </apex:outputPanel>
+                                            </td>
+                                            <td class="name" style="text-align:center;">
+                                                <apex:outputText value="{!si.Service_Group__c}"/>
+                                            </td>
+                                            <td class="name" style="text-align:center;">
+                                                <apex:outputField rendered="{!!si.Is_Amendmend_Deleted__c}" value="{!si.Service_Status_Color__c}"/>
+                                            </td>
+                                            <td class="name" ondblclick="if( {!si.Id != selectedSuccessorServiceId} ) { handleEditPredecessorNameOnAction('{!si.Id}', $('#servicesTable tr').index($(this).closest('tr')), '{!enableEditByUser}'); } return false;">
+                                                <apex:commandLink onclick="return false;" rendered="{! AND(enableEditByUser, si.Id != selectedPredecessorServiceId, si.Id != selectedSuccessorServiceId) }">
+                                                    <img onclick="handleEditPredecessorNameOnAction('{!si.Id}', $('#servicesTable tr').index($(this).closest('tr')));" src="/img/icon/custom51_100/pencil16.png" alt="edit" title="Edit" class="deleteItemImage" onmouseover="this.src='/img/icon/custom51_100/pencil16.png'" onmouseout="this.src='/img/icon/custom51_100/pencil16.png'"/>
+                                                </apex:commandLink>
+                                                <apex:selectList value="{!milestoneSelectedNameValue}" size="1" style="width:65%" rendered="{! AND(enableEditByUser, si.Id == selectedPredecessorServiceId) }">
+                                                    <apex:selectOptions value="{!milestoneNameSelectOptionsList}"/>
+                                                </apex:selectList>
+                                                <apex:inputText value="{!milestoneSelectedNameValue}" disabled="true" rendered="{! AND(!enableEditByUser, si.Id == selectedPredecessorServiceId) }"/>
+                                                <apex:commandLink action="{!updatePredecessorMilestoneAction}" oncomplete="applyDataTablePluginAndScroll();"  rendered="{! AND(enableEditByUser, si.Id == selectedPredecessorServiceId) }" reRender="servicesTable, servicesCoTable, message" status="allPanelsOverlay">
+                                                    <img src="/img/permissions_confirm16.gif" alt="apply" title="Apply" class="deleteItemImage" onmouseover="this.src='/img/permissions_confirm16.gif'" onmouseout="this.src='/img/permissions_confirm16.gif'"/>
+                                                </apex:commandLink>
+                                                <apex:commandLink action="{!cancelPredecessorMilestoneAction}" oncomplete="applyDataTablePluginAndScroll();" rendered="{! AND(enableEditByUser, si.Id == selectedPredecessorServiceId) }" reRender="servicesTable, servicesCoTable, message" status="allPanelsOverlay">
+                                                    <img src="/img/permissions_deny16.gif" alt="cancel" title="Cancel" class="deleteItemImage" onmouseover="this.src='/img/permissions_deny16.gif'" onmouseout="this.src='/img/permissions_deny16.gif'"/>
+                                                </apex:commandLink>
+                                                <apex:outputText value="{!si.Predecessor_Milestone__c}" rendered="{!(si.Id != selectedPredecessorServiceId )}"/>
+                                            </td>
+                                            <td class="name">
+                                                <apex:outputText value="{0,date,MM/dd/yy}">
+                                                    <apex:param value="{!si.Planned_Start_Date__c}" />
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="name"><apex:outputText value="{!si.Total_Planned_Service_Duration__c}"/></td>
+                                            <td class="name">
+                                                <apex:outputText value="{0,date,MM/dd/yy}">
+                                                    <apex:param value="{!si.Planned_End_Date__c}" />
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="name">
+                                                <apex:outputText value="{0,date,MM/dd/yy}">
+                                                    <apex:param value="{!si.Expected_Start_Date__c}" />
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="name"><apex:outputText value="{!si.Expected_Service_Duration__c}"/></td>
+                                            <td class="name">
+                                                <apex:outputText value="{0,date,MM/dd/yy}">
+                                                    <apex:param value="{!si.Expected_End_Date__c}" />
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="name" ondblclick="if( {!si.Id != selectedPredecessorServiceId} ) { handleEditSuccessorNameOnAction('{!si.Id}', $('#servicesTable tr').index($(this).closest('tr')), '{!enableEditByUser}'); } return false;">
+                                                <apex:commandLink onclick="return false;" rendered="{! AND(enableEditByUser, si.Id != selectedSuccessorServiceId, si.Id != selectedPredecessorServiceId) }">
+                                                    <img onclick="handleEditSuccessorNameOnAction('{!si.Id}', $('#servicesTable tr').index($(this).closest('tr')));" src="/img/icon/custom51_100/pencil16.png" alt="edit" title="Edit" class="deleteItemImage" onmouseover="this.src='/img/icon/custom51_100/pencil16.png'" onmouseout="this.src='/img/icon/custom51_100/pencil16.png'"/>
+                                                </apex:commandLink>
+                                                <apex:selectList value="{!milestoneSelectedNameValue}" size="1" style="width:65%" rendered="{! AND(enableEditByUser, si.Id == selectedSuccessorServiceId) }">
+                                                    <apex:selectOptions value="{!milestoneNameSelectOptionsList}"/>
+                                                </apex:selectList>
+                                                <apex:inputText value="{!milestoneSelectedNameValue}" disabled="true" rendered="{! AND(!enableEditByUser, si.Id == selectedPredecessorServiceId) }"/>
+                                                <apex:commandLink action="{!updateSuccessorMilestoneAction}" oncomplete="applyDataTablePluginAndScroll();" rendered="{! AND(enableEditByUser, si.Id == selectedSuccessorServiceId) }" reRender="servicesTable, servicesCoTable, message" status="allPanelsOverlay">
+                                                    <img src="/img/permissions_confirm16.gif" alt="apply" title="Apply" class="deleteItemImage" onmouseover="this.src='/img/permissions_confirm16.gif'" onmouseout="this.src='/img/permissions_confirm16.gif'"/>
+                                                </apex:commandLink>
+                                                <apex:commandLink action="{!cancelSuccessorMilestoneAction}" oncomplete="applyDataTablePluginAndScroll();" rendered="{! AND(enableEditByUser, si.Id == selectedSuccessorServiceId) }" reRender="servicesTable, servicesCoTable, message" status="allPanelsOverlay">
+                                                    <img src="/img/permissions_deny16.gif" alt="cancel" title="Cancel" class="deleteItemImage" onmouseover="this.src='/img/permissions_deny16.gif'" onmouseout="this.src='/img/permissions_deny16.gif'"/>
+                                                </apex:commandLink>
+                                                <apex:outputText value="{!si.Successor_Milestone__c}" rendered="{!(si.Id != selectedSuccessorServiceId )}"/>
+                                            </td>
+                                            <td>
+                                                <apex:outputText value="{0,date,MM/dd/yy}" rendered="{!(si.Id != selectedSuccessorServiceId )}">
+                                                    <apex:param value="{!si.X3rd_Party_Issue_Date__c}" />
+                                                </apex:outputText>
+                                            </td>
+                                            <td>
+                                                <apex:outputText value="{0,date,MM/dd/yy}" rendered="{!(si.Id != selectedSuccessorServiceId )}">
+                                                    <apex:param value="{!si.X3rd_Party_Disapproved_Date__c}" />
+                                                </apex:outputText>
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </tbody>
+                            </apex:repeat>
+                        </table>
+                    </div>
+                    <script type="text/javascript">
+                        attachDndToTables('servicesTable');
+                        calculateHeaderWidth();
+                    </script>
+                    <apex:commandButton onclick="updateServiceRowPositions( serializeServices() ); return false;" reRender="" value="Save Row Positions" rendered="{! AND(enableEditByUser, atLeastOneServiceExist) }" styleClass="milroseBtnStyle" style="margin-bottom: 10px;"/>
+                </apex:outputPanel>
+                <apex:outputPanel id="MilestonesPanel">
+                    <div style="margin:0;"><apex:pageMessages id="message2"/></div>
+                    <!-- Milestones -->
+                    <div style="position: absolute; {!IF(atLeastOneMilestoneExist, '', ' display: none;')};" id="milestoneDivHeader">
+                        <table id="milestonesTableHeader" class="generalTableStyle" style="margin: 0;">
+                            <thead class="rich-table-thead">
+                                <tr class="headerRow">
+                                    <th class="headerRow" colspan="6">Project Milestones</th>
+                                </tr>
+                                <tr class="headerRow">
+                                    <th class="headerRow" style="width: 3% !important;">&nbsp;</th>
+                                    <th class="headerRow" style="width: 50% !important;">Milestone Name</th>
+                                    <th class="headerRow" style="width: 15% !important;">Planned Date</th>
+                                    <th class="headerRow" style="width: 15% !important;">Expected Date</th>
+                                    <th class="headerRow" style="width: 15% !important;">Actual Date</th>
+                                    <th class="headerRow" style="width: 2% !important;">&nbsp;</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <div style="width: 100%; margin: 0 0 2px; max-height: 274px; overflow: auto;">
+                        <table id="milestonesTable" class="BlogForce generalTableStyle dataTable2">
+                            <thead class="rich-table-thead">
+                                <tr class="headerRow">
+                                    <th class="headerRow" colspan="6">Project Milestones</th>
+                                </tr>
+                                <tr class="headerRow">
+                                    <th class="headerRow" width="3%">&nbsp;</th>
+                                    <th class="headerRow" width="50%">Milestone Name</th>
+                                    <th class="headerRow" width="15%">Planned Date</th>
+                                    <th class="headerRow" width="15%">Expected Date</th>
+                                    <th class="headerRow" width="15%">Actual Date</th>
+                                    <th class="headerRow" width="2%">&nbsp;</th>
+                                </tr>
+                            </thead>
+                            <apex:repeat value="{!milestonesList}" var="milestone">
+                                <tbody>
+                                    <tr id="{!milestone.record.Id}">
+                                        <td align="left" class="name">
+                                            <apex:commandLink onclick="handleEditMilestoneName('{!milestone.record.Id}', $('#myTableBlogForce9 tr').index($(this).closest('tr'))); return false;" rendered="{! AND(enableEditByUser, milestone.isDisabled) }">
+                                                <img onclick="handleEditMilestoneName('{!milestone.record.Id}', $('#myTableBlogForce9 tr').index($(this).closest('tr'))); return false;" src="/img/icon/custom51_100/pencil16.png" alt="edit" title="Edit" class="deleteItemImage" onmouseover="this.src='/img/icon/custom51_100/pencil16.png'" onmouseout="this.src='/img/icon/custom51_100/pencil16.png'"/>
+                                            </apex:commandLink>
+                                            <apex:commandLink onclick="applyMilestoneName('{!milestone.record.Id}'); return false;" rendered="{! AND(enableEditByUser, !milestone.isDisabled) }">
+                                                <img src="/img/permissions_confirm16.gif" alt="apply" title="Apply" class="deleteItemImage" onmouseover="this.src='/img/permissions_confirm16.gif'" onmouseout="this.src='/img/permissions_confirm16.gif'"/>
+                                            </apex:commandLink>
+                                            <apex:commandLink onclick="cancelMilestoneNameChanges('{!milestone.record.Id}'); return false;" rendered="{! AND(enableEditByUser, !milestone.isDisabled) }">
+                                                <img src="/img/permissions_deny16.gif" alt="cancel" title="Cancel" class="deleteItemImage" onmouseover="this.src='/img/permissions_deny16.gif'" onmouseout="this.src='/img/permissions_deny16.gif'"/>
+                                            </apex:commandLink>
+                                        </td>
+                                        <td class="name">
+                                            <apex:inputText value="{!milestone.record.Name}" rendered="{! AND(enableEditByUser, !milestone.isDisabled) }" style="width:400px;" styleClass="generalTableStyle"/>
+                                            <apex:outputText value="{!milestone.record.Name}" rendered="{!milestone.isDisabled}" styleClass="generalTableStyle"/>
+                                        </td>
+                                        <td class="name"><apex:outputText value="{!milestone.plannedStartDate}"/></td>
+                                        <td class="name"><apex:outputText value="{!milestone.expectedStartDate}"/></td>
+                                        <td class="name"><apex:outputText value="{!milestone.actualStartDate}"/></td>
+                                        <td align="left" class="name">
+                                            <apex:commandLink onclick="deleteMilestone('{!milestone.record.Id}'); return false;" rendered="{! AND(enableEditByUser, milestone.isDisabled) }">
+                                                <img src="/img/func_icons/remove12_on.gif" alt="delete" title="Delete" class="deleteItemImage" onmouseover="this.src='/img/func_icons/remove12_on.gif'" onmouseout="this.src='/img/func_icons/remove12_on.gif'"/>
+                                            </apex:commandLink>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </apex:repeat>
+                        </table>
+                    </div>
+                </apex:outputPanel>
+                <apex:outputPanel layout="block" id="addMilestoneOutputPanel" style="display:inline-block;">
+                    <apex:commandButton value="Add new Milestone" onclick="createNewMilestone(); return false;" styleClass="milroseBtnStyle" reRender="MilestonesPanel" rendered="{!enableEditByUser}"/>
+                    <apex:inputText id="addMilestoneInput" value="{!newMilestone.Name}" rendered="{! AND(enableEditByUser, allowMilestoneCreation) }" alt="Milestone Name"/>
+                    <apex:commandButton id="addMilestoneSave"       value="Save"       rendered="{! AND(enableEditByUser, allowMilestoneCreation) }" onclick="saveNewMilestoneAction( false ); return false;" styleClass="milroseBtnStyle"/>
+                    <apex:commandButton id="addMilestoneSaveAndNew" value="Save & New" rendered="{! AND(enableEditByUser, allowMilestoneCreation) }" onclick="saveNewMilestoneAction( true ); return false;"  styleClass="milroseBtnStyle"/>
+                    <apex:commandButton id="addMilestoneCancel"     value="Cancel"     rendered="{! AND(enableEditByUser, allowMilestoneCreation) }" action="{!cancelNewMilestoneAction}"                     styleClass="milroseBtnStyle"/>
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <apex:inputField value="{!Project_Profile__c.Partner__c}"             rendered="false"/>
+            <apex:inputField value="{!Project_Profile__c.Proposal_Specialist__c}" rendered="false"/>
+            <apex:inputField value="{!Project_Profile__c.Project_Member__c}"      rendered="false"/>
+            <apex:inputField value="{!Project_Profile__c.Project_Manager__c}"     rendered="false"/>
+            <apex:inputField value="{!Project_Profile__c.Production_Manager__c}"  rendered="false"/>
+            <apex:inputField value="{!Project_Profile__c.FREP__c}"                rendered="false"/>
+            <apex:inputField value="{!Project_Profile__c.OwnerId}"                rendered="false"/>
+            <apex:inputField value="{!Project_Profile__c.Proposal__c}"            rendered="false"/>
+            <apex:inputField value="{!Project_Profile__c.Project_State__c}"       rendered="false"/>
+            <apex:inputField value="{!Project_Profile__c.Proposal__r.Is_Floors_To_Services__c}" rendered="false"/>
+        </div>
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+    </apex:form>
+</apex:page>

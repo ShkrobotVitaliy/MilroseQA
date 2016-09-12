@@ -1,0 +1,57 @@
+<apex:page standardController="Form_Meta_Data_Object_1__c"  extensions="CommonFormController" >
+<head>
+</head>
+<apex:includeScript value="/soap/ajax/25.0/connection.js"/>
+<apex:includeScript value="/soap/ajax/25.0/apex.js"/>
+
+
+<img src="/img/loading32.gif" id="SkyeditorLoagingImage" style="display:none;"/>
+
+<table border="0" cellpadding="0" cellspacing="0" style="width:100%;" ><tr><td>
+<apex:outputPanel rendered="{! NOT(hidePageBody)}" id="pagePanel" styleClass="base" layout="block">
+<apex:outputPanel style="position:relative;" >
+</apex:outputPanel><apex:form id="sve_form1"   styleClass="sve_form1"   >
+<apex:outputPanel layout="block"   style="position:relative;width:800px;height:1320px;" >
+<img   src="{!URLFOR($Resource.FCT5_2)}"   style="width:800px;height:1317px;left:0px;top:0px;position:absolute;" /><apex:commandButton action="{!prevPage}"   id="Component3"   immediate="false"   value="Previous"   style="left:65px;top:5px;position:absolute;width:66px;" >
+</apex:commandButton><apex:commandButton action="{!cancelPage}"   id="Component4"   immediate="false"   value="Cancel"   style="left:220px;top:5px;position:absolute;width:66px;" >
+</apex:commandButton><apex:commandButton action="{!savePage}"   id="Component5"   immediate="false"   value="Save"   style="left:330px;top:5px;position:absolute;width:66px;" >
+</apex:commandButton><apex:commandButton action="{!updateDocAndDdp}"   id="Component6"   immediate="false"   value="Generate PDF"   style="left:450px;top:5px;position:absolute;width:95px;" >
+</apex:commandButton><apex:outputPanel styleclass="fieldwrapper " style="left:87px;top:338px;position:absolute;" >
+<apex:inputField id="Component7"   style="width:300px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Signator_4_License_Number__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:481px;top:338px;position:absolute;" >
+<apex:inputField id="Component10"   style="width:280px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Signator_2_Full_Name__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:94px;top:370px;position:absolute;" >
+<apex:inputField id="Component8"   style="width:293px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Signator_4_Full_Name__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:65px;top:436px;position:absolute;" >
+<apex:inputField id="Component9"   style="width:323px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Signator_4_Business_Phone__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:21px;top:469px;position:absolute;" >
+<apex:inputField id="Component1"   style="color:#000000;font-size:1.0em;font-weight:Normal;"   value="{!record.Checkbox_PJ1__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:218px;top:469px;position:absolute;" >
+<apex:inputField id="Component2"   style="color:#000000;font-size:1.0em;font-weight:Normal;"   value="{!record.Checkbox_PJ10__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:137px;top:494px;position:absolute;" >
+<apex:inputField id="Component11"   style="width:212px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Signator_5_Full_Name__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:402px;top:495px;position:absolute;" >
+<apex:inputField id="Component12"   style="width:363px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Signator_5_Business_Phone__c}">
+</apex:inputField>
+</apex:outputPanel>
+ </apex:outputPanel></apex:form><script type="text/javascript">
+function aggregateCalc_all(triggerId) {
+}
+</script>
+</apex:outputPanel>
+</td></tr></table>
+</apex:page>

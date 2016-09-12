@@ -1,0 +1,265 @@
+<apex:page renderAs="pdf" applyhtmltag="false" showheader="false" controller="LegacyInvoicePDFController">
+    <html>
+        <head>
+            <style type="text/css">
+            @page {
+                size: letter portrait;
+                margin: 50.0mm 12.7mm 20.0mm 25.4mm;
+                @top-center {
+                    font: 9pt Arial, Sans-serif;
+                    padding-top: 8.47mm;
+                    content: element(header);
+                }
+                @bottom-center {
+                    padding-bottom: 8.47mm;
+                    content: element(footer);
+                }
+            }
+            body {
+                padding: 0;
+                margin: 0;
+            }
+            #page-header {
+                position: running(header);
+            }
+            #page-footer {
+                position: running(footer);
+            }
+            .page-number:before {
+                content: counter(page);
+            }
+            .page-count:before {
+                content: counter(pages);
+            }
+            body {
+                font: 9pt Calibri, Arial, Sans-serif;
+            }
+            table.content {
+                /*border-collapse: collapse;*/
+                border-collapse: separate;
+                border-spacing: 0;
+                page-break-after: auto;
+                width: 100%;
+            }
+            table.content thead {
+                display: table-header-group;
+                page-break-inside: avoid;
+            }
+            table.content tbody {
+                display: table-row-group;
+                page-break-after: auto;
+            }
+            table.content tfoot {
+                display: table-footer-group;
+                page-break-after: auto;
+            }
+            table.pageBreakAfter {
+                page-break-after: always;
+            }
+            table.pageBreakBefore {
+                page-break-before: always;
+            }
+            table.content thead tr {
+                page-break-inside: avoid;
+            }
+            table.content tr {
+                page-break-inside: avoid;
+            }
+            table.content td {
+                padding: 2px 4px;
+            }
+            table.content td.header {
+                text-align: center;
+                border-top: 1px solid black;
+                border-right: 1px solid black;
+                border-bottom: none;
+                border-left: none;
+                background-color: #365F91;
+                color: #FFFFFF;
+                vertical-align: middle;
+            }
+            table.content td.line, table.content td.footer {
+                border-top: 1px solid black;
+                border-right: 1px solid black;
+                border-bottom: none;
+                border-left: none;
+                vertical-align: middle;
+                text-align: center;
+            }
+            td.bottomline {
+                border-bottom: 1px solid black !important;;
+            }
+            td.leftline {
+                border-left: 1px solid black !important;;
+            }
+            .leftpadhalf {
+                padding-left: 0.5em !important;
+            }
+            .bold {
+                font-weight: bold !important;
+            }
+            .left {
+                text-align: left !important;
+            }
+            .center {
+                text-align: center !important;
+            }
+            .right {
+                text-align: right !important;
+            }
+            .justify {
+                text-align: justify !important;
+            }
+            .smf {
+                font-size: 8pt !important;
+            }
+            </style>
+        </head>
+        
+        <body>
+            <apex:pageMessages id="msgs"/>
+            
+            <apex:outputPanel layout="block" style="width: 100%;">
+                <!-- Begin Header -->
+                <div id="page-header" style="width: 100%; display: table;">
+                    <div style="width: 15%; display: table-cell;">
+                        <img src="{!URLFOR($Resource.MilroseLogo)}" style="width: 25mm;"/>
+                    </div>
+                    
+                    <div style="width: 36%; display: table-cell; vertical-align: top;">
+                        <div><span class="leftpadhalf bold">MILROSE CONSULTANTS, INC.</span> </div>
+                        <div><span class="leftpadhalf">498 Seventh Avenue, 17th Floor</span> </div>
+                        <div><span class="leftpadhalf">New York, NY 10018            </span> </div>
+                        <div><span class="leftpadhalf">Tel: 212.643.4545             </span> </div>
+                        <div><span class="leftpadhalf">Fax: 212.643.4859             </span> </div>
+                    </div>
+                    
+                    <div style="width: 2%; display: table-cell; vertical-align: top;"/>
+                    
+                    <div style="width: 45%; display: table-cell; vertical-align: top;">
+                        <div>
+                            <apex:outputPanel rendered="{!AND( NOT(isCredit1), NOT(isCredit2) )}">
+                                <span class="leftpadhalf bold">INVOICE ID:</span>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!OR(isCredit1, isCredit2)}">
+                                <span class="leftpadhalf bold">CREDIT NOTE ID:</span>
+                            </apex:outputPanel>
+                            &nbsp;{!creditNoteNumberShort}
+                        </div>
+                        
+                        <div style="border-bottom: 0.5pt solid black;">
+                            <apex:outputPanel rendered="{!AND( NOT(isCredit1), NOT(isCredit2) )}">
+                                <span class="leftpadhalf bold">INVOICE DATE:</span>
+                                &nbsp;{!MONTH(legacyInvoice.Invoice_Date__c)}/{!DAY(legacyInvoice.Invoice_Date__c)}/{!YEAR(legacyInvoice.Invoice_Date__c)}
+                            </apex:outputPanel>
+                            
+                            <apex:outputPanel rendered="{!isCredit1}">
+                                <span class="leftpadhalf bold">Credit Note Date:</span>
+                                &nbsp;{!MONTH(legacyInvoice.cl_FF_Sales_Credit_Note_1__r.c2g__CreditNoteDate__c)}/{!DAY(legacyInvoice.cl_FF_Sales_Credit_Note_1__r.c2g__CreditNoteDate__c)}/{!YEAR(legacyInvoice.cl_FF_Sales_Credit_Note_1__r.c2g__CreditNoteDate__c)}
+                            </apex:outputPanel>
+                            
+                            <apex:outputPanel rendered="{!isCredit2}">
+                                <span class="leftpadhalf bold">Credit Note Date:</span>
+                                &nbsp;{!MONTH(legacyInvoice.cl_FF_Sales_Credit_Note_2__r.c2g__CreditNoteDate__c)}/{!DAY(legacyInvoice.cl_FF_Sales_Credit_Note_2__r.c2g__CreditNoteDate__c)}/{!YEAR(legacyInvoice.cl_FF_Sales_Credit_Note_2__r.c2g__CreditNoteDate__c)}
+                            </apex:outputPanel>
+                        </div>
+                        
+                        <div style="">
+                            <div>
+                                <span class="leftpadhalf bold">MILROSE REFERENCE #:</span>
+                                &nbsp;{!legacyInvoice.Project_Number__c}
+                            </div>
+                            
+                            <div>
+                                <span class="leftpadhalf bold">CLIENT PROJECT #:</span>
+                                &nbsp;{!legacyInvoice.Client_Project__c}
+                            </div>
+                            
+                            <div>
+                                <span class="leftpadhalf bold">CLIENT PO #:</span>
+                                &nbsp;{!legacyInvoice.Client_PO__c}
+                            </div>
+                            
+                            <div>
+                                <span class="leftpadhalf bold">PAYMENT TERMS:</span>
+                                &nbsp;UPON RECEIPT
+                            </div>
+                            
+                            <div style="border-bottom: 0.5pt solid black;">
+                                <span class="leftpadhalf bold">ACCOUNT MANAGER:</span>
+                                &nbsp;{!legacyInvoice.Account_Manager__r.Name}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Header -->
+                
+                <div id="page-footer" style="width: 100%; display: table;">
+                    <div style="width: 100%; display: table;">
+                        <div class="right" style="width: 50%; display: table-cell;">
+                            Page <span class="page-number"/> of <span class="page-count"/>
+                        </div>
+                    </div>
+                    <br/>
+                    <div style="width: 100%; display: table;">
+                        <div class="center" style="width: 100%;">
+                            <div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">Offices in:  </div>
+                            <div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">New York     </div>
+                            <div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">New Jersey   </div>
+                            <div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">Philadelphia </div>
+                            <div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">Connecticut  </div>
+                            <div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">Long Island  </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <c:LegacyInvoicePDF legacyInvoice="{!legacyInvoice}" isDisplayMailTo="{!isDisplayMailTo}" isCredit1="{!isCredit1}" isCredit2="{!isCredit2}"/>
+                
+                <!-- Begin Footer -->
+                <table class="content">
+                    <tbody>  
+                        <tr>
+                            <td style="vertical-align: top; width: 33.33%;">
+                                <span class="bold left">MAKE CHECKS PAYABLE TO:                                                         </span><br/>
+                                <span class="left">Milrose Consultants, Inc.                                                            </span><br/>
+                                <span class="left">ATTN: Accounts Receivable                                                            </span><br/>
+                                <br/>
+                                <span class="bold left">MILROSE CONSULTANTS ACCEPTS<br/>ALL MAJOR CREDIT CARDS                          </span><br/>
+                                <span class="bold left"><a href="https://www.milrose.com/payments/">https://www.milrose.com/payments/</a> </span><br/> <!-- MRS 7475 -->
+                            </td>
+                            
+                            <td style="vertical-align: top; width: 33.34%;">
+                                <span class="bold left">DIRECT ALL BILLING INQUIRIES TO:         </span><br/>
+                                <span class="left">{!legacyInvoice.A_R_Coordinator_Full_Name__c} </span><br/>
+                                <span class="left">{!legacyInvoice.A_R_Coordinator_Phone__c}     </span><br/>
+                                <span class="left">{!legacyInvoice.A_R_Coordinator_Email__c}     </span>
+                            </td>
+                            
+                            <td style="vertical-align: top; width: 33.33%;">
+                                <span class="bold left">TO INITIATE A WIRE TRANSFER: </span><br/>
+                                <span class="left">Bank of America                   </span><br/>
+                                <span class="left">1185 Avenue of the Americas       </span><br/>
+                                <span class="left">New York, NY 10036                </span><br/>
+                                <span class="left">ACCT # 4837307121                 </span><br/>
+                                <span class="left">ABA # 021000322                   </span>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td style="vertical-align: top; width: 33.33%;">
+                            </td>
+                            
+                            <td style="vertical-align: top; width: 33.34%;">
+                                <apex:outputField value="{!legacyInvoice.Display_Text_on_Invoice__c}"/>
+                            </td>
+                            
+                            <td style="vertical-align: top; width: 33.33%;">
+                            </td>
+                        </tr>  
+                    </tbody>
+                </table>
+                <!-- End Footer -->
+            </apex:outputPanel>
+        </body>
+    </html>
+</apex:page>

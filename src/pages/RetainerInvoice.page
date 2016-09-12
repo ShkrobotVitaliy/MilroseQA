@@ -1,0 +1,365 @@
+<apex:page renderAs="pdf" showheader="false" applyhtmltag="false" controller="RetainerInvoiceController">
+    <html>
+        <head>
+            <style type="text/css">
+            @page {
+                size: letter portrait;
+                margin: 8.47mm 12.7mm 20.0mm 25.4mm;
+                @top-center {
+                    font: 9pt Arial, Sans-serif;
+                    padding-top: 8.47mm;
+                    content: element(header);
+                }
+                @bottom-center {
+                    padding-bottom: 8.47mm;
+                    content: element(footer);
+                }
+            }
+            body {
+                padding: 0;
+                margin: 0;
+            }
+            #page-header {
+                position: running(header);
+            }
+            #page-footer {
+                position: running(footer);
+            }
+            .page-number:before {
+                content: counter(page);
+            }
+            .page-count:before {
+                content: counter(pages);
+            }
+            body {
+                font: 9pt Calibri, Arial, Sans-serif;
+            }
+            table.content {
+                /*border-collapse: collapse;*/
+                border-collapse: separate;
+                border-spacing: 0;
+                page-break-after: auto;
+                width: 100%;
+            }
+            table.content thead {
+                display: table-header-group;
+                page-break-inside: avoid;
+            }
+            table.content tbody {
+                display: table-row-group;
+                page-break-after: auto;
+            }
+            table.content tfoot {
+                display: table-footer-group;
+                page-break-after: auto;
+            }
+            table.pageBreakAfter {
+                page-break-after: always;
+            }
+            table.pageBreakBefore {
+                page-break-before: always;
+            }
+            table.content thead tr {
+                page-break-inside: avoid;
+            }
+            table.content tr {
+                page-break-inside: avoid;
+            }
+            table.content td {
+                /*padding: 2px 4px;*/
+            }
+            table.content td.header {
+                text-align: center;
+                border-top: 1px solid black;
+                border-right: 1px solid black;
+                border-bottom: none;
+                border-left: none;
+                background-color: #365F91;
+                color: #FFFFFF;
+                vertical-align: middle;
+            }
+            table.content td.line, table.content td.footer {
+                border-top: 1px solid black;
+                border-right: 1px solid black;
+                border-bottom: none;
+                border-left: none;
+                vertical-align: middle;
+                text-align: center;
+            }
+            td.bottomline {
+                border-bottom: 1px solid black !important;;
+            }
+            td.leftline {
+                border-left: 1px solid black !important;;
+            }
+            .leftpadhalf {
+                padding-left: 0.5em !important;
+            }
+            .bold {
+                font-weight: bold !important;
+            }
+            .left {
+                text-align: left !important;
+            }
+            .center {
+                text-align: center !important;
+            }
+            .right {
+                text-align: right !important;
+            }
+            .justify {
+                text-align: justify !important;
+            }
+            .smf {
+                font-size: 8pt !important;
+            }
+            </style>
+        </head>
+        <body>
+            <apex:pageMessages id="msgs"/>
+            <apex:outputPanel layout="block" rendered="{!isValid}" style="width: 100%;">
+                <div id="page-header" style="width: 100%; display: table;">
+                </div>
+                <div id="page-footer" style="width: 100%; display: table;">
+                    <div style="width: 100%; display: table;">
+                        <div class="right" style="width: 50%; display: table-cell;">
+                            <!-- Page <span class="page-number"/> of <span class="page-count"/> -->
+                            Page 1 of 1
+                        </div>
+                    </div>
+                    <br/>
+                    <div style="width: 100%; display: table;">
+                        <div class="center" style="width: 100%;">
+                            <div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">Offices in:</div><!--
+                            --><div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">New York</div><!--
+                            --><div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">New Jersey</div><!--
+                            --><div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">Philadelphia</div><!--
+                            --><div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">Connecticut</div><!--
+                            --><div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">Long Island</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="page-content" style="width: 100%;">
+                    <apex:repeat value="{!invoices}" var="item">
+                        <table class="content{!IF( item.parent.Id != invoices[0].parent.Id, ' pageBreakBefore', '' )}">
+                            <tr>
+                                <td>
+                                    <div style="width: 100%; display: table;">
+                                        <div style="width: 15%; display: table-cell;">
+                                            <img src="{!URLFOR($Resource.MilroseLogo)}" style="width: 25mm;"/>
+                                        </div>
+                                        <div style="width: 36%; display: table-cell; vertical-align: top;">
+                                            <div><span class="leftpadhalf bold">MILROSE CONSULTANTS, INC.</span></div>
+                                            <div><span class="leftpadhalf">498 Seventh Avenue, 17th Floor</span></div>
+                                            <div><span class="leftpadhalf">New York, NY 10018</span></div>
+                                            <div><span class="leftpadhalf">Tel: 212.643.4545</span></div>
+                                            <div><span class="leftpadhalf">Fax: 212.643.4859</span></div>
+                                        </div>
+                                        <div style="width: 2%; display: table-cell; vertical-align: top;">
+                                        </div>
+                                        <div style="width: 45%; display: table-cell; vertical-align: top;">
+                                            <div><span class="leftpadhalf bold">CN#:</span>&nbsp;{!item.proposalName}</div>
+                                            <div style="border-bottom: 0.5pt solid black;"><span class="leftpadhalf bold">INVOICE DATE:</span>&nbsp;{!MONTH(item.invoiceDate)}/{!DAY(item.invoiceDate)}/{!YEAR(item.invoiceDate)}</div>
+                                            <div style="">
+                                                <div><span class="leftpadhalf bold">CLIENT PROJECT #:</span>&nbsp;{!item.clientProject}</div>
+                                                <div><span class="leftpadhalf bold">PAYMENT TERMS:</span>&nbsp;UPON RECEIPT</div>
+                                                <div style="border-bottom: 0.5pt solid black;"><span class="leftpadhalf bold">ACCOUNT MANAGER:</span>&nbsp;{!item.accountManagerName}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br/>
+                                    <table style="width: 100%; border-collapse: collapse; border-spacing: 0;">
+                                        <tr>
+                                            <td colspan="2">
+                                                <div class="bold" style="width: 100%; padding: 0; margin: 0; text-align: center; font-size: 14pt;">INVOICE:&nbsp;{!item.invoiceId}</div>
+                                                <div class="bold" style="width: 100%; padding: 0; margin: 0; text-align: center; font-size: 14pt; display: {!IF(item.projectMrcName != '', 'block', 'none')};">{!item.projectMrcName}</div>
+                                                <br/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 50%; border-top: 1px solid black;">
+                                                <div style="display: {!IF(item.showMailTo, 'block', 'none')};">
+                                                    <span class="bold left">MAIL TO:</span><br/>
+                                                    <apex:outputPanel layout="none" rendered="{!item.accountingCompanyName != ''}">
+                                                        <span>{!item.accountingCompanyName}</span><br/>
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel layout="none" rendered="{!item.accountingContactAddress != ''}">
+                                                        <span><apex:outputText escape="false" value="{!item.accountingContactAddress}"/></span><br/>
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel layout="none" rendered="{!item.accountingContactName != ''}">
+                                                        <span>Attn: {!item.accountingContactName}</span>
+                                                    </apex:outputPanel>
+                                                </div>
+                                            </td>
+                                            <td style="width: 50%; border-top: 1px solid black;">
+                                                <div>
+                                                    <span class="bold left">BILL TO:</span><br/>
+                                                    <apex:outputPanel layout="none" rendered="{!item.billingCompanyName != ''}">
+                                                        <span>{!item.billingCompanyName}</span><br/>
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel layout="none" rendered="{!item.billingContactAddress != ''}">
+                                                        <span><apex:outputText escape="false" value="{!item.billingContactAddress}"/></span><br/>
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel layout="none" rendered="{!item.billingContactName != ''}">
+                                                        <span>Attn: {!item.billingContactName}</span>
+                                                    </apex:outputPanel>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <br/>
+                                    <table class="content">
+                                        <thead>
+                                            <tr>
+                                                <td class="header bold leftline" style="width: 60%; vertical-align: top;">Project Address</td>
+                                                <td class="header bold" style="width: 40%; vertical-align: top;">Project Details</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="line left leftline bottomline" style="vertical-align: top;">
+                                                    <apex:outputPanel layout="none" rendered="{!item.address1 != ''}"><!--
+                                                        --><span class="left">{!item.address1}</span><!--
+                                                    --></apex:outputPanel><!--
+                                                    --><apex:outputPanel layout="none" rendered="{!item.address2 != ''}"><!--
+                                                        --><br/><span class="left">{!item.address2}</span><!--
+                                                    --></apex:outputPanel><!--
+                                                    --><apex:outputPanel layout="none" rendered="{!item.floors != ''}"><!--
+                                                        --><span>;</span><br/><span class="left">Floor: {!item.floors}</span><!--
+                                                    --></apex:outputPanel>
+                                                </td>
+                                                <td class="line left bottomline" style="vertical-align: top;">
+                                                    <apex:outputPanel layout="none" rendered="{!item.projectName != ''}">
+                                                        <span slass="left">{!item.projectName}</span>
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel layout="none" rendered="{!item.projectName == ''}">
+                                                        <span slass="left">&nbsp;</span>
+                                                    </apex:outputPanel>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <br/>
+                                    <br/>
+									<table class="content"> <!-- MRS 7415 -->
+                                        <thead>
+                                            <tr>
+                                                <td class="header bold leftline">Ref.</td>
+                                                <td class="header bold">PS#</td>
+                                                <td class="header bold">Professional Services</td>
+                                                <td class="header bold" style="padding-top: 0px;"><img src="{!URLFOR($Resource.Sigma)}" height="0.8em"/></td>
+                                                <td class="header bold">Fees</td>
+                                                <td class="header bold">Extended&nbsp;Fee</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+											<tr style="display: {!IF(item.isRetainerReimbursables, 'none', 'table-row')};">
+                                                <td class="line center leftline">{!item.refNumber}</td>
+                                                <td class="line center">&nbsp;</td>
+                                                <td class="line left">{!item.depositPercentage}{!item.depositType}</td>
+                                                <td class="line right">
+                                                    <apex:outputText value="{0, number,###,###,##0.00}">
+                                                        <apex:param value="{!item.quantity}"/>
+                                                    </apex:outputText>
+                                                </td>
+                                                <td class="line right">
+                                                    <apex:outputText value="${0, number,###,###,##0.00}">
+                                                        <apex:param value="{!item.depositAmount}"/>
+                                                    </apex:outputText>
+                                                </td>
+                                                <td class="line right">
+                                                    <apex:outputText value="${0, number,###,###,##0.00}">
+                                                        <apex:param value="{!item.depositAmountTotal}"/>
+                                                    </apex:outputText>
+                                                </td>
+                                            </tr>
+											<apex:repeat value="{!item.addReimbursables}" var="addReimbursable" rendered="{!item.isRetainerReimbursables}">
+	                                            <tr>
+	                                                <td class="line center leftline">{!item.refNumber}</td>
+	                                                <td class="line center">&nbsp;</td>
+	                                                <td class="line left">{!addReimbursable.Description__c}</td>
+	                                                <td class="line right">
+	                                                    <apex:outputText value="{0, number,###,###,##0.00}">
+	                                                        <apex:param value="{!item.quantity}"/>
+	                                                    </apex:outputText>
+	                                                </td>
+	                                                <td class="line right">
+	                                                    <apex:outputText value="${0, number,###,###,##0.00}">
+	                                                        <apex:param value="{!addReimbursable.Amount__c}"/>
+	                                                    </apex:outputText>
+	                                                </td>
+	                                                <td class="line right">
+	                                                    <apex:outputText value="${0, number,###,###,##0.00}">
+	                                                        <apex:param value="{!addReimbursable.Amount__c}"/>
+	                                                    </apex:outputText>
+	                                                </td>
+	                                            </tr>
+											</apex:repeat>
+                                            <tr>
+                                                <td class="line right leftline bottomline" colspan="5">
+                                                    Subtotal:<br/>
+                                                    Tax:<br/>
+                                                    Applied Retainer/Credits:
+                                                </td>
+                                                <td class="line right bottomline">
+                                                    <apex:outputText value="${0, number,###,###,##0.00}">
+                                                        <apex:param value="{!item.depositAmountTotal}"/>
+                                                    </apex:outputText><br/>
+                                                    <apex:outputText value="${0, number,###,###,##0.00}">
+                                                        <apex:param value="{!item.tax}"/>
+                                                    </apex:outputText><br/>
+                                                    <apex:outputText value="${0, number,###,###,##0.00}">
+                                                        <apex:param value="{!item.amountPaid}"/>
+                                                    </apex:outputText>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <br/>
+                                    <div class="bold right">
+                                        Amount Due:&nbsp;
+                                        <apex:outputText value="${0, number,###,###,##0.00}">
+                                            <apex:param value="{!item.amountDue}"/>
+                                        </apex:outputText>
+                                    </div>
+                                    <br/>
+                                    <br/>
+                                    <br/>
+                                    <table class="content">
+                                        <tbody>
+                                            <tr>
+                                                <td style="vertical-align: top; width: 33.33%;">
+                                                    <span class="bold left">MAKE CHECKS PAYABLE TO:</span><br/>
+                                                    <span class="left">Milrose Consultants, Inc.</span><br/>
+                                                    <span class="left">ATTN: Accounts Receivable</span><br/>
+                                                    <br/>
+                                                    <span class="bold left">MILROSE CONSULTANTS ACCEPTS<br/>ALL MAJOR CREDIT CARDS</span><br/>
+                                                    <span class="bold left"><a href="https://www.milrose.com/payments/">https://www.milrose.com/payments/</a></span><br/> <!-- MRS 7475 -->
+                                                </td>
+                                                <td style="vertical-align: top; width: 33.34%;">
+                                                    <span class="bold left">DIRECT ALL BILLING INQUIRIES TO:</span><br/>
+                                                    <span class="left">{!item.arCoorName}</span><br/>
+                                                    <span class="left">{!item.arCoorPhone}</span><br/>
+                                                    <span class="left">{!item.arCoorEmail}</span>
+                                                </td>
+                                                <td style="vertical-align: top; width: 33.33%;">
+                                                    <span class="bold left">TO INITIATE A WIRE TRANSFER:</span><br/>
+                                                    <span class="left">Bank of America</span><br/>
+                                                    <span class="left">1185 Avenue of the Americas</span><br/>
+                                                    <span class="left">New York, NY 10036</span><br/>
+                                                    <span class="left">ACCT # 4837307121</span><br/>
+                                                    <span class="left">ABA # (ACH) 021000322</span><br/>
+                                                    <span class="left">ABA # (Wire) 026009593</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </apex:repeat>
+                </div>
+            </apex:outputPanel>
+        </body>
+    </html>
+</apex:page>

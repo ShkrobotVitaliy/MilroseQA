@@ -1,0 +1,63 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:variable var="displayColumn" value="{!IF(OR(projectView), 'table-cell', 'none')}"/>
+    <apex:variable var="display2Column" value="{!IF(OR(projectView, AND(!projectView, show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="display3Column" value="{!IF(OR(projectView, AND(!projectView, !show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="colspanValue" value="{!IF(projectView, 2, 1)}"/>
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="{!IF(projectView, 3, 2)}" style="text-align: left;">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: {!IF(projectView, '33', '50')}%; display :{!display2Column}">Application Permit Response</th>
+                <th style="width: {!IF(projectView, '33', '50')}%; display :{!display3Column}">Application Sign Off Response</th>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Description of Fire Alarm work to be completed</span></td>
+                <td style="display :{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Description_Fire_Alarm_work_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Description_Fire_Alarm_work_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Devices to be removed:</span></td>
+                <td style="display :{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Devices_to_be_removed_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Devices_to_be_removed_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Devices to be relocated:</span></td>
+                <td style="display :{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Devices_to_be_relocated_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Devices_to_be_relocated_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Devices to be installed:</span></td>
+                <td style="display :{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Devices_to_be_installed_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Devices_to_be_installed_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Associated Pre-Action work</span></td>
+                <td style="display :{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Associated_PreAction_work_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Associated_PreAction_work_Off__c}" /></td>
+            </tr>
+            <tr><td  style="display :{!display3Column}" colspan="3" class="tr-separator"></td></tr>
+            <tr>
+                <td style="display :{!display3Column}">
+                    <span class="mainRequestHeader">Fire Alarm inspections and As-built Plans</span>
+                    <ul>
+                        <li>Provide the FDNY inspection date.</li>
+                        <li>
+                            Provide a copy of the LOD/LOA along with FDNY stamped as-built plans as soon as they are available.
+                        </li>
+                    </ul>
+                    <p class="t-italic" style="color:blue;">A LETTER OF RECOMMENDATION (LOR) IS REQUIRED IF THE SCOPE IS FOR THE REMOVAL OF THE FA SYSTEM.</p>
+                </td>
+                <td class="secondColumn permission-massage" style="display :{!displayColumn};"><apex:outputText value="{!notRequiredPermission}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn">
+                    <apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Fire_Alarm_inspections_Off__c}" />
+                </td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

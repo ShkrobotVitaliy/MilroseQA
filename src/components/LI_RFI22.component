@@ -1,0 +1,87 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:variable var="display2Column" value="{!IF(OR(projectView, AND(!projectView, show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="display3Column" value="{!IF(OR(projectView, AND(!projectView, !show2column)), 'table-cell', 'none')}"/>
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="{!IF(projectView, 3, 2)}">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th colspan="{!IF(projectView, 3, 2)}" class="sectionHint">Note: Each sign is filed with the municipal agency as a separate application. If the scope of work involves multiple signs, please provide *sign information for each sign.</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width:{!IF(projectView, '33', '50')}%; display:{!display2Column}">Application Permit Response</th>
+                <th style="width:{!IF(projectView, '33', '50')}%; display:{!display3Column}">Application Sign Off Response</th>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Design Signing/Sealing &amp; License #</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Design_Signing_Sealing_License_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Design_Signing_Sealing_License_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Sign Hanger name/license#/Tax ID#</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Sign_Hanger_Name_License_Tax_Id_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Sign_Hanger_Name_License_Tax_Id_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Project Manager:</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Project_Manager_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Project_Manager_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">*Sign Information:</td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Frontage (yes/no):</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Frontage_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Frontage_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td>Square Footage of Sign:</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Square_Footage_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Square_Footage_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td>Height of Sign:</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Height_Of_Sign_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Height_Of_Sign_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td>Advertising or Business Sign:</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Advertising_Or_Business_Sign_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Advertising_Or_Business_Sign_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td>Sign illuminated (yes/no):</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Sign_Illuminated_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Sign_Illuminated_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td>Is the sign within 200 ft and within view of a park a ½ an acre or more? If yes, provide distance:</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Is_The_Sign_Within_200_Ft_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Is_The_Sign_Within_200_Ft_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td>If the answer is yes to either of the two preceding questions, provide OAC Sign number:</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Provide_OAC_Sign_Number_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Provide_OAC_Sign_Number_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td>Building Size</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Building_Size_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Building_Size_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td>Required Architectural Inspections</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Required_Architectural_Inspections_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Required_Architectural_Inspections_Off__c}" /></td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

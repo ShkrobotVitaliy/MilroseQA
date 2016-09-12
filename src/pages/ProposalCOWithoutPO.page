@@ -1,0 +1,7 @@
+<apex:page sidebar="false" showHeader="false" >
+    <apex:pageBlock >
+       <apex:iframe src="/00OA0000005jcMO?isdtp=nv&pv1={!$User.FirstName} {!$User.LastName}" height="600px" width="100%" scrolling="true" />
+    </apex:pageBlock>
+    <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+    
+</apex:page>

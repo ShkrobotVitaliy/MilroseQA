@@ -1,0 +1,7 @@
+<apex:page standardController="Deposit_Invoice__c" extensions="CreateDepositDetailReportController" action="{!autorun}">
+    <apex:form >
+        Generating Deposit Detail Report Document...<br/>
+        <apex:pageMessages id="msgs"/>
+        <apex:commandButton rendered="{!!isValid}" value="Go Back to Deposit Invoice" action="{!goBack}"/>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,277 @@
+<apex:page controller="PrebillingGeneratorController" sidebar="false">
+    <apex:stylesheet value="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/css/jquery.dataTables.css')}"/>
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    <apex:stylesheet value="{!$Resource.HomePage_CSS}"/>
+    <style>
+        .sorting {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_both.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_asc {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_asc.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_desc {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_desc.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_asc_disabled {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_asc_disabled.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_desc_disabled {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_desc_disabled.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+    </style>
+    <style>
+        html {
+            overflow: auto;
+        }
+        .toolbar {
+            font-weight: 700;
+            margin-left: 45%;
+            padding: 8px;
+            position: absolute;
+        }
+        .apexp {
+            padding-bottom: 10px;
+        }
+        .pbTitle, div.pbBottomButtons td.pbTitle {
+            width: 40% !important;
+        }
+    </style>
+    <style>
+        td {
+            vertical-align: middle !important;
+        }
+        .inputLabelFilter {
+            color: #4A4A56;
+            font-weight: 700;
+            padding: 0 4px 0 10px;
+        }
+        .btn, .btnDisabled {
+            border: 1px solid #3887A8 !important;
+            background: #F4F6F9 !important;
+            border-radius: 0 !important;
+            -moz-border-radius: 0 !important;
+            -webkit-border-radius: 0 !important;
+            padding-right: 8px !important;
+            padding-left: 8px !important;
+        }
+        .btnDisabled {
+            border: 1px solid #c4c4c4 !important;
+        }
+        .btn:hover {
+            background: #69B3D6 !important;
+            color: #fff !important;
+        }
+        .pbBody {
+            padding-bottom: 7px !important;
+        }
+    </style>
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}"/>
+
+    <apex:form id="form" >
+
+        <apex:actionStatus id="allPanelsOverlay" onstart="$('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);" onstop="$('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });"/>
+
+        <div class="overlay" id="AllPannelOverlay" style="opacity: .2; filter:alpha(opacity=20);"/>
+        <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+            <div style="text-align: center;">
+                <img src="{!$Resource.loading_bar}"/>
+                <p style="color: #000; margin-bottom: 0; font-size: 24px;">Please wait</p>
+            </div>
+        </div>
+
+    <!--Pre-billing Generator-->
+
+        <apex:pageBlock title="Pre-billing Generator">
+            <apex:pageBlockButtons location="bottom" style="text-align: right;" rendered="true">
+                <apex:outPutpanel id="addNewProjectsPanel">
+                    <apex:commandButton value="Start Pre-billing" action="{!generatePreBilling}"  reRender="msgError, addNewProjectsPanel, projectsPanelViaSearch, projectsTableOutputPanel" styleClass="milroseBtnStyle" status="allPanelsOverlay"/>
+                    <apex:commandButton value="Return to Project Level/Cancel" action="{!returnToProjectLevel}"  reRender="msgError, addNewProjectsPanel" styleClass="milroseBtnStyle" status="allPanelsOverlay"/>
+                </apex:outPutpanel>
+            </apex:pageBlockButtons>
+            <apex:pageMessages id="msgError"/>
+
+            <apex:outputPanel layout="block" id="projectsTableOutputPanel">
+                <div style="max-height: 300px;" class="tableContainer">
+                    <table id="formsTable" class="generalTableStyle">
+                        <thead class="rich-table-thead" border="solid 1px black">
+                            <tr>
+                                <th> </th>
+                                <th>MRC Number</th>
+                                <th>No reimbursables after pre-bill</th>
+                                <th>Met Data Scanning</th>
+                                <th>Shredding Fees</th>
+                                <th>Municipal Fees</th>
+                                <th>Messenger Fees</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <apex:repeat value="{!wrapout}" var="projectItem">
+                                <tr>
+                                    <td class="data dragHandle" style="width: 5%;">
+                                        <apex:inputCheckbox value="{!projectItem.isSelected}"/>
+                                    </td>
+                                    <td class="data" style="width: 16%;">
+                                        <apex:outputField value="{!projectItem.projectItemInFullWrapper.Name}"/>
+                                    </td>
+                                    <td class="data" style="width: 5%;">
+                                        <apex:inputField value="{!projectItem.projectItemInFullWrapper.No_Reimbursables_After_Pre_Bill__c}"/>
+                                    </td>
+                                    <td class="data" style="width: 14%;">
+                                        <apex:inputField value="{!projectItem.projectItemInFullWrapper.Reimbursable1__c}" rendered="{!!projectItem.projectItemInFullWrapper.No_Met_Data_Scanning__c}">
+                                            <apex:actionSupport action="{!getAmount}" event="onchange" reRender="projectsTableOutputPanel, msgError" status="allPanelsOverlay"/>
+                                        </apex:inputField>
+                                    </td>
+                                    <td class="data" style="width: 14%;">
+                                        <apex:inputField value="{!projectItem.projectItemInFullWrapper.Reimbursable2__c}" rendered="{!!projectItem.projectItemInFullWrapper.No_Document_Shredding__c}">
+                                            <apex:actionSupport action="{!getAmount}" event="onchange" reRender="projectsTableOutputPanel, msgError" status="allPanelsOverlay"/>
+                                        </apex:inputField>
+                                    </td>
+                                    <td class="data" style="width: 14%;">
+                                        <apex:inputField value="{!projectItem.projectItemInFullWrapper.Reimbursable3__c}">
+                                            <apex:actionSupport action="{!getAmount}" event="onchange" reRender="projectsTableOutputPanel, msgError" status="allPanelsOverlay"/>
+                                        </apex:inputField>
+                                    </td>
+                                    <td class="data" style="width: 14%;">
+                                        <apex:inputField value="{!projectItem.projectItemInFullWrapper.Reimbursable4__c}">
+                                            <apex:actionSupport action="{!getAmount}" event="onchange" reRender="projectsTableOutputPanel, msgError" status="allPanelsOverlay"/>
+                                        </apex:inputField>
+                                    </td>
+                                    <td class="data" style="width: 14%;">
+                                        <apex:outputText value="{!projectItem.amountWithFees}"/>
+                                    </td>
+                                </tr>
+                            </apex:repeat>
+                        </tbody>
+                    </table>
+                </div>
+            </apex:outputPanel>
+        </apex:pageBlock>
+
+    <!--Search Criteria-->
+
+        <apex:pageBlock title="Search Criteria" id="projectsLookupPopup">
+
+                <apex:pageBlockButtons location="bottom" style="text-align: right; padding-top: 0; padding-bottom: 0;" rendered="true">
+                    <apex:outPutpanel id="searchButtons">
+                        <apex:commandButton action="{!searchAction}" value="Search" styleClass="milroseBtnStyle" oncomplete="onLoad();" reRender="msgError, projectsTableOutputPanel, projectsPanelViaSearch" status="allPanelsOverlay" />
+                    </apex:outPutpanel>
+                </apex:pageBlockButtons>
+
+                <apex:outputPanel id="searchPanel" layout="block" >
+                    <table style="width:100%" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td style="padding-left: 50px;">
+                                <apex:outputPanel layout="block" styleClass="outputPanelFilter">
+                                    <p><apex:outputLabel value="Region:" styleClass="inputLabelFilter"/></p>
+                                    <apex:selectList value="{!regionId}" size="1" styleClass="selestListRegion">
+                                        <apex:selectOptions value="{!regionOptions}" />
+                                    </apex:selectList>
+                                </apex:outputPanel>
+                            </td>
+                            <td>
+                                <apex:outputPanel layout="block" styleClass="outputPanelFilter">
+                                    <p><apex:outputLabel value="Municipality:" styleClass="inputLabelFilter"/></p>
+                                    <apex:inputText value="{!municipalityFilter}" styleClass="selestListRegion"/>
+                                </apex:outputPanel>
+                            </td>
+                            <td>
+                                <apex:outputPanel layout="block" styleClass="outputPanelFilter">
+                                    <p><apex:outputLabel value="MRC #:" styleClass="inputLabelFilter"/></p>
+                                    <apex:inputText value="{!mRCNumberFilter}" styleClass="selestListRegion"/>
+                                </apex:outputPanel>
+                            </td>
+                            <td>
+                                <apex:outputPanel layout="block" styleClass="outputPanelFilter">
+                                    <p><apex:outputLabel value="Billing Client:" styleClass="inputLabelFilter"/></p>
+                                    <apex:inputText value="{!billingCompanyNameFilter}" styleClass="selestListRegion"/>
+                                </apex:outputPanel>
+                            </td>
+                            <td>
+                                <apex:outputPanel layout="block" styleClass="outputPanelFilter">
+                                    <p><apex:outputLabel value="Building Address:" styleClass="inputLabelFilter"/></p>
+                                    <apex:inputText value="{!buildingFilter}" styleClass="selestListRegion"/>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                    </table>
+                </apex:outputPanel>
+
+        </apex:pageBlock>
+
+
+<!--Not Pre-billed Projects-->
+
+        <apex:pageBlock title="Not Pre-billed Projects" id="pgblock">
+            <apex:pageBlockButtons location="both" style="text-align: left;" rendered="true">
+                <apex:commandButton action="{!AddForPrebilling}" value="Add For Pre-billing" styleClass="milroseBtnStyle" oncomplete="onLoad()" reRender="msgError, projectsTableOutputPanel, projectsPanelViaSearch" status="allPanelsOverlay"/>
+            </apex:pageBlockButtons>
+
+            <apex:outputPanel styleClass="tableContainer" layout="block" id="projectsPanelViaSearch">
+                <apex:pageBlockTable value="{!wrapoutSearchResults}" var="item" styleClass="dataTable">
+                    <apex:column >
+                        <apex:inputCheckbox value="{!item.isSelectedViaSearch}"/>
+                    </apex:column>
+                    <apex:column headerValue="MRC #" >
+                        <apex:outputLink value="/{!item.projectItemInFullWrapper.Id}" target="_blank">{!item.projectItemInFullWrapper.Name}</apex:outputLink>
+                    </apex:column>
+                    <apex:column headerValue="Project Name" value="{!item.projectItemInFullWrapper.Project_Name__c}" />
+                    <apex:column headerValue="Primary Client Name" value="{!item.projectItemInFullWrapper.Billing_Company_Name__r.Name}" />
+                    <apex:column headerValue="Street Address" value="{!item.projectItemInFullWrapper.Building__r.Name}" />
+                    <apex:column headerValue="Proposal #" >
+                        <apex:outputLink value="/{!item.projectItemInFullWrapper.Proposal__c}" target="_blank">{!item.projectItemInFullWrapper.Proposal__r.Name}</apex:outputLink>
+                    </apex:column>
+                    <apex:column headerValue="Awarded Date" value="{!item.projectItemInFullWrapper.Proposal__r.Proposal_Awarded_Date__c}" />
+                </apex:pageBlockTable>
+            </apex:outputpanel>
+        </apex:pageBlock>
+
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+
+    </apex:form>
+
+
+    <script src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.js')}"></script>
+    <script src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.dataTables.js')}"></script>
+    <script src="{!URLFOR($Resource.DateUS)}"></script>
+
+    <script>
+        function onLoad(){
+            var j$ = jQuery.noConflict();
+            var oTable = j$('table.dataTable').dataTable({
+                sPaginationType: "full_numbers",
+                bAutoWidth: false,
+                iDisplayLength: 10,
+                aoColumns: [ { sWidth: "3%" },{ sWidth: "12%" },{ sWidth: "21%" },{ sWidth: "20%" },{ sWidth: "20%" },
+                             { sWidth: "12%" },{ sWidth: "12%" }
+                ],
+                aoColumnDefs: [ { sSortDataType: "date-us", sType: "date-us", aTargets: [6] },
+                                { bSortable: false, aTargets: [0] }
+                ]
+            });
+            oTable.fnSort( [ [0,'desc'] ]);
+        }
+
+        function checkAll( cb, cbid ) {
+            var inputElem = document.getElementsByTagName("input");
+            for(var i=0; i<inputElem.length; i++) {
+                 if(inputElem[i].id.indexOf(cbid)!=-1){
+                    inputElem[i].checked = cb.checked;
+                }
+            }
+        }
+        function uncheckAll( ) {
+            var inputElem = document.getElementsByTagName("input");
+            for(var i=0; i<inputElem.length; i++) {
+                inputElem[i].checked = false;
+            }
+        }
+    </script>
+
+
+</apex:page>

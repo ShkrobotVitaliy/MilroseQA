@@ -1,0 +1,186 @@
+<apex:component controller="SendLettersComponentController" allowDML="true">
+    <apex:attribute name="currentRecordId"  description="Id of current record."  type="String"  required="true"  assignTo="{!recordId}"/>
+    <apex:attribute name="currentProjectId" description="Id of current project." type="String"  required="true"  assignTo="{!projectId}"/>
+    
+    <apex:pageMessages id="pageMessages" />
+    
+    <!-- Begin Update Email Address For DDP -->
+    <apex:actionFunction name="containerUpdateParentRecordTO" action="{!updateRecordTOField}" reRender="pageMessages" status="allPanelsOverlay">
+        <apex:param name="emailTO" value="" assignTo="{!emailsToDDP}"/>
+    </apex:actionFunction>
+    <apex:actionFunction name="containerUpdateParentRecordCC" action="{!updateRecordCCField}" reRender="pageMessages" status="allPanelsOverlay">
+        <apex:param name="emailCC" value="" assignTo="{!emailsCCDDP}"/>
+    </apex:actionFunction>
+    <!-- End Update Email Address For DDP -->
+    
+    <!-- Begin Search Section -->
+    <apex:outputPanel id="SearchSection" layout="block" rendered="{!isDisplaySearchSection}">        
+        <table class="generalTableStyle">
+            <tr>
+                <td style="padding-left: 50px; border: 0;" >
+                    <apex:outputPanel layout="block">
+                        <apex:outputLabel value="Region: " styleClass="labelText" style="font-size: 12px; display: block;"/>
+                        <apex:selectList value="{!regionName}" size="1" styleClass="selestListRegion">
+                            <apex:selectOptions value="{!regionOptions}" />
+                        </apex:selectList>
+                    </apex:outputPanel>
+                </td>
+                <td style="padding-left: 50px; border: 0;">
+                    <apex:outputPanel layout="block">
+                        <apex:outputLabel value="Municipality: " styleClass="labelText" style="font-size: 12px; display: block;"/>
+                        <apex:inputText value="{!municipalityFilter}" styleClass="selestListRegion"/>
+                    </apex:outputPanel>
+                </td>
+                <td style="padding-left: 50px; border: 0;">
+                    <apex:outputPanel layout="block">
+                        <apex:outputLabel value="MRC #: " styleClass="labelText" style="font-size: 12px; display: block;"/>
+                        <apex:inputText disabled="true" value="{!project.Name}" styleClass="selestListRegion"/> 
+                    </apex:outputPanel>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding-left: 50px; border: 0;">
+                    <apex:outputPanel layout="block">
+                        <apex:outputLabel value="Form Ref.#: " styleClass="labelText" style="font-size: 12px; display: block;"/>
+                        <apex:inputText value="{!refNumberFilter}" styleClass="selestListRegion"/>
+                    </apex:outputPanel>
+                </td>
+                <td style="padding-left: 50px; border: 0;">
+                    <apex:outputPanel layout="block">
+                        <apex:outputLabel value="Short Name: " styleClass="labelText" style="font-size: 12px; display: block;"/>
+                        <apex:inputText value="{!shortNameFilter}" styleClass="selestListRegion"/>
+                    </apex:outputPanel>
+                </td>
+                <td style="padding-left: 50px; border: 0;">
+                    <apex:outputPanel layout="block">
+                        <apex:outputLabel value="Long Name: " styleClass="labelText" style="font-size: 12px; display: block;"/>
+                        <apex:inputText value="{!fullNameFilter}" styleClass="selestListRegion"/>
+                    </apex:outputPanel>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding-left: 50px; border: 0;"></td>
+                <td style="padding-left: 50px; border: 0;">
+                    <apex:commandButton value="Search" id="searchLetterId" action="{!search}" styleClass="milroseBtnStyle" reRender="pageMessages, searchResultPanel" status="allPanelsOverlay"/>
+                </td>
+                <td style="padding-left: 50px; border: 0;"></td>
+            </tr>
+            
+            <tr>
+                <td style="padding-left: 20px; padding-right: 20px; border: 0;" colspan="3">
+                    <apex:outputPanel id="searchResultPanel" layout="block" style="height: 170px; overflow: auto; width:100%; margin:0; border: 1px solid #AED4E4;">
+                        <table style="width: 100%;">
+                            <thead class="rich-table-thead" border="solid 1px black">
+                                <tr class="nodrop nodrag">
+                                    <th class="headerRow">Search Results (click to select)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <apex:repeat value="{!formTemplates}" var="item">
+                                    <tr>
+                                        <td>
+                                            <apex:commandLink action="{!selectLetter}" value="{!item.Form_Name__c}"> <!-- reRender="SenderRecipientSection, pageMessages" status="allPanelsOverlay" -->
+                                                <apex:param name="letterRecordId" value="{!item.Id}" assignTo="{!letterRecordId}"/>
+                                            </apex:commandLink>
+                                        </td>
+                                    </tr>
+                                </apex:repeat>
+                            </tbody>
+                        </table>
+                    </apex:outputPanel>
+                </td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+    <!-- End Search Section -->
+    
+    <!-- Begin Choose Send/Recipient Section -->
+    <apex:outputPanel id="SenderRecipientSection" layout="block" rendered="{!isDisplaySenderRecipientSection}">
+        <table class="generalTableStyle">
+            <tr>
+                <td style="vertical-align: middle;">
+                    <apex:outputLabel value="Recipient: " styleClass="labelText" style="font-size: 12px; display: block;"/>
+                    <apex:inputField value="{!contactInfo.Contact__c}">
+                        <div class="requiredBlockWrapper"> <div class="requiredBlockMarker" style="left: -1px; top: -21px;"></div></div>
+                    </apex:inputField>
+                </td>
+            
+                <td style="vertical-align: middle;">
+                    <apex:outputLabel value="Sender: " styleClass="labelText" style="font-size: 12px; display: block;"/>
+                    <apex:inputField value="{!contactInfo.User__c}">
+                        <div class="requiredBlockWrapper"> <div class="requiredBlockMarker" style="left: -1px; top: -21px;"></div></div>
+                    </apex:inputField>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <apex:outputPanel layout="block" style="float: right;">
+                        <apex:commandButton value="Back to Search Letter" action="{!backToSearch}" styleClass="milroseBtnStyle"/> <!-- reRender="SearchSection, pageMessages" status="allPanelsOverlay" -->
+                        <apex:commandButton value="Move to Letter"        action="{!moveToLetter}" styleClass="milroseBtnStyle"/>
+                    </apex:outputPanel>
+                </td>
+            </tr>
+        </table>
+        
+        <!-- Hide Select Option for User -->
+        <script>
+            $("div > select").hide();
+        </script>
+    </apex:outputPanel>
+    <!-- End Choose Send/Recipient Section -->
+    
+    <!-- Begin Edit Letter Template -->
+    <apex:outputPanel layout="block" rendered="{!isDisplayLetterBody}">
+        <apex:outputLabel value="Edit Letter Template: " styleClass="labelText" style="font-size: 14px; display: block;"/>
+        
+        <apex:inputTextarea id="editTemplate" value="{!innerTemplateBody}" richText="true" cols="150" rows="15" />
+    </apex:outputPanel>
+    <!-- End Edit Letter Template -->
+  
+    <!-- Begin Send Email Component -->
+    <apex:outputPanel layout="block" rendered="{!isDisplayEmailSection}">
+        <c:PreviewAndSendEmail parentDDPRecordId="{!projectId}" 
+                               projectProfileRecord="{!project}" 
+                               DDPRecordName="{!drawloopName}" 
+                               emailTemplate="{!templateName}" 
+                               draftTemplate="{!templateName}" 
+                               sendAddressTo="{!recipient.Name} {!recipient.Email}" 
+                               selectRecipient="true" 
+                               attachIds="{!parentDocumentIds}" 
+                               additionalSubjectItem="{!letterName}"
+                               showTemplateSelection="false" 
+                               defaultBody="false" 
+                               emailTypeRecord="{!letterEmailType}" 
+                               additionalBodyItem="{!innerTemplateBody}"/>
+    </apex:outputPanel>
+    <!-- End Send Email Component -->
+   
+    <!-- Begin Button Section -->
+    <apex:outputPanel layout="block" rendered="{!isDisplayButtonPanel}" style="float: right;">
+        <apex:commandButton value="Back to Choose Sender/Recipient" action="{!backToChooseSenderRecipient}" styleClass="milroseBtnStyle"/>
+        <apex:commandButton value="Send as Email"                   action="{!sendAsEmail}"                 styleClass="milroseBtnStyle"/>
+        <!-- <apex:commandButton value="Send as Attachment to the Email" action="{!attachAsSendEmail}"           styleClass="milroseBtnStyle"/> -->
+        <apex:commandButton value="Print out and Mail"            action="{!attachLetterAsPDF}"           styleClass="milroseBtnStyle"/>
+    </apex:outputPanel>
+    <!-- End Button Section -->
+    
+    <apex:commandButton value="Close" action="{!close}" styleClass="milroseBtnStyle"/>
+    
+    <script type="text/javascript">
+        $(document).ready(function () {
+                document.onkeypress = stopRKey;
+            });
+    
+        function stopRKey(evt) {
+            var evt = (evt) ? evt : ((event) ? event : null);
+            var node = (evt.target) ? evt.target : ((evt.srcElement) ? evt.srcElement : null);
+    
+            if( ( evt.keyCode == 13 ) &&
+                ( node.type == "text" || node.tagName == "INPUT" || node.tagName == "SELECT" || node.tagName == "OPTION" ) ) {
+                var myButton = document.getElementById("{!$Component.searchLetterId}");
+                myButton.click();
+                return false;
+            }
+        }
+    </script>
+</apex:component>

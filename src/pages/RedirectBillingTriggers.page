@@ -1,0 +1,173 @@
+<apex:page showHeader="true" sidebar="true" controller="RedirectBillingTriggersController">
+    <apex:includeScript value="{!URLFOR($Resource.ProposalWizardResources, 'jquery-162.min.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.ProposalWizardResources, 'proposalWizard.css')}"/>
+    <script type="text/javascript">
+        function getSelectedText( element ) {
+            //var elt = document.getElementById(elementId);
+            if (element.selectedIndex == -1)
+                return null;
+            return element.options[element.selectedIndex].text;
+        }
+        
+        function readonlyInputs() {
+            $('select').attr('disabled', 'disabled');
+            $('input[type=submit]').attr('disabled', 'disabled').addClass('btnDisabled').removeClass('btn');
+            $('input[type=button]').attr('disabled', 'disabled').addClass('btnDisabled').removeClass('btn');
+            $('table tbody.data').removeAttr('onclick').removeClass('pointer');
+        }
+    </script>
+
+    <style type="text/css">
+        body {
+            overflow: auto;
+        }
+        table.generalTableStyle {
+            cursor: default;
+        }
+        table.generalTableStyle tbody {
+            border: 1px solid #AED4E4;
+            padding: 2px 3px;
+        }
+        table.generalTableStyle tbody.pointer {
+            cursor: pointer;
+        }
+        table.generalTableStyle tbody.data.active {
+            background-color: #D9E6EF;
+        }
+        table.generalTableStyle tbody.data.active:hover {
+            background-color: #E9F6FF;
+        }
+        table.generalTableStyle tbody.data.inactive {
+            background-color: none;
+        }
+        table.generalTableStyle tbody.data.inactive:hover {
+            background-color: #EEEEEE;
+        }
+        table.generalTableStyle tbody.data.active .task {
+            background-color: #D1DEE6;
+        }
+        table.generalTableStyle tbody.data.active:hover .task {
+            background-color: #E1EEF6;
+        }
+        table.generalTableStyle tbody.data.inactive .task {
+            background-color: #F6F6F6;
+        }
+        table.generalTableStyle tbody.data.inactive:hover .task {
+            background-color: #E5E5E5;
+        }
+        select:disabled {
+            color: black !important;
+        }
+        select:disabled option {
+            color: black !important;
+        }
+    </style>
+    
+    <apex:actionStatus id="readonlyInputs" onstart="readonlyInputs();" onstop=""/>
+
+    <apex:form id="form">
+        <apex:actionFunction name="pickService" action="{!pickService}" reRender="form">
+            <apex:param name="taskIdActive" value="" assignTo="{!taskIdActive}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="setService" action="{!setService}" reRender="form">
+            <apex:param name="serviceIdChosen" value="" assignTo="{!serviceIdChosen}"/>
+            <apex:param name="serviceNameChosen" value="" assignTo="{!serviceNameChosen}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="setTask" action="{!setTask}" reRender="form">
+            <apex:param name="taskIdChosen" value="" assignTo="{!taskIdChosen}"/>
+            <apex:param name="taskNameChosen" value="" assignTo="{!taskNameChosen}"/>
+        </apex:actionFunction>
+        
+        <apex:pageMessages id="msgs"/>
+        
+        <apex:outputPanel id="formData" rendered="{!isValid}">
+            <p>This Change Order removed services provided in the table below. These services contained billing triggers for the project. Please select a new service and task to replace them.</p>
+            <p style="color: #808080; font-size: 90%;">For each row presented, please pick a row by clicking on it, and choose a substitute service and task on the bottom.</p>
+            <table class="generalTableStyle">
+                <tr>
+                    <th>No.</th>
+                    <th colspan="2">Original Service Name / Task Name</th>
+                    <th>Billing<br/>Percent</th>
+                    <th colspan="2">Substitute Service Name / Task Name</th>
+                </tr>
+                <apex:variable var="counter" value="{!1}"/>
+                <apex:repeat value="{!taskIdToBillingTrigger}" var="taskId">
+                    <tbody onclick="readonlyInputs(); pickService( '{!taskId}' ); return false;" class="pointer data {!IF(taskIdToBillingTrigger[taskId].isActive, 'active', 'inactive')}">
+                        <tr>
+                            <td class="service" rowspan="2" style="width: 3%; border-bottom: none; text-align: center; vertical-align: middle;">
+                                {!counter}
+                            </td>
+                            <td class="service" style="width: 4%; border-bottom: none;">
+                                Service:
+                            </td>
+                            <td class="service" style="width: 42%; border-bottom: none;">
+                                {!taskIdToBillingTrigger[taskId].serviceName}
+                            </td>
+                            <td class="service" rowspan="2" style="width: 5%; border-bottom: none; text-align: center; vertical-align: middle;">
+                                {!taskIdToBillingTrigger[taskId].billingPercentage}%
+                            </td>
+                            <td class="service" style="width: 4%; border-bottom: none; border-bottom: none; text-align: center;">
+                                Service:
+                            </td>
+                            <td class="service" style="width: 42%; border-bottom: none; border-bottom: none;">
+                                {!taskIdToBillingTrigger[taskId].serviceNameChosen}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="task" style="border-top: none; text-align: center;">
+                                Task:
+                            </td>
+                            <td class="task" style="border-top: none;;">
+                                {!taskIdToBillingTrigger[taskId].taskName}
+                            </td>
+                            <td class="task" style="border-top: none; text-align: center;">
+                                Task:
+                            </td>
+                            <td class="task" style="border-top: none;">
+                                {!taskIdToBillingTrigger[taskId].taskNameChosen}
+                            </td>
+                        </tr>
+                    </tbody>
+                    <apex:variable var="counter" value="{!counter + 1}"/>
+                </apex:repeat>
+            </table>
+            <br/>
+            <apex:outputPanel rendered="{!taskIdActive != null}">
+                <table class="generalTableStyle">
+                    <tr>
+                        <th>Choose a Substitute Service Name:</th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:selectList multiselect="false" size="{!picklistForServices.size}" value="{!serviceIdChosen}" onchange="readonlyInputs(); setService( this.value, getSelectedText(this) ); return false;" style="width: 100%;">
+                                <apex:selectOptions value="{!picklistForServices}"/>
+                            </apex:selectList>
+                        </td>
+                    </tr>
+                </table>
+                <table class="generalTableStyle">
+                    <tr>
+                        <th>Choose a Substitute Task Name:</th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <apex:selectList multiselect="false" size="{!picklistForTasks.size}" value="{!taskIdChosen}" onchange="readonlyInputs(); setTask( this.value, getSelectedText(this) ); return false;" style="width: 100%;">
+                                <apex:selectOptions value="{!picklistForTasks}"/>
+                            </apex:selectList>
+                        </td>
+                    </tr>
+                </table>
+            </apex:outputPanel>
+            <div style="width: 100%; text-align: center;">
+                <apex:commandButton action="{!applySelection}" reRender="form" status="readonlyInputs" disabled="{!!allValuesSet}" value="Apply and approve change order" style="display: inline;"/><!--
+                --><input type="button" class="btn" onclick="readonlyInputs(); window.top.location = '/apex/ProposalWizard?id={!proposalId}&co={!changeOrderId}&step=3'; return false;" value="Cancel and return to wizard" style="display: inline;"/>
+            </div>
+        </apex:outputPanel>
+        <apex:outputPanel rendered="{!!isValid}">
+            <div style="width: 100%; text-align: center;">
+                <p>There is nothing to do with this Change Order.</p>
+                <input type="button" class="btn" onclick="window.top.location = '/apex/ProposalWizard?id={!proposalId}&co={!changeOrderId}&step=3'; return false;" value="Return to wizard" style="display: inline;"/>
+            </div>
+        </apex:outputPanel>
+    </apex:form>
+</apex:page>

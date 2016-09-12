@@ -1,0 +1,84 @@
+<apex:page standardController="Service_Item__c" extensions="TaskItemAtServiceItemContExt">
+    <apex:form >
+     <apex:pageMessages id="msgs"></apex:pageMessages>
+         <apex:pageBlock >
+            <apex:outputPanel layout="block" style="height: 400px;overflow-y: auto;">
+                <apex:pageBlockTable value="{!taskItemList}" var="child">
+                  <apex:column >
+                    <apex:facet name="header">
+                         {!$ObjectType.Task_Item__c.fields.Name.Label}
+                    </apex:facet>
+                    <apex:outputLink target="_blank" value="/{!child.Id}">{!child.Name}</apex:outputLink>
+                  </apex:column>
+                  <apex:column style="text-align: right;">
+                    <apex:facet name="header">
+                         {!$ObjectType.Task_Item__c.fields.Sequence_Number__c.Label}
+                    </apex:facet>
+                    <apex:outputField value="{!child.Sequence_Number__c}"/>
+                  </apex:column>
+                  <apex:column >
+                    <apex:facet name="header">
+                         {!$ObjectType.Task_Item__c.fields.Predecessor_Task__c.Label}
+                    </apex:facet>
+                    <apex:outputLink target="_blank" value="/{!child.Predecessor_Task__c}">{!child.Predecessor_Task__r.Name}</apex:outputLink>
+                  </apex:column>
+                  <apex:column >
+                    <apex:facet name="header">
+                         {!$ObjectType.Task_Item__c.fields.Successor_Task__c.Label}
+                    </apex:facet>
+                    <apex:outputLink target="_blank" value="/{!child.Successor_Task__c}">{!child.Successor_Task__r.Name}</apex:outputLink>
+                  </apex:column>
+                  <apex:column >
+                    <apex:facet name="header">
+                         Status Color
+                    </apex:facet>
+                    <apex:outputField value="{!child.Task_Status_Color__c}"/>
+                  </apex:column>
+                  <apex:column >
+                    <apex:facet name="header">
+                         Owner
+                    </apex:facet>
+                    <apex:outputLink target="_blank" value="/{!child.OwnerId}">{!child.Owner.Name}</apex:outputLink>
+                  </apex:column>
+                  <apex:column >
+                    <apex:facet name="header">
+                         {!$ObjectType.Task_Item__c.fields.Expected_Start_Date__c.Label}
+                    </apex:facet>
+                    <apex:outputField value="{!child.Expected_Start_Date__c}"/>
+                  </apex:column>
+                  <apex:column >
+                    <apex:facet name="header">
+                         {!$ObjectType.Task_Item__c.fields.Expected_Duration__c.Label}
+                    </apex:facet>
+                    <apex:outputField value="{!child.Expected_Duration__c}"/>
+                  </apex:column>
+                  <apex:column >
+                    <apex:facet name="header">
+                         {!$ObjectType.Task_Item__c.fields.Expected_End_Date__c.Label}
+                    </apex:facet>
+                    <apex:outputField value="{!child.Expected_End_Date__c}"/>
+                  </apex:column>
+                  <apex:column >
+                    <apex:facet name="header">
+                         {!$ObjectType.Task_Item__c.fields.Predecessor_Milestone__c.Label}
+                    </apex:facet>
+                    <apex:outputLink target="_blank" value="/{!child.Predecessor_Milestone__c}">{!child.Predecessor_Milestone__r.Name}</apex:outputLink>
+                  </apex:column>
+                  <apex:column >
+                    <apex:facet name="header">
+                         {!$ObjectType.Task_Item__c.fields.Successor_Milestone__c.Label}
+                    </apex:facet>
+                    <apex:outputLink target="_blank" value="/{!child.Successor_Milestone__c}">{!child.Successor_Milestone__r.Name}</apex:outputLink>
+                  </apex:column>
+                  <apex:column >
+                    <apex:facet name="header">
+                         {!$ObjectType.Task_Item__c.fields.Delay_End_Date__c.Label}
+                    </apex:facet>
+                    <apex:outputField value="{!child.Delay_End_Date__c}"/>
+                  </apex:column>
+                </apex:pageBlockTable>
+            </apex:outputPanel>
+         </apex:pageBlock>
+         <apex:inputField value="{!Service_Item__c.Name}" rendered="false"/>
+    </apex:form>
+</apex:page>

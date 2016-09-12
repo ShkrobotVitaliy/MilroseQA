@@ -1,0 +1,857 @@
+<apex:page showHeader="false" sidebar="false" standardcontroller="Project__c" extensions="LStore.storedDocInline,StoredDocContExt" id="aP">
+<apex:stylesheet value="/EXT/ext-2.1/resources/css/ext-all.css" />
+<style type="text/css">
+    body { background-color: transparent; }
+    .folderList a { margin-right: 5px; }
+    .data input, .data textarea { width: 97%; margin-top: 0; }
+    .statusCol { list-style-position:inside; margin:2px; padding:10px; height:5px; }
+    .statusCol .status { margin-right: 8px; }
+    .statusCol .progressbar { border: 1px solid #CCCCCC; }
+    .statusCol .progress{ background:#777D8D; width:0%; height:5px; font-size: 5px; }
+    .action { display: none; border-left: 1px solid; padding: 0 5px; }
+    .action.first { border: none; }
+    .invisible { display: none; }
+    #selFilesDiv { display: inline-block; position: relative; float: none !important; float: left; }
+    #selFilesHolder { position: absolute; left: 2px; width: 77px; height: 14px; }
+    #selFilesBtn { display: none; }
+    #form_loading_img {
+        position: absolute;
+        text-align: center;
+        width: 95%;
+        z-index: 3;
+        top: 12px;
+    }
+    #form_loading_img img {
+        display: block;
+        margin: auto;
+    }
+    #overlay {
+        height: 75px;
+        width: 100%;
+        position: absolute;
+        opacity: 0.6;
+        filter: alpha(opacity=60);
+        -moz-opacity: 0.6;
+        background-color: #FFF;
+        z-index: 2;
+    }
+    .relative { position: relative; z-index: 1; }
+    .bottomNav { padding: 5px; }
+    .overlay, .overlay-bg { left: 0; top: 0; position: absolute; text-align: center; width: 100%; z-index: 10; }
+    .overlay-bg { background-color: #FFF; height: 100%; }
+    .loading { position: relative; top: 40%; z-index: 11; }
+    .loading .text { margin-left: 6px; font-weight: bold; font-size: 105%; }
+    .list .x-grid3-hd-row th { border-left: 1px solid #EEE; border-right: 1px solid #D0D0D0; border-bottom: none; line-height: 15px; vertical-align: middle; }
+    .listViewport { border: none; }
+    .folderNav { margin-bottom: 15px; }
+    th { font-weight: bold; }
+</style>
+<script type="text/javascript" src="{!$Resource.LStore__JQuery}"></script>
+<script type="text/javascript" src="{!$Resource.LStore__SWFUploadJS}"></script>
+<script type="text/javascript" src="{!$Resource.LStore__SWFUploadJQ}"></script>
+<script type="text/javascript">
+    swfSel = '#swfupload-control';
+    loop = {
+        version: '{!JSENCODE(IF($Request.version != null, $Request.version, customController.version))}',
+        url: '{!JSENCODE($Request.loopurl)}',
+        package: '{!JSENCODE($Request.looppackage)}'
+    };
+    window.pagination = { };
+    jQuery.noConflict();
+
+    jQuery(function(){
+        jQuery('.confirmIfPending').live('click', confirmIfPending);
+//      jQuery('.searchTextBox').keydown(noSubmitOnEnter);
+        if (typeof(SWFUpload) === "undefined") {
+            return;
+        }
+        jQuery('[id$=:saveBtn]').click(function() {
+            if(checkDescriptionLength(jQuery('.description').val())) {
+                alert('System does not allow enter more then 255 characters into the Description field.');
+            } else if(checkDescriptionLength(jQuery('.keyWords').val())) {
+                alert('System does not allow enter more then 255 characters into the Key words field.');
+            } else if (swfu.getStats().in_progress) {
+                alert('You already have queued files uploading.');
+            } else {
+                var isValid = true;
+                for (i in swfu.settings.files) {
+                    $field = jQuery('#' + swfu.settings.files[i].id + '_name');
+                    var filename = $field.val();
+                    if (!/[^\s]+/.test(filename)) {
+                        $field.addClass('error');
+                        isValid = false;
+                    } else {
+                        $field.removeClass('error');
+                    }
+                }
+                if (isValid) {
+                    jQuery(swfSel).swfupload('startUpload');
+                }
+            }
+            return false;
+        });
+        jQuery('[id$=:cancelBtn]').click(function() {
+            var stats = swfu.getStats();
+            if (!(stats.in_progress || stats.files_queued) || confirm('This will cancel all currently uploading' +
+                    ' and pending queued files.' +
+                    '\n\nDo you wish to continue?')) {
+                if (stats.in_progress || stats.successful_uploads || stats.upload_errors || stats.upload_cancelled) {
+                    window.location = window.location;
+                }
+                setUploader(false, true);
+            }
+            return false;
+        });
+        window.pagination.impl = new Paginator('[id$=docTable]', window.pagination.args);
+        jQuery('span.unauthorized').closest('tr').addClass('unauthorized');
+    });
+    function fmtMsgHtml(htmlStr, selector) {
+        var $elem = jQuery('<div></div>').html(
+                jQuery.trim(htmlStr).replace(/<script(.|\s)*?\/script>/g, '').replace(/<br[\s]*\/>/g, '\r\n')
+            );
+        return jQuery.trim(
+            (selector ? $elem.find(selector)
+                : $elem).text()
+        );
+    };
+    function initUploader(selector) {
+        var loopUrl = "{!JSENCODE(customController.actionUrl)}";
+        // Instantiate a SWFUpload Instance
+        jQuery(selector).swfupload({
+            // Backend Settings
+            upload_url: loopUrl,
+            //assume_success_timeout: 10,
+            files: {},
+            post_params: getDLReqParams("upload"),
+            file_post_name: 'file', // Setting this doesn't work in the Linux Flash Player
+            requeue_on_error: false,
+            http_success : [123, 444],
+            // File Upload Settings
+            file_size_limit : "0",
+            file_types : "*.*",
+            file_types_description : "All Files",
+            file_upload_limit : "0",
+            button_window_mode: SWFUpload.WINDOW_MODE.TRANSPARENT,
+            button_cursor: SWFUpload.CURSOR.HAND,
+            button_width : 115,
+            button_height : 17,
+            button_action : SWFUpload.BUTTON_ACTION.SELECT_FILES,
+            button_placeholder : document.getElementById('selFilesBtn'),
+            button_text_top_padding : 3,
+            button_text_left_padding : 100,
+            // Flash Settings
+            flash_url : "{!$Resource.LStore__SWFUpload}",
+            // Debug Settings
+            debug: false
+        })
+            .bind('fileQueued', function(event, file){
+                var swfu = jQuery.swfupload.getInstance(this);
+                swfu.settings.files[file.id] = file;
+            })
+            .bind('fileQueueError', function(event, file, errorCode, message){
+                var zeroBytesError = -120;
+                var msg = '';
+                if (errorCode == zeroBytesError) {
+                    msg = 'The file '+file.name+' is zero bytes and cannot be uploaded.';
+                } else {
+                    msg = 'Size of the file '+file.name+' is greater than limit';
+                }
+                alert(msg);
+            })
+            .bind('fileDialogComplete', function(event, numFilesSelected, numFilesQueued) {
+                var swfu = jQuery.swfupload.getInstance(this);
+                if (!swfu.getStats().files_queued) {
+                    return;
+                }
+                var rows = [];
+                for (i in swfu.settings.files) {
+                    var f = swfu.settings.files[i];
+                    rows.push('row=' + encodeURIComponent(
+                        'id=' + encodeURIComponent(f.id) +
+                        '&name=' + encodeURIComponent(f._name || f.name) +
+                        '&desc=' + encodeURIComponent(f._desc || '') +
+                        '&keys=' + encodeURIComponent(f._keys || '') +
+                        '&size=' + encodeURIComponent(f.size) +
+                        '&type=' + encodeURIComponent(f.type.length ? f.type.substring(1) : '') +
+                        '&status=' + encodeURIComponent(f.filestatus)));
+                }
+                if (rows.length) {
+                    setUploader(true);
+                    //jQuery('[id$=uploadPanel]').removeClass('invisible');
+                    setOverlay(true);
+                    updateRows(rows.join('&'));
+                }
+            })
+            .bind('uploadStart', function(event, file){
+                var swfu = jQuery.swfupload.getInstance(this);
+                swfu.setButtonDisabled(true);
+                jQuery('[id$=saveBtn],[id$=selFilesDisplay]').addClass('btnDisabled');
+                swfu.settings.files[file.id].filestatus = file.filestatus;
+                for (i in swfu.settings.files) {
+                    setEdit(swfu.settings.files[i].id, 0);
+                }
+                var $row = jQuery('#' + file.id).closest('.dataRow');
+                $row.find('.cancelRow span').text('Cancel');
+                var fileKB = fmtSize(file.size);
+                dispStatus(file.id, 'Uploading...', 0);
+                swfu.addPostParam('docName', jQuery('#'+file.id+'_name').val());
+                swfu.addPostParam('docDesc', jQuery('#'+file.id+'_desc').val());
+                swfu.addPostParam('docKeywords', jQuery('#'+file.id+'_keys').val());
+            })
+            .bind('uploadProgress', function(event, file, bytesLoaded){
+                var swfu = jQuery.swfupload.getInstance(this);
+                if (file.id in swfu.settings.files) {
+                    setEdit(file.id, 0);
+                    swfu.settings.files[file.id].filestatus = file.filestatus;
+                }
+                //Show Progress
+                var percentage=Math.round((bytesLoaded/file.size)*100);
+                var $row = jQuery('#'+file.id).closest('.dataRow');
+                if (percentage == 100) {
+                    dispStatus(file.id, 'Processing...', 100, '');
+                    $row.find('.cancelRow').hide();
+                } else {
+                    dispStatus(file.id, null, percentage);
+                }
+            })
+            .bind('uploadError', function(err, file, errId, errMsg){
+                var swfu = jQuery.swfupload.getInstance(this);
+                if (file.id in swfu.settings.files) {
+                    setEdit(file.id, 0);
+                    swfu.settings.files[file.id].filestatus = file.filestatus;
+                }
+                var fileCanceled = -280;
+                if (errId != fileCanceled) {
+                    alert('An unexpected error occurred: ' + errMsg);
+                    jQuery('#'+file.id).closest('.dataRow').find('.statusCol').text(errMsg);
+                }
+            })
+            .bind('uploadSuccess', function(event, file, serverData){
+                var swfu = jQuery.swfupload.getInstance(this);
+                setEdit(file.id, 0);
+                swfu.settings.files[file.id].filestatus = file.filestatus;
+                var $row=jQuery('#'+file.id).closest('.dataRow');
+
+                if (!/^success/i.test(serverData)) {
+                    var addInfo = '';
+                    if (!serverData) { addInfo = 'Request timed out waiting for response.';
+                    } else if (/<html/i.test(serverData)) {
+                        var $contents = jQuery('<div></div>').html(jQuery.trim(serverData).replace(/<script(.|\s)*?\/script>/g, ''));
+                        if (/Your LOOP license/i.test(serverData)) {
+                            addInfo = fmtMsgHtml(serverData, '#content');
+                        } else {
+                            addInfo = '';
+                        }
+                    } else { addInfo = serverData;
+                    }
+                    alert('There was an error uploading your file' +
+                         (addInfo ? ':\n\n' + addInfo
+                            : '.'));
+                    dispStatus(file.id, 'Error');
+                    return false;
+                } else {
+                    dispStatus(file.id, 'Complete');
+                    $row.find('.cancelRow').hide();
+                }
+            })
+            .bind('uploadComplete', function(event, file){
+                var swfu = jQuery.swfupload.getInstance(this);
+                if (file.id in swfu.settings.files) {
+                    setEdit(file.id, 0);
+                    swfu.settings.files[file.id].filestatus = file.filestatus;
+                }
+                // upload has completed, try the next one in the queue
+                jQuery(this).swfupload('startUpload');
+                var stats = swfu.getStats();
+                if (!stats || !stats.in_progress) {
+                    // if we are done, reload the page
+                    window.location = '{!JSENCODE(cUrl)}';
+                }
+            });
+        window.swfu = jQuery.swfupload.getInstance(selector);
+        return window.swfu;
+    }
+    function initMainBtnPanel() {
+        initUploader(swfSel);
+        setUploader(false, true);
+        jQuery('[id$=:newFldrBtn]').click(function() {
+            if(confirmIfPending()) {
+                window.top.location.href = '{!JSENCODE(customController.newFldrPageStr)}';
+            }
+            return false;
+        });
+        /*jQuery('[id$=selFilesDisplay]').click(function() {
+            (swfu.getStats().in_progress && alert('You must wait until all files have completed uploading' +
+                'before adding more to the queue.'));
+        });*/
+    };
+
+    function getDLReqParams(action, data) {
+        var reqData = {
+            sessionid: "{!JSENCODE(customController.sessionId)}",
+            location: "{!$Api.Partner_Server_URL_150}",
+            packageId: "033a0000000kym5iac",
+            invisiframe: "true",
+            auto: "true",
+            next: "{!JSENCODE(customController.loopNext)}",
+            docFolder: "{!JSENCODE(customController.folderId)}",
+            act: action,
+            docRType: "{!JSENCODE(customController.docRType)}", // file record type
+            docRelObj: "{!JSENCODE(recordId)}",
+            contentType: 'text',
+            version: loop.version
+        };
+        for (key in data) {
+            reqData[key] = data[key];
+        }
+        return reqData;
+    };
+    function downloadDoc(viewObj)
+    {
+        var rand = Math.round(Math.random() * 1000000);
+        var containerId = 'div_' + rand;
+        if (isIE) {
+            var url = "{!JSENCODE(customController.actionUrl)}";
+            var params = getDLReqParams('download', { eid: jQuery(viewObj).find('span').attr('eid') });
+            url += '?sessionid=' + encodeURIComponent(params['sessionid'])
+                + '&location=' + encodeURIComponent(params['location']);
+            var next = params['next'];
+            delete params['sessionid'];
+            delete params['location'];
+            delete params['next'];
+            jQuery(viewObj).attr('href', url + '&next=' + next + encodeURIComponent('&' + jQuery.param(params)))
+                .attr('target', '_blank');
+            return true;
+        } else {
+            var url = '/apex/lstore__storedDocViewRestore?id='+jQuery(viewObj).find('span').attr('eid')+'&action=download&version='+encodeURIComponent(loop.version)
+                + (loop.url ? '&loopurl=' + loop.url : '')
+                + (loop.package ? '&looppackage=' + loop.package : '');
+            var frameName = 'iframe_' + rand;
+            var downloadFrame = document.createElement('iframe');
+            downloadFrame.name = frameName;
+            downloadFrame.style.display = 'none';
+            downloadFrame.src = url;
+            document.body.appendChild(downloadFrame);
+        }
+        return false;
+
+    }
+
+    function deleteDoc(delEid)
+    {
+        if (confirm('Are you sure?'))
+        {
+            delSpan = jQuery('span[eid='+delEid+'][rtype]');
+            if (delSpan.attr('rtype') == 'Document')
+            {
+                downloadFrame = document.createElement('iframe');
+                downloadFrame.src = '/apex/lstore__storedDocViewRestore?id='+delSpan.attr('eid')+'&action=delete&version='+encodeURIComponent(loop.version)
+                    + (loop.url ? '&loopurl=' + loop.url : '')
+                    + (loop.package ? '&looppackage=' + loop.package : '');
+                downloadFrame.style.display = 'none';
+                document.body.appendChild(downloadFrame);
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+    function setupRows() {
+        if (window.swfu) {
+            setOverlay(false);
+            var rows = [];
+            for (i in swfu.settings.files) {
+                var f = swfu.settings.files[i];
+                var $row = jQuery('#'+f.id).closest('.dataRow');
+                var status = '';
+                if (f.filestatus != SWFUpload.FILE_STATUS.QUEUED) {
+                    setEdit(f.id, 0);
+                }
+                switch (f.filestatus) {
+                    case SWFUpload.FILE_STATUS.QUEUED:
+                        status = 'Queued';
+                        $row.find('.cancelRow').attr('fileid', f.id)
+                            .bind('click', function(){
+                                var fileId = this.getAttribute('fileid');
+                                swfu.cancelUpload(fileId);
+                                delete swfu.settings.files[fileId];
+                                jQuery('#'+fileId).closest('.dataRow').remove();
+                                var stats = swfu.getStats();
+                                if (!(stats.in_progress + stats.files_queued)) {
+                                    setUploader(false, true);
+                                }
+                                return false;
+                            }).show();
+                        $row.find('.action').removeClass('first').filter(':visible:eq(0)').addClass('first');
+                        break;
+                    case SWFUpload.FILE_STATUS.IN_PROGRESS:
+                        status = 'In Progress...';
+                        $row.find('.cancelRow span').text('Cancel');
+                    case SWFUpload.FILE_STATUS.ERROR:
+                        status = 'Error';
+                        break;
+                    case SWFUpload.FILE_STATUS.COMPLETE:
+                        status = 'Complete';
+                        break;
+                    case SWFUpload.FILE_STATUS.CANCELLED:
+                        status = 'Canceled';
+                        break;
+                    default:
+                        status = 'Unknown';
+                        break;
+                }
+                dispStatus(f.id, status);
+                $row
+                    .find('.sizeCol').text(fmtSize(f.size))
+                    .end().find('[id^='+f.id+'_]').blur(function(){
+                        if (swfu) {
+                            var ind = this.id.lastIndexOf('_');
+                            var fileId = this.id.substring(0, ind);
+                            var field = this.id.substring(ind + 1);
+                            swfu.settings.files[fileId]['_' + field] = jQuery(this).val();
+                        }
+                    });
+                rows.push($row.get(0));
+            }
+            jQuery('.data .dataRow').not(rows).find('.statusCol').text('Complete');
+            var numProcessing = 0;
+            try { numProcessing = swfu.getStats().in_progress;
+            } catch (ex) { }
+            if (numProcessing) {
+                for (i in swfu.settings.files) {
+                    setEdit(swfu.settings.files[i].id, 0);
+                }
+            }
+        }
+    };
+    function dispStatus(fileId, statusMsg, progress, progLabel) {
+        $col = jQuery('#'+fileId).closest('.dataRow').find('.statusCol');
+        if (!$col.find('.status').length) {
+            $col.html('<span class="status">Pending</span>');
+        }
+        if (statusMsg != null) {
+            $col.find('.status').text(statusMsg);
+        }
+        if (typeof progress != "undefined") {
+            if (!$col.find('.progressvalue').length) {
+                $col.append('<span class="progressvalue"></span>');
+            }
+            if (!$col.find('.progressbar').length) {
+                $col.append('<div class="progressbar"><div class="progress secondaryPalette"></div></div>');
+            }
+            progLabel = (typeof progLabel != 'undefined' ? progLabel : progress + '%');
+            $col
+                .find('div.progress').css('width', progress+'%')
+                .end().find('span.progressvalue').text(progLabel);
+        } else {
+            $col.find('.progressbar').remove();
+        }
+    };
+    function setEdit(fileId, setEditable) {
+        jQuery('#'+fileId+'_name' +
+            ',#'+fileId+'_desc' +
+            ',#'+fileId+'_keys')
+            .each(function(i) {
+                var dId = 'display_' + this.id;
+                if (setEditable) {
+                    jQuery('#'+dId).remove();
+                    jQuery(this).show();
+                } else {
+                    if (!jQuery('#'+dId).length) {
+                        jQuery('<div></div>')
+                            .attr('id', dId)
+                            .text(jQuery(this).val() || ' ')
+                            .insertAfter(this);
+                        jQuery(this).hide();
+                    }
+                }
+            });
+    };
+    function fmtSize(filesize, fmt, precision) {
+        var endStr = '';
+        var fmtNum = filesize;
+        var divisor = 1024;
+        if (fmt && fmt.toLowerCase() == 'mb') {
+            divisor *= 1024;
+            endStr = ' MB';
+        } else {
+            endStr = ' KB';
+        }
+        if (filesize < divisor) {
+            precision = 2;
+        }
+        if (precision) {
+            fmtNum = Math.round(filesize*Math.pow(10, precision)/divisor)/Math.pow(10, precision);
+        } else {
+            fmtNum = Math.round(filesize/divisor);
+        }
+        return commafy(fmtNum) + endStr;
+    };
+    function commafy(num) {
+        var sections = (num + '').split('.');
+        var int = sections[0];
+        var frac = (sections.length > 1 ? sections[1] : '');
+        var arr = int.split('');
+        var fmt = '';
+        while (arr.length) {
+            fmt += arr.shift() + (arr.length && !(arr.length % 3) ? ',' : '');
+        }
+        return fmt + (frac ? '.' + frac : '');
+    };
+    function setOverlay(setVisible) {
+        if (setVisible) {
+            jQuery('#overlay, #form_loading_img').removeClass('invisible');
+            jQuery('#overlay').height(jQuery('#overlay').parent().height());
+        } else {
+            jQuery('#overlay, #form_loading_img').addClass('invisible');
+        }
+    };
+    function addOverlay(container, processingHtml, isRaw) {
+        try {
+            processingHtml = processingHtml || "";return jQuery(container).map(function (i) {var $container = jQuery(this);var origPos = $container.attr("position");if (origPos) {$container.attr("origPos", origPos);}$container.css("position", "relative");var $bg = jQuery("<div class=\"overlay-bg\"></div>");var $loading = jQuery(isRaw ? processingHtml : "<span class=\"loading\"><img src=\"/img/loading.gif\" /><span class=\"text\">" + processingHtml + "</span></span>");var height = $container.innerHeight();if (height < 100) {$loading.css("top", "10%");}var $overlay = jQuery("<div class=\"overlay\"></div>").append($bg).append($loading).prependTo($container);var position = $overlay.position();$bg.add($overlay).css({top: - position.top, left: - position.left, height: height, width: $container.innerWidth()}); return $overlay.get(0);});
+        } catch (ex) {
+            alert(ex);
+        }
+    };
+    function removeOverlay(container, overlay) {
+        if (container) {
+            jQuery(container).find(overlay ? jQuery(overlay) : ".overlay").remove();
+        } else if (overlay) {
+            jQuery(overlay).remove();
+        }
+    };
+    function noSubmitOnEnter() {
+        return !(window.event && window.event.keyCode == 13);
+    };
+    function setUploader(setVisible, reset) {
+        if (reset) {
+            // clears Queued Files table rows
+            //updateRows('');
+            for (i in swfu.settings.files) {
+                swfu.cancelUpload(swfu.settings.files[i].id);
+            }
+            swfu.settings.files = {};
+            try {
+                swfu.setButtonDisabled(false);
+            } catch(e) { }
+            jQuery('[id$=saveBtn], [id$=selFilesDisplay]').removeClass('btnDisabled');
+        }
+        jQuery('[id$=uploadPanel]')[(setVisible ? 'removeClass' : 'addClass')]('invisible');
+    };
+    function confirmIfPending() {
+        var stats = swfu.getStats();
+        return (!(stats.in_progress || stats.files_queued) || confirm('You currently have files pending.' +
+                '  If you proceed, your queued files will not be completed.' +
+                '\n\nDo you still wish to continue?'));
+    }
+    function changeFolder(fId)
+    {
+        if (confirmIfPending()) {
+            jQuery('[id=aP:aF:fId]').val(fId);
+            return true;
+        }
+        return false;
+    };
+
+    /* Pagination Handler */
+
+    function Paginator(selector, args) {
+        this.selector = selector;
+        this.init(args);
+    };
+    Paginator.prototype.init = function(args) {
+        this.$parent = jQuery(this.selector);
+        this.$nav = this.$parent.parent().find('.paginator');
+        var $links = this.$nav.find('.prevNextLinks').children();
+        this.links = {
+            first: $links.get(0),
+            prev: $links.get(1),
+            next: $links.get(2),
+            last: $links.get(3)
+        };
+        this.pageStart = args.pageStart;
+        this.pageEnd = args.pageEnd;
+        this.pageSize = args.pageSize;
+        this.resultTotal = args.resultTotal;
+        this.currentPageNumber = args.currentPageNumber;
+        this.totalPages = Math.ceil((this.resultTotal || 1) / (this.pageSize || 1));
+        this.sortBy = args.sortBy;
+        this.update();
+    };
+    Paginator.prototype.update = function() {
+        this.$nav
+            .find('.pageStart').text(this.pageStart).end()
+            .find('.pageEnd').text(this.pageEnd).end()
+            .find('.resultTotal').text(this.resultTotal).end()
+            .find('.currentPageNumber').val(this.currentPageNumber)
+                .keydown(function(e) {
+                    if (e.keyCode == 13 && this.value)
+                        window.pagination.impl.goTo(this.value);
+                })
+            .end()
+            .find('.totalPages').text(this.totalPages);
+        if (this.pageStart > 1) {
+            jQuery(this.links.first).html('<a href="javascript:window.pagination.impl.goTo(1)"><img class="first" src="/s.gif"/></a>');
+            jQuery(this.links.prev).html('<a href="javascript:window.pagination.impl.goTo('+(this.currentPageNumber-1)+')"><img class="prev" src="/s.gif"/>Previous</a>');
+        }
+        if (this.pageEnd < this.resultTotal) {
+            jQuery(this.links.next).html('<a href="javascript:window.pagination.impl.goTo('+(this.currentPageNumber+1)+')">Next<img class="next" src="/s.gif"/></a>');
+            jQuery(this.links.last).html('<a href="javascript:window.pagination.impl.goTo('+(this.totalPages)+')"><img class="last" src="/s.gif"/></a>');
+        }
+        this.$parent.find('th').click(function(e) {
+            var filter = jQuery.grep(this.className.split(' '), function(elem, i) {
+                return elem.indexOf('col-') === 0;
+            });
+            var hasRecords = jQuery(this).closest('table').find('.dataRow').length > 0;
+            if (filter.length && hasRecords) {
+                var cls = filter[0];
+                var col = cls.substring(4);
+                var sortAsc = !jQuery(this).hasClass('ASC');
+                window.pagination.impl.onPageLoad.push(function() {
+                    var $col = this.$parent.find('th[class~='+cls+']');
+                    if (sortAsc) $col.addClass('ASC').removeClass('DESC');
+                    else $col.removeClass('ASC').addClass('DESC');
+                });
+                window.pagination.impl.sort((!sortAsc ? '-' : '') + col);
+            }
+        });
+        if (!this.onPageLoad) this.onPageLoad = [];
+        for (var i = 0; i < this.onPageLoad.length; i++) {
+            this.onPageLoad[i].apply(this);
+        }
+        this.onPageLoad = [];
+    };
+    Paginator.prototype.setLoading = function() {
+        var $elem = this.$parent.closest('.pbBody');
+        addOverlay($elem, 'Loading...');
+        this.onPageLoad.push(function() { removeOverlay($elem); });
+    };
+    Paginator.prototype.goTo = function(num, pageSize) {
+        if (isNaN(num) || num < 1) {
+            num = 1;
+        } else {
+            if (this.totalPages && num > this.totalPages) {
+                num = this.totalPages;
+            }
+        }
+        this.setLoading();
+        goTo(num, pageSize || this.pageSize);
+    };
+    Paginator.prototype.sort = function(sortBy) {
+        this.setLoading();
+        updateList(sortBy || this.sortBy, this.currentPageNumber, this.pageSize);
+    }
+    function checkDescriptionLength(words) {
+        var description = words;
+        console.log(description);
+        if(description != null && description.length > 255) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+</script>
+    <apex:pageMessages />
+    <apex:form >
+        <div class="bOverviewSearch">
+            Enter keywords to find matching documents
+            <div class="pbSearch" style="display: inline;">
+                <apex:inputText id="search" title="search" styleClass="searchTextBox" value="{!customController.searchTerm}" />
+                <apex:commandButton value="Find Document" id="searchBtn" rerender="mainPanel" action="{!customController.returnNull}" />
+            </div>
+        </div>
+    </apex:form>
+    <apex:form id="aF">
+        <apex:inputHidden value="{!f}" id="fId" />
+        <apex:outputPanel id="uploadPanel" styleClass="invisible">
+            <div class="relative">
+                <div id="form_loading_img" class="invisible">
+                    <img alt="processing" src="https://apps.drawloop.com/images/widgets/throbber.gif" />
+                    processing
+                </div>
+                <div id="overlay" class="invisible"></div>
+                <apex:pageBlock >
+                    <apex:pageBlockButtons location="top">
+                        <apex:commandButton value="Save" id="saveBtn" />
+                        <apex:commandButton value="Cancel" id="cancelBtn" />
+                        <apex:actionFunction action="{!customController.setupRows}" name="updateRows" reRender="queuedFiles,messages,runSetupRows">
+                            <apex:param name="rowsStr" assignTo="{!customController.rowsToAddStr}" value="" />
+                        </apex:actionFunction>
+                    </apex:pageBlockButtons>
+                    <apex:pageBlockTable id="queuedFiles" styleClass="data" value="{!customController.uploadList}" var="file">
+                        <apex:column width="30">
+                            <apex:facet name="header">Action</apex:facet>
+                            <div class="actions">
+                                <apex:outputPanel layout="inline" rendered="{!file.status == -1}" styleClass="editRow action">
+                                    <apex:outputLink target="_blank" value=""><span>Edit</span></apex:outputLink>
+                                </apex:outputPanel>
+                                <apex:outputPanel layout="inline" rendered="{!file.status == -1 }" styleClass="saveRow action">
+                                    <apex:outputLink value="#"><span>Save</span></apex:outputLink>
+                                </apex:outputPanel>
+                                <apex:outputPanel layout="inline" rendered="{!file.status == -1 }" styleClass="cancelRow action">
+                                    <apex:outputLink value="#"><span>Remove</span></apex:outputLink>
+                                </apex:outputPanel>
+                            </div>
+                        </apex:column>
+                        <apex:column width="20">
+                            <apex:facet name="header">&nbsp;</apex:facet>
+                            <apex:image value="{!file.imgSrc}" width="16" height="16" />
+                        </apex:column>
+                        <apex:column width="220">
+                            <apex:facet name="header">{!IF(customController.isTest, 'File Name' , 'Name')}</apex:facet>
+                            <input type="text" id="{!HTMLENCODE(IF(file.id='', '', file.id + '_name'))}" value="{!HTMLENCODE(file.name)}" />
+                            <input type="hidden" id="{!HTMLENCODE(file.id)}" />
+                        </apex:column>
+                        <apex:column width="200">
+                            <apex:facet name="header">Description</apex:facet>
+                            <textarea class="description" id="{!HTMLENCODE(IF(file.id='', '', file.id + '_desc'))}">{!HTMLENCODE(file.description)}</textarea>
+                        </apex:column>
+                        <apex:column width="170">
+                            <apex:facet name="header">Keywords</apex:facet>
+                            <input class="keyWords" type="text" id="{!HTMLENCODE(IF(file.id='', '', file.id + '_keys'))}" value="{!HTMLENCODE(file.keywords)}" />
+                        </apex:column>
+                        <apex:column styleClass="statusCol" width="230">
+                            <apex:facet name="header">Status</apex:facet>
+                            <apex:outputText value="" />
+                        </apex:column>
+                        <apex:column styleClass="sizeCol">
+                            <apex:facet name="header">File Size</apex:facet>
+                            <apex:outputText value="" />
+                        </apex:column>
+                        <apex:column >
+                            <apex:facet name="header">Type</apex:facet>
+                            <apex:outputText value="{!file.extension}" />
+                        </apex:column>
+                    </apex:pageBlockTable>
+                    <apex:outputPanel id="runSetupRows">
+                        <script type="text/javascript">setupRows();</script>
+                    </apex:outputPanel>
+                </apex:pageBlock>
+            </div>
+        </apex:outputPanel>
+        <apex:outputPanel id="mainPanel" styleClass="listViewportWrapper">
+            <apex:dataList value="{!customController.folderNav}" var="folder" type="none">
+                <apex:image value="/s.gif" width="{!folder.imgLeftPad}" height="1" />
+                <apex:commandLink onclick="return changeFolder('{!folder.f.LStore__Folder__c}');" action="{!changeFolder}">
+                    <apex:image value="https://apps.drawloop.com/images/icons/folder.png" style="text-decoration: none;" />
+                    {!HTMLENCODE(IF(folder.f.LStore__Folder__c='', '...', folder.f.LStore__Folder__r.LStore__File_Name_Calc__c))}
+                </apex:commandLink>
+            </apex:dataList>
+            <apex:pageBlock title="{!customController.folderName}">
+                <apex:pageBlockButtons location="top">
+                    <apex:outputPanel id="mainBtnPanel">
+                        <div id="swfupload-control"></div>
+                        <div id="selFilesDiv">
+                            <div id="selFilesHolder">
+                                <input id="selFilesBtn" type="button" value="Select Files" />
+                            </div>
+                            <apex:commandButton value="New Document(s)" id="selFilesDisplay" onclick="return false;" />
+                        </div>
+                        <apex:commandButton value="New Folder" id="newFldrBtn" />
+                        <script>initMainBtnPanel();</script>
+                    </apex:outputPanel>
+                </apex:pageBlockButtons>
+                <apex:outputPanel id="docListPanel" styleClass="listViewport">
+                    <apex:pageBlockTable id="docTable" value="{!customController.docList}" var="doc" headerClass="x-grid3-header x-grid3-hd-row">
+                        <apex:column width="90" headerClass="x-grid3-header">
+                            <apex:facet name="header">Action</apex:facet>
+                            <span class="{!HTMLENCODE(If(!doc.allowAccess, 'unauthorized', ''))}" style="display: none;"></span>
+                            <div style="{!HTMLENCODE(If(!doc.allowAccess, 'display: none;', ''))}">
+                                <apex:outputLink value="/{!doc.d.Id}/e?retURL=%2F{!recordId}" target="_top">Edit</apex:outputLink>
+                                <span>| </span><apex:commandLink action="{!customController.deleteIdAndUpdate}" value="Del" onclick="return deleteDoc('{!HTMLENCODE(doc.d.Id)}');"><span eid="{!HTMLENCODE(doc.d.Id)}" rtype="{!HTMLENCODE(doc.d.RecordType.Name)}"></span>
+                                    <apex:param assignTo="{!customController.delId}" value="{!doc.d.Id}" name="folderId"/>
+                                </apex:commandLink>
+                                <apex:outputPanel layout="inline" rendered="{!doc.d.RecordType.Name=='Document'}">
+                                    <span>| </span><apex:outputLink onclick="return downloadDoc(this);" value="#"><span eid="{!HTMLENCODE(doc.d.Id)}" etype="{!HTMLENCODE(doc.d.LStore__Type__c)}">View</span></apex:outputLink>
+                                </apex:outputPanel>
+                            </div>
+                        </apex:column>
+                        <apex:column width="20">
+                            <apex:facet name="header">&nbsp;</apex:facet>
+                            <apex:image value="{!doc.imgSrc}" width="16" height="16" />
+                        </apex:column>
+                        <apex:column headerClass="col-fname">
+                            <apex:facet name="header">{!IF(customController.isTest, 'File Name' , 'Name')}<img class="invisible x-grid3-sort-icon" src="/s.gif"/></apex:facet>
+                            <apex:outputLink styleClass="confirmIfPending" value="{!doc.docLink}" target="_top" rendered="{!doc.d.RecordType.Name=='Document'}">{!HTMLENCODE(doc.d.LStore__File_Name_Calc__c)}</apex:outputLink>
+                            <apex:commandLink value="{!doc.d.LStore__File_Name_Calc__c}" rendered="{!doc.d.RecordType.Name!='Document'}" action="{!changeFolder}" onclick="return changeFolder('{!doc.d.Id}');" />
+                            {!HTMLENCODE(If(!doc.allowAccess, doc.msgNotAuthorized, ''))}
+                        </apex:column>
+                        <apex:column rendered="{!customController.searchTerm!=''}">
+                            <apex:facet name="header">Folder<img class="invisible x-grid3-sort-icon" src="/s.gif"/></apex:facet>
+                            <apex:outputLink value="/apex/lstore__storedDocList?fid={!doc.d.LStore__Folder__c}">{!HTMLENCODE(doc.d.LStore__Folder__r.LStore__File_Name_Calc__c)}</apex:outputLink>
+                        </apex:column>
+                        <apex:column headerClass="{!IF(ISBLANK(customController.ch.column1.sortBy), '', 'col-' & LOWER(customController.ch.column1.sortBy))}" rendered="{!!ISBLANK(customController.ch.column1)}">
+                            <apex:facet name="header">{!HTMLENCODE(customController.ch.column1.header)}<img class="invisible x-grid3-sort-icon" src="/s.gif"/></apex:facet>
+                            <apex:outputText value="{!doc.rh.cell1.value}" escape="{!customController.ch.column1.escapeOutput}" />&nbsp;
+                        </apex:column>
+                        <apex:column headerClass="{!IF(ISBLANK(customController.ch.column2.sortBy), '', 'col-' & LOWER(customController.ch.column2.sortBy))}" rendered="{!!ISBLANK(customController.ch.column2)}">
+                            <apex:facet name="header">{!HTMLENCODE(customController.ch.column2.header)}<img class="invisible x-grid3-sort-icon" src="/s.gif"/></apex:facet>
+                            <apex:outputText value="{!doc.rh.cell2.value}" escape="{!customController.ch.column2.escapeOutput}" />&nbsp;
+                        </apex:column>
+                        <apex:column headerClass="{!IF(ISBLANK(customController.ch.column3.sortBy), '', 'col-' & LOWER(customController.ch.column3.sortBy))}" rendered="{!!ISBLANK(customController.ch.column3)}">
+                            <apex:facet name="header">{!HTMLENCODE(customController.ch.column3.header)}<img class="invisible x-grid3-sort-icon" src="/s.gif"/></apex:facet>
+                            <apex:outputText value="{!doc.rh.cell3.value}" escape="{!customController.ch.column3.escapeOutput}" />&nbsp;
+                        </apex:column>
+                        <apex:column headerClass="{!IF(ISBLANK(customController.ch.column4.sortBy), '', 'col-' & LOWER(customController.ch.column4.sortBy))}" rendered="{!!ISBLANK(customController.ch.column4)}">
+                            <apex:facet name="header">{!HTMLENCODE(customController.ch.column4.header)}<img class="invisible x-grid3-sort-icon" src="/s.gif"/></apex:facet>
+                            <apex:outputText value="{!doc.rh.cell4.value}" escape="{!customController.ch.column4.escapeOutput}" />&nbsp;
+                        </apex:column>
+                        <!-- <apex:column headerClass="{!IF(ISBLANK(customController.ch.column5.sortBy), '', 'col-' & LOWER(customController.ch.column5.sortBy))}" rendered="{!!ISBLANK(customController.ch.column5)}">
+                            <apex:facet name="header">{!HTMLENCODE(customController.ch.column5.header)}<img class="invisible x-grid3-sort-icon" src="/s.gif"/></apex:facet>
+                            <apex:outputText value="{!doc.rh.cell5.value}" escape="{!customController.ch.column5.escapeOutput}" />&nbsp;
+                        </apex:column> --> <!-- MRS-6069 -->
+                        <apex:column headerClass="" rendered="{!!ISBLANK(customController.ch.column5)}">
+                            <apex:facet name="header">Created By</apex:facet>
+                            <a href="/{!documentOwners[doc.d.Id][1]}"><apex:outputText value="{!documentOwners[doc.d.Id][0]}" escape="true"/></a>&nbsp;
+                        </apex:column>
+                        <apex:column headerClass="{!IF(ISBLANK(customController.ch.column6.sortBy), '', 'col-' & LOWER(customController.ch.column6.sortBy))}" rendered="{!!ISBLANK(customController.ch.column6)}">
+                            <apex:facet name="header">{!HTMLENCODE(customController.ch.column6.header)}<img class="invisible x-grid3-sort-icon" src="/s.gif"/></apex:facet>
+                            <apex:outputText value="{!doc.rh.cell6.value}" escape="{!customController.ch.column6.escapeOutput}" />&nbsp;
+                        </apex:column>
+                    </apex:pageBlockTable>
+                    <div class="bottomNav">
+                        <div class="paginator">
+                            <span class="left">
+                                <span class="selectorTarget"><span class="pageStart">0</span>-<span class="pageEnd">0</span> of <span class="resultTotal">0</span></span>
+                            </span>
+                            <span class="prevNextLinks">
+                                <span class="prevNext">
+                                <img class="firstoff" src="/s.gif" />
+                                </span>
+                                <span class="prevNext">
+                                <img class="prevoff" src="/s.gif" />Previous</span>
+                                <span class="prevNext">Next<img class="nextoff" src="/s.gif" />
+                                </span>
+                                <span class="prevNext">
+                                <img class="lastoff" src="/s.gif" />
+                                </span>
+                            </span>
+                            <span class="right">Page<input value="1" maxlength="4" class="pageInput currentPageNumber" />of <span class="totalPages">1</span></span>
+                        </div>
+                        <div class="clearingBox">
+                        </div>
+                    </div>
+                    <script type="text/javascript">
+                        window.pagination.args = {
+                            pageStart: {!customController.pageStart},
+                            pageEnd: {!customController.pageEnd},
+                            pageSize: {!customController.pageSize},
+                            resultTotal: {!customController.resultTotal},
+                            currentPageNumber: {!customController.pageNumber},
+                            sortBy: '{!JSENCODE(customController.sortBy)}'
+                        };
+                    </script>
+                </apex:outputPanel>
+            </apex:pageBlock>
+        </apex:outputPanel>
+        <apex:actionFunction action="{!customController.clearDocList}" name="goTo" rerender="docListPanel" oncomplete="window.pagination.impl.init(window.pagination.args);">
+            <apex:param name="pageNum" assignTo="{!customController.pageNumber}" value="" />
+            <apex:param name="pageSize" assignTo="{!customController.pageSize}" value="" />
+        </apex:actionFunction>
+        <apex:actionFunction action="{!customController.forceReQuery}" name="updateList" rerender="docListPanel" oncomplete="window.pagination.impl.init(window.pagination.args);">
+            <apex:param name="sortBy" assignTo="{!customController.sortBy}" value="" />
+            <apex:param name="pageNum" assignTo="{!customController.pageNumber}" value="" />
+            <apex:param name="pageSize" assignTo="{!customController.pageSize}" value="" />
+        </apex:actionFunction>
+    </apex:form>
+</apex:page>

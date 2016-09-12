@@ -1,0 +1,52 @@
+<apex:page showHeader="true" sidebar="true" standardController="Project_Profile__c" extensions="DrawingsReceivedController">
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    <script type="text/javascript">
+        function setFocusOnLoad() {}
+    </script>
+    <apex:form >
+        <apex:actionStatus id="overlay" onstart="document.getElementById('overlayContent').style.display='block'; document.getElementById('overlayContent').style.opacity='1.0'; document.getElementById('transparentOverlay').style.display='block'; document.getElementById('transparentOverlay').style.opacity='0.7';" onstop="document.getElementById('overlayContent').style.display='none'; document.getElementById('overlayContent').style.opacity='0.2'; document.getElementById('transparentOverlay').style.display='none'; document.getElementById('transparentOverlay').style.opacity='0.2';"/>
+        <div class="overlayHolder" style="position: relative; overflow: auto; -webkit-overflow-scrolling: touch;">
+            <div class="overlay" id="transparentOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"></div>
+            <div class="overlayContent" id="overlayContent" style="display: none; opacity: 0.2; filter: alpha(opacity=20); padding: 10px 30px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 50%; transform: translateY(-50%);">
+                <div style="text-align: center;">
+                    <img src="{!URLFOR($Resource.ProposalWizardResources, 'img/WaitAnimation.gif')}"/>
+                    <div style="color: #038; margin-bottom: 0px; font-size: 24px; padding-top: 10px; cursor: default;">Please wait</div>
+                </div>
+            </div>
+            <apex:pageMessages id="msgs"/>
+            <apex:outputPanel id="drawingsReceived" layout="block" style="overflow-y: auto; height: 240px;">
+                <table class="generalTableStyle">
+                    <tr>
+                        <th>Work Type</th>
+                        <th>From</th>
+                        <th style="width: 165px;">Date Requested</th>
+                        <th style="width: 165px;">Date Received</th>
+                    </tr>
+                    <apex:repeat value="{!drawingsReceived}" var="drawingReceived">
+                        <tr>
+                            <td>
+                                <apex:inputText value="{!drawingReceived.Work_Type__c}" style="box-sizing: border-box; width: 100%;"/>
+                            </td>
+                            <td>
+                                <apex:selectList value="{!drawingReceived.From__c}" multiselect="false" size="1" style="width: 100%;">
+                                    <apex:selectOptions value="{!rosters}"/>
+                                </apex:selectList>
+                            </td>
+                            <td style="text-align: center;">
+                                <apex:inputField value="{!drawingReceived.Date_Requested__c}"/>
+                            </td>
+                            <td style="text-align: center;">
+                                <apex:inputField value="{!drawingReceived.Date_Received__c}"/>
+                            </td>
+                        </tr>
+                    </apex:repeat>
+                </table>
+            </apex:outputPanel>
+            <div style="width: 100%; text-align: right; padding-top: 2px; padding-bottom: 14px;">
+                <apex:commandButton value="Save" action="{!saveDrawingsReceived}" reRender="msgs, drawingsReceived" status="overlay" styleClass="milroseBtnStyle" style="display: inline-block;"/>
+                <apex:commandButton value="Add New" action="{!addEmptyDrawing}" reRender="msgs, drawingsReceived" status="overlay" styleClass="milroseBtnStyle" style="display: inline-block;"/>
+            </div>
+            <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+        </div>
+    </apex:form>
+</apex:page>

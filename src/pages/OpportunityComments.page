@@ -1,0 +1,59 @@
+<apex:page standardController="Opportunity" extensions="OpportunityCommentsController" sidebar="false" showHeader="false" showChat="false">
+	<apex:includeScript value="{!URLFOR($Resource.ProposalWizardResources, 'jquery-162.min.js')}" />
+  	<apex:stylesheet value="{!URLFOR($Resource.ProposalWizardResources, 'proposalWizard.css')}"/>
+	<script type="text/javascript">
+		function showOverlay() {
+		  $('#transparentOverlay').show().fadeTo('slow', 0.7);
+		}
+		function hideOverlay() {
+		  $('#transparentOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });
+		}
+	</script>
+  <apex:form >
+  <div class="overlay" id="transparentOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"></div>
+  <apex:pageMessages id="msgs"/>
+    <style>
+      .addInstructionPopUpWindowStyle {
+        background-color: #E0F0F9;
+        z-index: 1002;
+        display: none;
+        position:fixed;
+        left:20%;
+        top:10%;
+        opacity:1.0;
+        width: 60%;
+        height: 80%;
+        overflow: auto;
+        border-radius: 5px 5px 5px 5px;
+        box-shadow: 5px 5px 30px 5px rgba(0,0,0,0.71);
+        padding: 5px;
+        border: none;
+      } 
+    </style>
+    <apex:actionFunction name="addNewInstruction" action="{!addNewInstruction}" oncomplete="$('#addInstructionPopUp').toggle(); hideOverlay();" reRender="ProjectSpecificNotes, msgs, instructionInput"/>
+    <div id="addInstructionPopUp" class="addInstructionPopUpWindowStyle">
+      <apex:outputPanel id="instructionInput" layout="block" style="height: 75%;">
+        <apex:inputTextArea value="{!newInstruction}" style="width: 98.5%; height: 100%; color: green; resize: none;"/> 
+      </apex:outputPanel>
+      <apex:outputPanel layout="block" style="height: 25%;">
+        <table width="100%" height="100%">
+          <tr>
+            <td width="50%" style="text-align: right; padding-right: 10px; padding-top: 10px;">
+              <apex:commandButton value="Add Comment"  onclick="addNewInstruction();" styleClass="milroseBtnStyle" reRender="msgs"/>
+            </td>
+            <td width="50%" style="padding-left: 10px; padding-top: 10px;">
+              <apex:commandButton value="Cancel"  onclick="$('#addInstructionPopUp').toggle(); hideOverlay();" styleClass="milroseBtnStyle" reRender="msgs"/>
+            </td>
+          </tr>
+        </table>
+      </apex:outputPanel>
+    </div>
+    <apex:outputPanel id="ProjectSpecificNotes" layout="block">
+      <br/><strong>Comments</strong>
+      <apex:inputTextArea value="{!opp.Comments__c}" style="width: 99.1%; color: green; resize: none;" rows="15" readonly="true"/>
+    </apex:outputPanel>
+    <apex:outputPanel layout="block" style="text-align: right; width: 99.8%;">
+      <apex:commandButton value="Add Comment"  onclick="showOverlay(); $('#addInstructionPopUp').toggle();" styleClass="milroseBtnStyle" reRender="msgs"/>
+    </apex:outputPanel>
+  </apex:form>
+</apex:page>

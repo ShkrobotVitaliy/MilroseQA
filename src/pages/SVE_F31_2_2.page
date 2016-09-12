@@ -1,0 +1,85 @@
+<apex:page standardController="Form_Meta_Data_Object_1__c"  extensions="CommonFormController" >
+<head>
+<script src="/soap/ajax/25.0/connection.js"></script>
+<script src="/soap/ajax/25.0/apex.js"></script>
+</head>
+
+
+<img src="/img/loading32.gif" id="SkyeditorLoagingImage" style="display:none;"/>
+
+<table border="0" cellpadding="0" cellspacing="0" style="width:100%;" ><tr><td>
+<apex:outputPanel rendered="{! NOT(hidePageBody)}" id="pagePanel" styleClass="base" layout="block">
+<apex:outputPanel style="position:relative;" >
+</apex:outputPanel><apex:form id="sve_form1"   styleClass="sve_form1"   >
+<apex:outputPanel layout="block"   style="position:relative;width:816px;height:1056px;" >
+<img   src="{!URLFOR($Resource.F31_2_2)}"   style="width:816px;height:1056px;left:0px;top:0px;position:absolute;" /><apex:commandButton action="{!prevPage}"   id="Component40"   immediate="false"   value="Previous"   style="left:58px;top:4px;position:absolute;width:66px;" >
+</apex:commandButton><apex:commandButton action="{!cancelPage}"   id="Component41"   immediate="false"   value="Cancel"   style="left:331px;top:4px;position:absolute;width:66px;" >
+</apex:commandButton><apex:commandButton action="{!savePage}"   id="Component42"   immediate="false"   value="Save"   style="left:417px;top:4px;position:absolute;width:66px;" >
+</apex:commandButton><apex:commandButton action="{!updateDocAndDdp}"   id="Component43"   immediate="false"   value="Generate PDF"   style="left:552px;top:4px;position:absolute;width:119px;" >
+</apex:commandButton><apex:outputPanel styleclass="fieldwrapper " style="left:62px;top:62px;position:absolute;" >
+<apex:inputField id="Component49"   style="width:669px;height:14px;color:#000000;font-size:10pt;font-weight:Normal;"   value="{!record.Input_Field125__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:134px;top:123px;position:absolute;" >
+<apex:inputField id="Component77"   style="width:46px;height:14px;color:#000000;font-size:10pt;font-weight:Normal;"   value="{!record.Building_Legal_Height__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:262px;top:123px;position:absolute;" >
+<apex:inputField id="Component78"   style="width:47px;height:14px;color:#000000;font-size:10pt;font-weight:Normal;"   value="{!record.Building_Num_of_Stories__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:412px;top:123px;position:absolute;" >
+<apex:inputField id="Component80"   style="width:44px;height:14px;color:#000000;font-size:10pt;font-weight:Normal;"   value="{!record.Building_Construction_Class__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:709px;top:125px;position:absolute;" >
+<apex:inputField id="Component57"   style="color:#000000;font-size:1.0em;font-weight:Normal;"   value="{!record.Checkbox112__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:205px;top:153px;position:absolute;" >
+<apex:inputField id="Component58"   style="color:#000000;font-size:1.0em;font-weight:Normal;"   value="{!record.Checkbox113__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:474px;top:154px;position:absolute;" >
+<apex:inputField id="Component59"   style="color:#000000;font-size:1.0em;font-weight:Normal;"   value="{!record.Checkbox114__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:725px;top:154px;position:absolute;" >
+<apex:inputField id="Component60"   style="color:#000000;font-size:1.0em;font-weight:Normal;"   value="{!record.Checkbox115__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:366px;top:173px;position:absolute;" >
+<apex:inputField id="Component53"   style="width:202px;height:14px;color:#000000;font-size:10pt;font-weight:Normal;"   value="{!record.Input_Field129__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:246px;top:228px;position:absolute;" >
+<apex:inputField id="Component61"   style="color:#000000;font-size:1.0em;font-weight:Normal;"   value="{!record.Checkbox116__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:485px;top:228px;position:absolute;" >
+<apex:inputField id="Component62"   style="color:#000000;font-size:1.0em;font-weight:Normal;"   value="{!record.Checkbox117__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:717px;top:228px;position:absolute;" >
+<apex:inputField id="Component63"   style="color:#000000;font-size:1.0em;font-weight:Normal;"   value="{!record.Checkbox118__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:62px;top:280px;position:absolute;" >
+<apex:inputField id="Component75"   style="width:674px;height:169px;color:#000000;font-size:10pt;font-weight:Normal;"   value="{!record.TEXT_Area_LONG__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:62px;top:481px;position:absolute;" >
+<apex:inputField id="Component73"   style="width:675px;height:14px;color:#000000;font-size:10pt;font-weight:Normal;"   value="{!record.Input_Field102__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:450px;top:632px;position:absolute;" >
+<apex:inputField id="Component76"   style="width:261px;height:14px;color:#000000;font-size:10pt;font-weight:Normal;"   value="{!record.Signator_1_Full_Name__c}">
+</apex:inputField>
+</apex:outputPanel>
+ </apex:outputPanel></apex:form><script type="text/javascript">
+function aggregateCalc_all(triggerId) {
+}
+</script>
+</apex:outputPanel>
+</td></tr></table>
+</apex:page>

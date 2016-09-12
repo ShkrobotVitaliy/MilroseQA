@@ -1,0 +1,682 @@
+<apex:page standardController="Task_Item__c" extensions="PrepareFilingPackageExtension">
+    <script src="{!$Resource.jquery_tablednd_js}" />
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}" />
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}" />
+    <script src="{!URLFOR($Resource.jquery_vfFloatingHeaders)}" />
+    <script>function setFocusOnLoad() {}</script>
+
+    <style>
+        table.generalTableStyle th {
+            background-color: #E0F0F9;
+            color: #000000;
+            font-weight: bold;
+            text-align: left;
+            border: 1px solid #AED4E4;
+            padding: 2px;
+        }
+
+        .ui-accordion-header {
+            display: block;
+            cursor: pointer;
+            position: relative;
+            margin-top: 2px;
+            padding: .5em .5em .5em .7em;
+            min-height: 0; /* support: IE7 */
+        }
+
+        .ui-helper-reset {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            outline: 0;
+            line-height: 1.3;
+            text-decoration: none;
+            font-size: 100%;
+            list-style: none;
+        }
+
+        .ui-state-default {
+            border: 1px solid #3887A8; /*#d3d3d3;*/
+            background: #e6e6e6 /* url(/img/sidebar/LNav_twisty_closed.gif) 50% 50% repeat-x;*/
+            font-weight: normal;
+            color: #555555;
+        }
+
+        .ui-accordion .ui-accordion-icons {
+            padding-left: 2.2em;
+        }
+
+        .ui-corner-all {
+            border-top-left-radius: 4px;
+        }
+
+        table.generalTableStyle table.htmlDetailElementTable td {
+            border: 0;
+            padding: 0;
+        }
+
+        .tableContainer {
+            width: 100%;
+            margin: 0px;
+            overflow: auto;
+        }
+        .floatingStyle {
+            position:relative;
+            background:#F2F3F3;
+        }
+        body {
+            margin: 0px !important;
+        }
+        .addedAmendedServive {
+            color: green;
+            font-weight:bold;
+        }
+        .removedAmendedServive {
+            color:red;
+            font-weight:bold;
+        }
+        .removedAmendedServiveTR {
+            background-color: #FEE;
+        }
+        .addedAmendedServiveTR {
+            background-color: #EFE;
+        }
+        table select {
+            width: 150px;
+        }
+        .firstColumn {
+            width: 25%;
+        }
+        .tableContainer table td.name div, .tableContainer table td.name span {font-size: 12px !important; font-family: Arial !important;}
+    </style>
+    <apex:outputPanel rendered="{!!isAccess}">
+        <style type="text/css">
+            .requiredBlockMarker {
+                height: 0px !important;
+            }
+        </style>
+    </apex:outputPanel>
+    <apex:form >
+        <apex:actionStatus id="allPanelsOverlay" onstart="$('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);" onstop="$('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });"/>
+
+        <apex:outputPanel id="wrapperFormPanelId">
+            <div style="min-height:0px; max-height:780px; overflow:auto;">
+                <apex:pageMessages id="msgError"/>
+
+                <!-- Loading Panel -->
+                <div class="AllInfoPanelHolder" style="position: relative; overflow: auto; -webkit-overflow-scrolling: touch; min-height: 400px;">
+                    <div class="overlay" id="AllPannelOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"/>
+                    <div class="overlayContent" id="overlayContent" style="position: fixed; display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+                        <div style="text-align: center;">
+                            <img src="{!$Resource.loading_bar}" />
+                            <p style="color: #000; margin-bottom: 0px; font-size: 24px;">Please wait</p>
+                        </div>
+                    </div>
+
+                    <apex:actionFunction name="setSubTableState"          action="{!setSubTableState}" status="allPanelsOverlay" reRender="msgError, applicationChecklistDetailTableDiv" />
+                    <apex:actionFunction name="setConstructionTableState" action="{!setSubTableState}" status="allPanelsOverlay" reRender="msgError, workPermitChecklistDetailTableDiv" />
+                    <apex:actionFunction name="setSignOffTableState"      action="{!setSubTableState}" status="allPanelsOverlay" reRender="msgError, signOffChecklistDetailTableDiv" />
+
+                    <!-- No Checklist Required for this Service -->
+                    <apex:outputPanel >
+                        <apex:commandButton id="checklistRequiredButtonId" value="{!IF(!taskItem.No_Checklist_Required_Service__c, 'No Checklist Required for this Service', 'Checklist Required for this Service' ) }" action="{!setFilingChecklistState}" styleClass="milroseBtnStyle" status="allPanelsOverlay" disabled="{!taskItem.No_Checklist_Required_Service__c || Task_Item__c.Is_Application_Filing_Checklist_Complete__c}"/>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="block" id="taskItemCommentsBlockId" rendered="{!!isChecklistNotRequired}">
+                        <apex:outputPanel layout="block" rendered="{!taskItem.No_Checklist_Required_Service__c}">
+                            <apex:outputLabel value="Please provide the reason why you don't need the checklist. Reason code could be the service name" for="taskItemCommentsId"/>
+                            <apex:inputField value="{!taskItem.Comments__c}" id="taskItemCommentsId"/>
+                            <br/>
+                            <apex:commandButton value="Save" onclick="changeChecklistButonTitle();" action="{!save}" styleClass="milroseBtnStyle" status="allPanelsOverlay"/>
+                            <apex:commandButton value="Cancel" action="{!cancel}"  styleClass="milroseBtnStyle" status="allPanelsOverlay"/>
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                    <br /><br />
+
+                    <apex:outputPanel id="checklistWrapperPanelId" layout="block" style="max-height: 600px; display: {! IF(!isChecklistNotRequired, 'inline-table', 'none')}" styleClass="tableContainer">
+
+                        <!-- ---------------------------------------------- Begin Application Checklist ---------------------------------------------- -->
+                        <apex:commandButton id="appChecklistButtonId" value="{! IF(!isAppChecklistNotRequired, 'Application Checklist not Required for this Service', 'Application Checklist Required for this Service')}" action="{!setAppFilingChecklistState}" reRender="msgError, appChecklistButtonId, applicationChecklistDetailTableDiv, compeleteBtnPanelId" styleClass="milroseBtnStyle" status="allPanelsOverlay" disabled="{!Task_Item__c.Is_Application_Filing_Checklist_Complete__c}"/>
+                        <br />
+
+                        <apex:outputPanel id="applicationChecklistDetailTableDiv">
+                            <table id="applicationChecklistTable" class="generalTableStyle" style="display: {! IF(!isAppChecklistNotRequired, 'inline-table', 'none')}">
+                                <!-- ---------------------------------------------- Begin Property ---------------------------------------------- -->
+                                <thead class="rich-table-thead" border="solid 1px black">
+                                    <tr>
+                                        <th colspan="3">
+                                            <apex:outputLabel styleClass="labelText" style="color: #3887A8;; padding-left: 5px; font-size: 16px;">Construction Application Filing Checklist</apex:outputLabel>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="3" style="padding-left: 5px;">
+                                            <b>Property</b>
+                                            <span style="float: right;">
+                                                <apex:inputCheckbox value="{!isNotPropertyRequired}" onchange="setSubTableState();"/>
+                                                <apex:outputLabel styleClass="labelText" style="color: black;">N/A</apex:outputLabel>
+                                            </span>
+                                        </th>
+                                    </tr>
+
+                                    <tr style="display: {!IF(!isNotPropertyRequired, 'table-row', 'none')}">
+                                        <th class="firstColumn" style="background-color:#DDD; padding-left: 5px;">Item                 </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Required             </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Quality Control Item </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody style="display: {!IF(!isNotPropertyRequired, 'table-row-group', 'none')}">
+                                    <apex:variable var="lableVar" value=""/>
+                                    <apex:repeat value="{!ApplicationFilingPropertyFields}" var="item">
+                                    <apex:variable var="lableVar" value="{!schemaFieldSetMemberChangeLabelMap[item.fieldPath]}"/>
+                                        <tr>
+                                            <td class="name" style="vertical-align: middle; padding-left: 5px;">
+                                                <div>
+                                                    <apex:outputText escape="false" value="{!lableVar.label}" /> <br />
+                                                </div>
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <div class="requiredBlockWrapper" style="display: {!IF(ISBLANK(appFilingCkecklistRecord[item.fieldPath]), 'block', 'none')}">
+                                                    <div class="requiredBlockMarker" style="left: 1px; top: 2px;" />
+                                                </div>
+                                                <apex:inputField value="{!appFilingCkecklistRecord[item.fieldPath]}" />
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <apex:outputField value="{!defaultFilingCkecklistRecord[SUBSTITUTE(item.fieldPath, '__c', '_Desc__c')]}"/>
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </tbody>
+                                <!-- ---------------------------------------------- End Property ---------------------------------------------- -->
+
+                                <!-- ---------------------------------------------- Begin Scope ---------------------------------------------- -->
+                                <thead class="rich-table-thead" border="solid 1px black">
+                                    <tr>
+                                        <th colspan="3" style="padding-left: 5px;">
+                                            <b>Scope</b>
+                                            <span style="float: right;">
+                                                <apex:inputCheckbox value="{!isNotScopeRequired}" onchange="setSubTableState();"/>
+                                                <apex:outputLabel styleClass="labelText" style="color: black;">N/A</apex:outputLabel>
+                                            </span>
+                                        </th>
+                                    </tr>
+                                    <tr style="display: {!IF(!isNotScopeRequired, 'table-row', 'none')}">
+                                        <th class="firstColumn" style="background-color:#DDD; padding-left: 5px;">Item                 </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Required             </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Quality Control Item </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody style="display: {!IF(!isNotScopeRequired, 'table-row-group', 'none')}">
+                                    <apex:variable var="lableVar" value=""/>
+                                    <apex:repeat value="{!ApplicationFilingScopeFields}" var="item">
+                                    <apex:variable var="lableVar" value="{!schemaFieldSetMemberChangeLabelMap[item.fieldPath]}"/>
+                                        <tr>
+                                            <td class="name" style="vertical-align: middle; padding-left: 5px;">
+                                                <div>
+                                                    <apex:outputText escape="false" value="{!lableVar.label}" /> <br />
+                                                </div>
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <div class="requiredBlockWrapper" style="display: {!IF(ISBLANK(appFilingCkecklistRecord[item.fieldPath]), 'block', 'none')}">
+                                                    <div class="requiredBlockMarker" style="left: 1px; top: 2px;" />
+                                                </div>
+                                                <apex:inputField value="{!appFilingCkecklistRecord[item.fieldPath]}" />
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <apex:outputField value="{!defaultFilingCkecklistRecord[SUBSTITUTE(item.fieldPath, '__c', '_Desc__c')]}"/>
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </tbody>
+                                <!-- ---------------------------------------------- End Scope ---------------------------------------------- -->
+
+                            </table>
+                        </apex:outputPanel>
+                        <!-- ---------------------------------------------- End Application Checklist ---------------------------------------------- -->
+
+                        <!-- ---------------------------------------------- Begin Work Permit  Checklist ---------------------------------------------- -->
+                        <apex:commandButton id="workPermitChecklistButtonId" value="{!IF(!isConstructionChecklistNotRequired, 'Work Permit Checklist not required for this service', 'Work Permit Checklist required for this service')} " action="{!setConstructionFilingChecklistState}" reRender="msgError, workPermitChecklistDetailTableDiv, workPermitChecklistButtonId, compeleteBtnPanelId" styleClass="milroseBtnStyle" status="allPanelsOverlay" disabled="{!Task_Item__c.Is_Application_Filing_Checklist_Complete__c}"/>
+                        <br />
+
+                        <apex:outputPanel id="workPermitChecklistDetailTableDiv">
+                            <table class="generalTableStyle" style="display: {! IF(!isConstructionChecklistNotRequired, 'inline-table', 'none')}">
+                                <!-- Begin Property -->
+                                <thead class="rich-table-thead" border="solid 1px black">
+                                    <tr>
+                                        <th colspan="3">
+                                            <apex:outputLabel styleClass="labelText" style="color: #3887A8;; padding-left: 5px; font-size: 16px;">Construction Work Permit Filing Checklist</apex:outputLabel>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="3" style="padding-left: 5px;">
+                                            <b>Scope</b>
+                                            <span style="float: right;">
+                                                <apex:inputCheckbox value="{!isConstructionScopeNotRequired}" onchange="setConstructionTableState();"/>
+                                                <apex:outputLabel styleClass="labelText" style="color: black;">N/A</apex:outputLabel>
+                                            </span>
+                                        </th>
+                                    </tr>
+
+                                    <tr style="display: {!IF(!isConstructionScopeNotRequired, 'table-row', 'none')}">
+                                        <th class="firstColumn" style="background-color:#DDD; padding-left: 5px;">Item                 </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Required             </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Quality Control Item </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody style="display: {!IF(!isConstructionScopeNotRequired, 'table-row-group', 'none')}">
+                                    <apex:variable var="lableVar" value=""/>
+                                    <apex:repeat value="{!WorkPermitFilingScopeFields}" var="item">
+                                        <apex:variable var="lableVar" value="{!schemaFieldSetMemberChangeLabelMap[item.fieldPath]}"/>
+                                        <tr>
+                                            <td class="name" style="vertical-align: middle; padding-left: 5px;">
+                                                <div>
+                                                    <apex:outputText escape="false" value="{!lableVar.label}" /> <br />
+                                                </div>
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <div class="requiredBlockWrapper" style="display: {!IF(ISBLANK(workPermitCkecklistRecord[item.fieldPath]), 'block', 'none')}">
+                                                    <div class="requiredBlockMarker" style="left: 1px; top: 2px;" />
+                                                </div>
+                                                <apex:inputField value="{!workPermitCkecklistRecord[item.fieldPath]}" />
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <apex:outputField value="{!defaultWorkPermitFilingCkecklistRecord[SUBSTITUTE(item.fieldPath, '__c', '_Desc__c')]}"/>
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </tbody>
+                                <!-- ---------------------------------------------- End Property ---------------------------------------------- -->
+
+                                <!-- ---------------------------------------------- Begin TECHNICAL REPORTS ---------------------------------------------- -->
+                                <thead class="rich-table-thead" border="solid 1px black">
+                                    <tr>
+                                        <th colspan="3" style="padding-left: 5px;">
+                                            <b>TECHNICAL REPORTS  (Special / Progress)</b>
+                                            <span style="float: right;">
+                                                <apex:inputCheckbox value="{!isConstructionTechnicalReportsNotRequired}" onchange="setConstructionTableState();" />
+                                                <apex:outputLabel styleClass="labelText" style="color: black;">N/A</apex:outputLabel>
+                                            </span>
+                                        </th>
+                                    </tr>
+                                    <tr style="display: {!IF(!isConstructionTechnicalReportsNotRequired, 'table-row', 'none')}">
+                                        <th class="firstColumn" style="background-color:#DDD; padding-left: 5px;">Item                 </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Required             </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Quality Control Item </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody style="display: {!IF(!isConstructionTechnicalReportsNotRequired, 'table-row-group', 'none')}">
+                                    <apex:variable var="lableVar" value=""/>
+                                    <apex:repeat value="{!WorkPermitFilingTechnicalReportsFields}" var="item">
+                                        <apex:variable var="lableVar" value="{!schemaFieldSetMemberChangeLabelMap[item.fieldPath]}"/>
+                                        <tr>
+                                            <td class="name" style="vertical-align: middle; padding-left: 5px;">
+                                                <div>
+                                                    <apex:outputText escape="false" value="{!lableVar.label}" /> <br />
+                                                </div>
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <div class="requiredBlockWrapper" style="display: {!IF(ISBLANK(workPermitCkecklistRecord[item.fieldPath]), 'block', 'none')}">
+                                                    <div class="requiredBlockMarker" style="left: 1px; top: 2px;" />
+                                                </div>
+                                                <apex:inputField value="{!workPermitCkecklistRecord[item.fieldPath]}" />
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <apex:outputField value="{!defaultWorkPermitFilingCkecklistRecord[SUBSTITUTE(item.fieldPath, '__c', '_Desc__c')]}"/>
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </tbody>
+                                <!-- ---------------------------------------------- End TECHNICAL REPORTS ---------------------------------------------- -->
+
+                                <!-- ---------------------------------------------- Begin Fees ---------------------------------------------- -->
+                                <thead class="rich-table-thead" border="solid 1px black">
+                                    <tr>
+                                        <th colspan="3" style="padding-left: 5px;">
+                                            <b> Fees </b>
+                                            <span style="float: right;">
+                                                <apex:inputCheckbox value="{!isConstructionFeesNotRequired}" onchange="setConstructionTableState();"/>
+                                                <apex:outputLabel styleClass="labelText" style="color: black;">N/A</apex:outputLabel>
+                                            </span>
+                                        </th>
+                                    </tr>
+                                    <tr style="display: {!IF(!isConstructionFeesNotRequired, 'table-row', 'none')}">
+                                        <th class="firstColumn" style="background-color:#DDD; padding-left: 5px;">Item                 </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Required             </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Quality Control Item </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody style="display: {!IF(!isConstructionFeesNotRequired, 'table-row-group', 'none')}">
+                                    <apex:repeat value="{!WorkPermitFilingFeesFields}" var="item">
+                                        <tr>
+                                            <td class="name" style="vertical-align: middle; padding-left: 5px;">
+                                                <div>
+                                                    <apex:outputText value="{!item.Label}" /> <br />
+                                                </div>
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <div class="requiredBlockWrapper" style="display: {!IF(ISBLANK(workPermitCkecklistRecord[item.fieldPath]), 'block', 'none')}">
+                                                    <div class="requiredBlockMarker" style="left: 1px; top: 2px;" />
+                                                </div>
+                                                <apex:inputField value="{!workPermitCkecklistRecord[item.fieldPath]}" />
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <apex:outputField value="{!defaultWorkPermitFilingCkecklistRecord[SUBSTITUTE(item.fieldPath, '__c', '_Desc__c')]}"/>
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </tbody>
+                                <!-- ---------------------------------------------- End Fees ---------------------------------------------- -->
+
+                            </table>
+                        </apex:outputPanel>
+                        <!-- ---------------------------------------------- End Work Permit Checklist ---------------------------------------------- -->
+
+                        <!-- ---------------------------------------------- Begin Application Sign off Checklist ---------------------------------------------- -->
+
+                        <apex:commandButton id="signOffChecklistButtonId" value="{!IF(!isSignOffChecklistNotRequired, 'Sign Off Checklist not required for this service', 'Sign Off Checklist required for this service')}" action="{!setAignOffChecklistState}" reRender="msgError, signOffChecklistButtonId, signOffChecklistDetailTableDiv, compeleteBtnPanelId" styleClass="milroseBtnStyle" status="allPanelsOverlay" disabled="{!Task_Item__c.Is_Application_Filing_Checklist_Complete__c}"/>
+                        <br />
+
+                        <apex:outputPanel id="signOffChecklistDetailTableDiv">
+                            <table class="generalTableStyle" style="display: {! IF(!isSignOffChecklistNotRequired, 'inline-table', 'none')}">
+                                <!-- Begin Scope-->
+                                <thead class="rich-table-thead" border="solid 1px black">
+                                    <tr> <th colspan="3"> <apex:outputLabel styleClass="labelText" style="color: #3887A8;; padding-left: 5px; font-size: 16px;">Construction Application Sign off Checklist</apex:outputLabel> </th> </tr>
+                                </thead>
+
+                                <!-- Begin General Construction (OT) -->
+                                <thead class="rich-table-thead" border="solid 1px black">
+                                    <tr>
+                                        <th colspan="3" style="padding-left: 5px;">
+                                            <b>Scope</b>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="3" style="padding-left: 5px;">
+                                            <b>Worktype: General Construction (OT)</b>
+
+                                            <span style="float: right;">
+                                                <apex:inputCheckbox value="{!isGeneralConstructionNotRequired}" onchange="setSignOffTableState();" />
+                                                <apex:outputLabel styleClass="labelText" style="color: black;">N/A</apex:outputLabel>
+                                            </span>
+                                        </th>
+                                    </tr>
+                                    <tr style="display: {!IF(!isGeneralConstructionNotRequired, 'table-row', 'none')}">
+                                        <th class="firstColumn" style="background-color:#DDD; padding-left: 5px;">Item                 </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Required             </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Quality Control Item </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody style="display: {!IF(!isGeneralConstructionNotRequired, 'table-row-group', 'none')}">
+                                    <apex:variable var="lableVar" value=""/>
+                                    <apex:repeat value="{!AppSignOffFilingGeneralConstruction}" var="item">
+                                        <apex:variable var="lableVar" value="{!schemaFieldSetMemberChangeLabelMap[item.fieldPath]}"/>
+                                        <tr>
+                                            <td class="name" style="vertical-align: middle; padding-left: 5px;">
+                                                <div>
+                                                    <apex:outputText escape="false" value="{!lableVar.label}" /> <br />
+                                                </div>
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <div class="requiredBlockWrapper" style="display: {!IF(ISBLANK(appSignOffGeneralConstruction[item.fieldPath]), 'block', 'none')}">
+                                                    <div class="requiredBlockMarker" style="left: 1px; top: 2px;" />
+                                                </div>
+                                                <apex:inputField value="{!appSignOffGeneralConstruction[item.fieldPath]}" />
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <apex:outputField value="{!defaultAppSignOffFilingCkecklistRecord[SUBSTITUTE(item.fieldPath, '__c', '_Desc__c')]}"/>
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </tbody>
+                                <!-- ---------------------------------------------- End General Construction (OT) ---------------------------------------------- -->
+
+                                <!-- ---------------------------------------------- Begin Mechanical (MH) ---------------------------------------------- -->
+                                <thead class="rich-table-thead" border="solid 1px black">
+                                    <tr>
+                                        <th colspan="3" style="padding-left: 5px;">
+                                           <b>Worktype: Mechanical (MH)</b>
+
+                                            <span style="float: right;">
+                                                <apex:inputCheckbox value="{!isMechanicalNotRequired}" onchange="setSignOffTableState();"/>
+                                                <apex:outputLabel styleClass="labelText" style="color: black;">N/A</apex:outputLabel>
+                                            </span>
+                                        </th>
+                                    </tr>
+                                    <tr style="display: {!IF(!isMechanicalNotRequired, 'table-row', 'none')}">
+                                        <th class="firstColumn" style="background-color:#DDD; padding-left: 5px;">Item                 </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Required             </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Quality Control Item </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody style="display: {!IF(!isMechanicalNotRequired, 'table-row-group', 'none')}">
+                                    <apex:variable var="lableVar" value=""/>
+                                    <apex:repeat value="{!AppSignOffFilingMechanical}" var="item">
+                                        <apex:variable var="lableVar" value="{!schemaFieldSetMemberChangeLabelMap[item.fieldPath]}"/>
+                                        <tr>
+                                            <td class="name" style="vertical-align: middle; padding-left: 5px;">
+                                                <div>
+                                                    <apex:outputText escape="false" value="{!lableVar.label}" /> <br />
+                                                </div>
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <div class="requiredBlockWrapper" style="display: {!IF(ISBLANK(appSignOffMechanical[item.fieldPath]), 'block', 'none')}">
+                                                    <div class="requiredBlockMarker" style="left: 1px; top: 2px;" />
+                                                </div>
+                                                <apex:inputField value="{!appSignOffMechanical[item.fieldPath]}" />
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <apex:outputField value="{!defaultAppSignOffFilingCkecklistRecord[SUBSTITUTE(item.fieldPath, '__c', '_Desc__c')]}"/>
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </tbody>
+                                <!-- ---------------------------------------------- End Mechanical (MH) ---------------------------------------------- -->
+
+                                <!-- ---------------------------------------------- Begin Plumbing (PL) ---------------------------------------------- -->
+                                <thead class="rich-table-thead" border="solid 1px black">
+                                    <tr>
+                                        <th colspan="3" style="padding-left: 5px;">
+                                            <b>Worktype: Plumbing (PL)</b>
+
+                                            <span style="float: right;">
+                                                <apex:inputCheckbox value="{!isPlumbingNotRequired}" onchange="setSignOffTableState();" />
+                                                <apex:outputLabel styleClass="labelText" style="color: black;">N/A</apex:outputLabel>
+                                            </span>
+                                        </th>
+                                    </tr>
+                                    <tr style="display: {!IF(!isPlumbingNotRequired, 'table-row', 'none')}">
+                                        <th class="firstColumn" style="background-color:#DDD; padding-left: 5px;">Item                 </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Required             </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Quality Control Item </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody style="display: {!IF(!isPlumbingNotRequired, 'table-row-group', 'none')}">
+                                    <apex:variable var="lableVar" value=""/>
+                                    <apex:repeat value="{!AppSignOffFilingPlumbing}" var="item">
+                                        <apex:variable var="lableVar" value="{!schemaFieldSetMemberChangeLabelMap[item.fieldPath]}"/>
+                                        <tr>
+                                            <td class="name" style="vertical-align: middle; padding-left: 5px;">
+                                                <div>
+                                                    <apex:outputText escape="false" value="{!lableVar.label}" /> <br />
+                                                </div>
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <div class="requiredBlockWrapper" style="display: {!IF(ISBLANK(appSignOffPlumbing[item.fieldPath]), 'block', 'none')}">
+                                                    <div class="requiredBlockMarker" style="left: 1px; top: 2px;" />
+                                                </div>
+                                                <apex:inputField value="{!appSignOffPlumbing[item.fieldPath]}" />
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <apex:outputField value="{!plumbingDescription[SUBSTITUTE(item.fieldPath, '__c', '_Desc__c')]}"/>
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </tbody>
+                                <!-- ---------------------------------------------- End Plumbing (PL) ---------------------------------------------- -->
+
+                                <!-- ---------------------------------------------- Begin Structural (STR) ---------------------------------------------- -->
+                                <thead class="rich-table-thead" border="solid 1px black">
+                                    <tr>
+                                        <th colspan="3" style="padding-left: 5px;">
+                                            <b>Worktype: Structural (STR)</b>
+
+                                            <span style="float: right;">
+                                                <apex:inputCheckbox value="{!isStructuralNotRequired}" onchange="setSignOffTableState();" />
+                                                <apex:outputLabel styleClass="labelText" style="color: black;">N/A</apex:outputLabel>
+                                            </span>
+                                        </th>
+                                    </tr>
+                                    <tr style="display: {!IF(!isStructuralNotRequired, 'table-row', 'none')}">
+                                        <th class="firstColumn" style="background-color:#DDD; padding-left: 5px;">Item                 </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Required             </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Quality Control Item </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody style="display: {!IF(!isStructuralNotRequired, 'table-row-group', 'none')}">
+                                    <apex:variable var="lableVar" value=""/>
+                                    <apex:repeat value="{!AppSignOffFilingStructural}" var="item">
+                                        <apex:variable var="lableVar" value="{!schemaFieldSetMemberChangeLabelMap[item.fieldPath]}"/>
+                                        <tr>
+                                            <td class="name" style="vertical-align: middle; padding-left: 5px;">
+                                                <div>
+                                                    <apex:outputText escape="false" value="{!lableVar.label}" /> <br />
+                                                </div>
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <div class="requiredBlockWrapper" style="display: {!IF(ISBLANK(appSignOffStructural[item.fieldPath]), 'block', 'none')}">
+                                                    <div class="requiredBlockMarker" style="left: 1px; top: 2px;" />
+                                                </div>
+                                                <apex:inputField value="{!appSignOffStructural[item.fieldPath]}" />
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <apex:outputField value="{!structuralDescription[SUBSTITUTE(item.fieldPath, '__c', '_Desc__c')]}"/>
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </tbody>
+                                <!-- ---------------------------------------------- End Structural (STR) ---------------------------------------------- -->
+
+                                <!-- ---------------------------------------------- Begin Sprinkler (SP) ---------------------------------------------- -->
+                                <thead class="rich-table-thead" border="solid 1px black">
+                                    <tr>
+                                        <th colspan="3" style="padding-left: 5px;">
+                                            <b>Worktype: Sprinkler (SP)</b>
+                                            <span style="float: right;">
+                                                <apex:inputCheckbox value="{!isSprinklerNotRequired}" onchange="setSignOffTableState();"/>
+                                                <apex:outputLabel styleClass="labelText" style="color: black;">N/A</apex:outputLabel>
+                                            </span>
+                                        </th>
+                                    </tr>
+                                    <tr style="display: {!IF(!isSprinklerNotRequired, 'table-row', 'none')}">
+                                        <th class="firstColumn" style="background-color:#DDD; padding-left: 5px;">Item                 </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Required             </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Quality Control Item </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody style="display: {!IF(!isSprinklerNotRequired, 'table-row-group', 'none')}">
+                                    <apex:variable var="lableVar" value=""/>
+                                    <apex:repeat value="{!AppSignOffFilingSprinkler}" var="item">
+                                        <apex:variable var="lableVar" value="{!schemaFieldSetMemberChangeLabelMap[item.fieldPath]}"/>
+                                        <tr>
+                                            <td class="name" style="vertical-align: middle; padding-left: 5px;">
+                                                <div>
+                                                    <apex:outputText escape="false" value="{!lableVar.label}" /> <br />
+                                                </div>
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <div class="requiredBlockWrapper" style="display: {!IF(ISBLANK(appSignOffSprinkler[item.fieldPath]), 'block', 'none')}">
+                                                    <div class="requiredBlockMarker" style="left: 1px; top: 2px;" />
+                                                </div>
+                                                <apex:inputField value="{!appSignOffSprinkler[item.fieldPath]}" />
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <apex:outputField value="{!sprinklerDescription[SUBSTITUTE(item.fieldPath, '__c', '_Desc__c')]}"/>
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </tbody>
+                                <!-- ---------------------------------------------- End Sprinkler (SP) ---------------------------------------------- -->
+
+                                <!-- ---------------------------------------------- Begin Fire Alarm (FA) ---------------------------------------------- -->
+                                <thead class="rich-table-thead" border="solid 1px black">
+                                    <tr>
+                                        <th colspan="3" style="padding-left: 5px;">
+                                            <b>Worktype: Fire Alarm (FA)</b>
+                                            <span style="float: right;">
+                                                <apex:inputCheckbox value="{!isFireAlarmNotRequired}" onchange="setSignOffTableState();" />
+                                                <apex:outputLabel styleClass="labelText" style="color: black;">N/A</apex:outputLabel>
+                                            </span>
+                                        </th>
+                                    </tr>
+                                    <tr style="display: {!IF(!isFireAlarmNotRequired, 'table-row', 'none')}">
+                                        <th class="firstColumn" style="background-color:#DDD; padding-left: 5px;">Item                 </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Required             </th>
+                                        <th style="background-color:#DDD; padding-left: 5px;">Quality Control Item </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody style="display: {!IF(!isFireAlarmNotRequired, 'table-row-group', 'none')}">
+                                    <apex:variable var="lableVar" value=""/>
+                                    <apex:repeat value="{!AppSignOffFilingFireAlarm}" var="item">
+                                        <apex:variable var="lableVar" value="{!schemaFieldSetMemberChangeLabelMap[item.fieldPath]}"/>
+                                        <tr>
+                                            <td class="name" style="vertical-align: middle; padding-left: 5px;">
+                                                <div>
+                                                    <apex:outputText escape="false" value="{!lableVar.label}" /> <br />
+                                                </div>
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <div class="requiredBlockWrapper" style="display: {!IF(ISBLANK(appSignOffFireAlarm[item.fieldPath]), 'block', 'none')}">
+                                                    <div class="requiredBlockMarker" style="left: 1px; top: 2px;" />
+                                                </div>
+                                                <apex:inputField value="{!appSignOffFireAlarm[item.fieldPath]}" />
+                                            </td>
+                                            <td class="name" style="vertical-align: middle;">
+                                                <apex:outputField value="{!fireAlarmDescription[SUBSTITUTE(item.fieldPath, '__c', '_Desc__c')]}"/>
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </tbody>
+                                <!-- ---------------------------------------------- End Fire Alarm (FA) ---------------------------------------------- -->
+
+                                <!-- ---------------------------------------------- End Scope ---------------------------------------------- -->
+
+                            </table>
+                        </apex:outputPanel>
+                        <!-- ---------------------------------------------- End Application Sign off Checklist ---------------------------------------------- -->
+
+                    </apex:outputPanel>
+
+                    <!-- Complete Button -->
+                    <apex:outputPanel id="compeleteBtnPanelId">
+                        <apex:commandButton action="{!completeChecklists}" rendered="{! !isChecklistNotRequired}" value="Complete" styleClass="milroseBtnStyle" status="allPanelsOverlay" reRender="msgError, wrapperFormPanelId, compeleteBtnPanelId" disabled="{!disableCompleteButton}"/>
+                    </apex:outputPanel>
+                </div>
+
+            </div>
+        </apex:outputPanel>
+
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+
+        <apex:inputField value="{!Task_Item__c.Comments__c}" rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.No_Checklist_Required_Service__c}" rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Is_Application_Filing_Checklist_Complete__c}" rendered="false"/>
+    </apex:form>
+
+    <script>
+        function changeChecklistButonTitle() {
+            var title = ('No Checklist Required for this Service' == $("input[id*=checklistRequiredButtonId]").val()) ? 'Checklist Required for this Service' : 'No Checklist Required for this Service';
+            $("input[id*=checklistRequiredButtonId]").val(title);
+
+        }
+
+    </script>
+</apex:page>

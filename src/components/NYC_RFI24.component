@@ -1,0 +1,38 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:variable var="display2Column" value="{!IF(OR(projectView, AND(!projectView, show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="display3Column" value="{!IF(OR(projectView, AND(!projectView, !show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="colspanValue" value="{!IF(projectView, 2, 1)}"/>
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="{!IF(projectView, 3, 2)}" style="text-align: left;">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: 50%;" >Application Permit Response</th>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader"><apex:outputText value="Architectural TPA plans - 3 signed/sealed plans"/></span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Architectural_TPA_plans_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">TPA Event Notification Letter - 2  original signed/sealed </span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.TPA_Event_Notification_Letter_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Filing Fee Check*</span></td>
+                <td>
+                    <p>Please issue a check in the amount of $
+                    <apex:inputText value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Filing_Fee_Check_App__c}" />
+                    made payable to Municipal Authority:</p>
+                    <p>*In order to avoid DOB late filing penalties, we will be required to file the application no later than 10 business days
+                    prior to the date of the event, excluding the day of the event and public holidays. Please note any submission after this 
+                    date will result in a $100.00 per day late filing penalty.</p>
+                </td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

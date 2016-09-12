@@ -1,0 +1,40 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:variable var="display2Column" value="{!IF(OR(projectView, AND(!projectView, show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="display3Column" value="{!IF(OR(projectView, AND(!projectView, !show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="colspanValue" value="{!IF(projectView, 2, 1)}"/>
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" title="{!noteRequieredNBandAlt1}" colspan="{!IF(projectView, 3, 2)}" style="text-align: left;">{!rfiScopeRecord.RFI_Section__c} <i class="component-massage">({!noteRequieredNBandAlt1})</i>:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: {!IF(projectView, '33', '50')}%; display :{!display2Column}">Application Permit Response</th>
+                <th style="width: {!IF(projectView, '33', '50')}%; display :{!display3Column}">Application Sign Off Response</th>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader"><apex:outputText value="Signing/Sealing & License #"/></span></td>
+                <td style="display :{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Signing_Sealing_License_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Signing_Sealing_License_Sign_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Project Manager</span></td>
+                <td style="display :{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Project_Manager_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Project_Manager_Sign_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Description of support of excavation work to be completed (sheeting, shoring etc.):</span></td>
+                <td style="display :{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Description_of_Support_Exc_Work_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Description_of_Support_Exc_Work_Sign_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Provide list of Special/Progress Inspections </span><br></br><i>(Click <a href="{!TR1Hyperlink}" target="blank">TR1</a> to see the list of all possible inspections)</i></td>
+                <td style="display :{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Special_Progress_Inspections_App__c}" /></td>
+                <td style="display :{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Special_Progress_Inspections_Sign_Off__c}" /></td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

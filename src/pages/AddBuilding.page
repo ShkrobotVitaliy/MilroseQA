@@ -1,0 +1,336 @@
+<apex:page controller="BuildingController" id="addBuildingPage" sidebar="false" showHeader="false">
+    <style>
+        body {
+            background-color: #F8F8F8;
+        }
+        .bPageBlock .pbTitle {
+            width: 95%;
+        }
+        td.data2Col.first.last {
+            padding-left: 0px;
+        }
+        .inputPickList {
+            width: 153px;
+        }
+        .inputArea {
+            width: 147px;
+        }
+        .margin {
+            margin-left: 2px;
+        }
+        .requiredBlockWrapper{
+            position: relative;
+        }
+        .requiredBlockMarker{
+            background-color: #c00 !important;
+            position: absolute;
+            left: -4px;
+            width: 3px;
+            top: 2px;
+            height: 21px;
+        }
+        .wideLabelCol{
+            width: 25%;
+            color: #4a4a56;
+        }
+    </style>
+    <script type = "text/javascript">
+       function closeWindow(){
+           window.parent.parent.changeRightPanelToNotes();
+       }
+       function changeProjectLocation(buildingIdVar){
+          window.parent.parent.updateProjectLocation('-1', buildingIdVar);
+       }
+       window.onload = function(e){
+           window.parent.parent.resizeFrame(0);
+       }
+    </script>
+
+    <apex:form style="width: 100%;" id="apexFormId">
+        <apex:actionFunction name="updContact" rerender="buildingOwnerPanel" action="{!updateContactOptions}" />
+        <apex:outputPanel layout="block">
+            <apex:pageBlock title="{!IF(ISBLANK(buildingId), 'Add New Building', 'Edit Building')}">
+                <div style="padding: 10px 0px 10px 0px; width: 100%;">
+                    <apex:pageMessages id="msgs" />
+                    <apex:pageBlockSection columns="1">
+                        <apex:pageBlockSectionItem >
+                             <apex:outputPanel layout="block">
+                                <table class="detailList" border="0" cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <td class="labelCol" style="width: 30%;">
+                                            Region:
+                                        </td>
+                                        <td class="data2Col">
+                                            <apex:selectList value="{!regionId}" size="1" styleClass="inputPickList" disabled="{!disableRegion}">
+                                                <apex:actionSupport event="onchange" action="{!updateMunicipalityOptions}" rerender="municipalityList, msgs" />
+                                                <apex:selectOptions value="{!regionOptions}" />
+                                            </apex:selectList>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="labelCol">
+                                            Municipality:
+                                        </td>
+                                        <td class="data2Col">
+                                            <apex:outputPanel layout="block" id="municipalityList">
+                                                <div class="requiredBlockWrapper"><div class="requiredBlockMarker"></div></div>
+                                                <apex:selectList value="{!building.Municipality__c}" size="1" styleClass="inputPickList">
+                                                    <apex:selectOptions value="{!municipalityOptions}"/>
+                                                </apex:selectList>
+                                            </apex:outputPanel>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                    <apex:pageBlockSection columns="1">
+                         <apex:pageBlockSectionItem >
+                            <apex:outputPanel layout="block" id="buildingOwnerPanel">
+                                <table class="detailList" border="0" cellpadding="0" cellspacing="0" >
+                                    <tr>
+                                        <td class="labelCol" style="width: 30%;">
+                                            <apex:outputLabel value="{!$ObjectType.Building__c.fields.Street__c.Label}:"/>
+                                        </td>
+                                        <td class="data2Col">
+                                            <div class="requiredBlockWrapper"><div class="requiredBlockMarker"></div></div>
+                                            <apex:inputText value="{!buildingStreet}" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="labelCol">
+                                            <apex:outputLabel value="{!$ObjectType.Building__c.fields.House_No__c.Label}:"/>
+                                        </td>
+                                        <td class="data2Col">
+                                            <div class="requiredBlockWrapper"><div class="requiredBlockMarker"></div></div>
+                                            <apex:inputText value="{!Building.House_No__c}" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="labelCol">
+                                            <apex:outputLabel value="{!$ObjectType.Building__c.fields.City__c.Label}:"/>
+                                        </td>
+                                        <td class="data2Col">
+                                            <div class="requiredBlockWrapper"><div class="requiredBlockMarker"></div></div>
+                                            <apex:inputText value="{!Building.City__c}" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="labelCol">
+                                            <apex:outputLabel value="{!$ObjectType.Building__c.fields.PostalCode__c.Label}:"/>
+                                        </td>
+                                        <td class="data2Col">
+                                            <div class="requiredBlockWrapper"><div class="requiredBlockMarker"></div></div>
+                                            <apex:inputText value="{!Building.PostalCode__c}" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="labelCol">
+                                            <apex:outputLabel value="{!$ObjectType.Building__c.fields.State__c.Label}:"/>
+                                        </td>
+                                        <td class="data2Col">
+                                            <div class="requiredBlockWrapper"><div class="requiredBlockMarker"></div></div>
+                                            <apex:selectList value="{!Building.State__c}" size="1" styleClass="inputPickList margin">
+                                                <apex:selectOptions value="{!states}"/>
+                                            </apex:selectList>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="labelCol">
+                                            <apex:outputLabel value="{!$ObjectType.Building__c.fields.Description__c.Label}:"/>
+                                        </td>
+                                        <td class="data2Col">
+                                            <apex:inputTextArea value="{!Building.Description__c}" styleClass="inputArea margin"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="labelCol" >
+                                            <apex:outputLabel value="{!$ObjectType.Building__c.fields.Is_Landmark__c.Label}:"/>
+                                        </td>
+                                        <td class="data2Col">
+                                            <apex:inputCheckbox value="{!Building.Is_Landmark__c}" styleClass="inputArea margin"  style="width: auto;" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="labelCol">
+                                            <apex:outputLabel value="{!$ObjectType.Building__c.fields.Is_MTA__c.Label}:"/>
+                                        </td>
+                                        <td class="data2Col">
+                                            <apex:inputCheckbox value="{!Building.Is_MTA__c}" styleClass="inputArea margin" style="width: auto;" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="labelCol">
+                                            <apex:outputLabel value="{!$ObjectType.Building__c.fields.Little_E_Designation__c.Label}:"/>
+                                        </td>
+                                        <td class="data2Col">
+                                            <apex:inputCheckbox value="{!Building.Little_E_Designation__c}" styleClass="inputArea margin" style="width: auto;" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="labelCol">
+                                            <apex:outputLabel value="{!$ObjectType.Building__c.fields.Loft_Board_Authority__c.Label}:"/>
+                                        </td>
+                                        <td class="data2Col">
+                                            <apex:inputCheckbox value="{!Building.Loft_Board_Authority__c}" styleClass="inputArea margin" style="width: auto;" />
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <div class="pbHeader">
+                                    <table cellspacing="0" cellpadding="0" border="0">
+                                        <tbody>
+                                            <tr>
+                                                <td class="pbTitle">
+                                                    <h3 class="mainTitle" style="font-size: 12px;">Additional</h3>
+                                                </td>
+                                                <td>&nbsp;</td>
+                                             </tr>
+                                         </tbody>
+                                    </table>
+                                </div>
+                                <table class="detailList" border="0" cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <td class="labelCol" style="width: 30%;">{!$ObjectType.Building__c.fields.Family_1_2_3__c.Label}:</td>
+                                        <td class="data2Col" style="width: auto;">
+                                            <apex:inputField value="{!building.Family_1_2_3__c}"/>
+                                        </td>
+
+                                        <td class="labelCol" style="width: 30%;">{!$ObjectType.Building__c.fields.Legal_Street_Width__c.Label}:</td>
+                                        <td class="data2Col" style="width: auto;">
+                                            <apex:inputField value="{!building.Legal_Street_Width__c}"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="labelCol" style="width: 30%;">{!$ObjectType.Building__c.fields.POPS__c.Label}:</td>
+                                        <td class="data2Col" style="width: auto;">
+                                            <apex:inputField value="{!building.POPS__c}"/>
+                                        </td>
+
+                                        <td class="labelCol" style="width: 30%;">{!$ObjectType.Building__c.fields.Street_Frontage__c.Label}:</td>
+                                        <td class="data2Col" style="width: auto;">
+                                            <apex:inputField value="{!building.Street_Frontage__c}"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="labelCol" style="width: 30%;">{!$ObjectType.Building__c.fields.Private_Street__c.Label}:</td>
+                                        <td class="data2Col" style="width: auto;" colspan="3">
+                                            <apex:inputField value="{!building.Private_Street__c}"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="labelCol" style="width: 30%;">{!$ObjectType.Building__c.fields.Zoning1__c.Label}:</td>
+                                        <td class="data2Col" style="width: auto;" colspan="3">
+                                            <apex:inputField value="{!building.Zoning1__c}"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="labelCol" style="width: 30%;">{!$ObjectType.Building__c.fields.Zoning2__c.Label}:</td>
+                                        <td class="data2Col" style="width: auto;" colspan="3">
+                                            <apex:inputField value="{!building.Zoning2__c}"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="labelCol" style="width: 30%;">{!$ObjectType.Building__c.fields.Zoning3__c.Label}:</td>
+                                        <td class="data2Col" style="width: auto;" colspan="3">
+                                            <apex:inputField value="{!building.Zoning3__c}"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="labelCol" style="width: 30%;">{!$ObjectType.Building__c.fields.Special_Zoning__c.Label}:</td>
+                                        <td class="data2Col" style="width: auto;" colspan="3">
+                                            <apex:inputField value="{!building.Special_Zoning__c}"/>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <div class="pbHeader">
+                                    <table cellspacing="0" cellpadding="0" border="0">
+                                        <tbody>
+                                            <tr>
+                                                <td class="pbTitle">
+                                                    <h3 class="mainTitle" style="font-size: 12px;">Building Owner</h3>
+                                                </td>
+                                                <td>&nbsp;</td>
+                                             </tr>
+                                         </tbody>
+                                    </table>
+                                </div>
+                                <table class="detailList" border="0" cellpadding="0" cellspacing="0" >
+                                    <tr>
+                                        <td class="labelCol" style="width: 30%;">
+                                            <apex:outputLabel value="{!$ObjectType.Building__c.fields.OwnerShip__c.Label}:"/>
+                                        </td>
+                                        <td class="data2Col">
+                                            <div class="requiredBlockWrapper"><div class="requiredBlockMarker"></div></div>
+                                            <apex:inputField value="{!Building.OwnerShip__c}" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="labelCol" style="width: 30%;">
+                                            <apex:outputLabel value="{!$ObjectType.Building__c.fields.Owner_Company__c.Label}:"/>
+                                        </td>
+                                        <td class="data2Col" id="ownerCompany">
+                                            <div class="requiredBlockWrapper"><div class="requiredBlockMarker"></div></div>
+                                            <apex:inputField value="{! ownerCompanyHolder.AccountId }" onchange="updContact();" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="labelCol" style="width: 30%;">
+                                            <apex:outputLabel value="{!$ObjectType.Building__c.fields.Business_Name_Agency__c.Label}:"/>
+                                        </td>
+                                        <td class="data2Col">
+                                            <apex:inputField value="{! businessNameAgencyHolder.AccountId }">
+                                                <apex:actionSupport event="onchange" rerender="buildingOwnerPanel" action="{!updateContactOptions}" status="allPanelsOverlay"/>
+                                            </apex:inputField>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td class="labelCol" style="width: 30%;">
+                                            <apex:outputLabel value="{!$ObjectType.Building__c.fields.Owner_Contact_1__c.Label}:"/>
+                                        </td>
+                                        <td class="data2Col">
+                                            <div class="requiredBlockWrapper"><div class="requiredBlockMarker"></div></div>
+                                            <apex:selectList value="{! selectedContactOwner1 }" size="1" styleClass="inputPickList">
+                                                <apex:selectOptions value="{!ownerContactOptions}"/>
+                                            </apex:selectList>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="labelCol" style="width: 30%;">
+                                            <apex:outputLabel value="{!$ObjectType.Building__c.fields.Owner_Contact_2__c.Label}:"/>
+                                        </td>
+                                        <td class="data2Col">
+                                            <apex:selectList value="{! selectedContactOwner2 }" size="1" styleClass="inputPickList">
+                                                <apex:selectOptions value="{!ownerContactOptions}"/>
+                                            </apex:selectList>
+                                        </td>
+                                    </tr>
+                                    
+                                    
+                                    <tr>
+                                        <td class="labelCol" style="width: 30%;">
+                                            <apex:outputLabel value="{!$ObjectType.Building__c.fields.Building_Manager__c.Label}:"/>
+                                        </td>
+                                        <td class="data2Col">
+                                            <apex:inputField value="{!Building.Building_Manager__c}" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                    <apex:pageBlockSection columns="1">
+                        <apex:outputPanel layout="block" style="text-align: center; padding-top: 6px;">
+                            <apex:commandButton value="{!IF(ISBLANK(buildingId), 'Add New Building', 'Save')}" action="{!createNewBuilding}" reRender="apexFormId" oncomplete="if({!buildingWasCreated} == true){ changeProjectLocation('{!building.Id}'); closeWindow();}"/>
+                            <apex:actionRegion >
+                                <apex:commandButton value="Cancel" onclick="closeWindow(); return false;" immediate="true"/>
+                            </apex:actionRegion>
+                        </apex:outputPanel>
+                    </apex:pageBlockSection>
+                </div>
+            </apex:pageBlock>
+        </apex:outputPanel>
+    </apex:form>
+</apex:page>

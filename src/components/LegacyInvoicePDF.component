@@ -1,0 +1,243 @@
+<apex:component controller="LegacyInvoicePDFComponentController">
+    <apex:attribute name="legacyInvoice"   description="Legacy Invoice record."   type="Legacy_Pro_forma_Invoice__c" assignTo="{!legacyInvoiceRecord}" required="true" />
+    <apex:attribute name="isDisplayMailTo" description="Display Mail To Section." type="Boolean" />
+    <apex:attribute name="isCredit1"       description="Credit 1 pdf."            type="Boolean" />
+    <apex:attribute name="isCredit2"       description="Credit 2 pdf."            type="Boolean" />
+    
+    <div id="page-content" style="width: 100%;">
+        <br/>
+        <table style="width: 100%; border-collapse: collapse; border-spacing: 0;">
+            <tr>
+                <!-- Begin MAIL TO section -->
+                <td style="width: 50%; border-top: 1px solid black;">
+                    <div style="display: {!IF(isDisplayMailTo, 'block', 'none')};">
+                        <span class="bold left">MAIL TO:</span><br/>
+                        
+                        <apex:outputPanel layout="none" rendered="{!legacyInvoice.Accounting_Contact_Company__r.Name != null}">
+                            <span>{!legacyInvoice.Accounting_Contact_Company__r.Name}</span><br/>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel layout="none" rendered="{!legacyInvoice.Accounting_Contact_Address_1__c != null}">
+                            <span>{!legacyInvoice.Accounting_Contact_Address_1__c}</span><br/>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel layout="none" rendered="{!legacyInvoice.Accounting_Contact_Address_Details__c != null}">
+                            <span>{!legacyInvoice.Accounting_Contact_Address_Details__c}</span><br/>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel layout="none" rendered="{!legacyInvoice.Accounting_Contact__r.Name != null}">
+                            <span>Attn: {!legacyInvoice.Accounting_Contact__r.Name}</span>
+                        </apex:outputPanel>
+                    </div>
+                </td>
+                <!-- End MAIL TO section -->
+                
+                <!-- Begin BILL TO section -->
+                <td style="width: 50%; border-top: 1px solid black;">
+                    <div>
+                        <span class="bold left">{!IF( OR(isCredit1, isCredit2), 'CREDIT TO:', 'BILL TO:')} </span><br/>
+                        
+                        <apex:outputPanel layout="none" rendered="{!legacyInvoice.Billing_Client_Company__r.Name != null}">
+                            <span>{!legacyInvoice.Billing_Client_Company__r.Name}</span><br/>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel layout="none" rendered="{!legacyInvoice.Billing_Contact_Address_1__c != null}">
+                            <span>{!legacyInvoice.Billing_Contact_Address_1__c}</span><br/>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel layout="none" rendered="{!legacyInvoice.Billing_Contact_Detail_Address__c != null}">
+                            <span>{!legacyInvoice.Billing_Contact_Detail_Address__c}</span><br/>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel layout="none" rendered="{!legacyInvoice.Billing_Contact__r.Name != null}">
+                            <span>Attn: {!legacyInvoice.Billing_Contact__r.Name}</span>
+                        </apex:outputPanel>
+                    </div>
+                </td>
+                <!-- End BILL TO section -->
+            </tr>
+        </table>
+        
+        <br/>
+        
+        <!-- Begin Project Address table -->
+        <table class="content">
+            <thead>
+                <tr>
+                    <td class="header bold leftline" style="width: 60%; vertical-align: top;">Project Address</td>
+                    <td class="header bold" style="width: 40%; vertical-align: top;">Project Details</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="line left leftline bottomline" style="vertical-align: top;">
+                        <apex:outputPanel layout="none" rendered="{!address1 != ''}"><!--
+                            --><span class="left">{!address1}</span><!--
+                        --></apex:outputPanel><!--
+                        --><apex:outputPanel layout="none" rendered="{!address2 != ''}"><!--
+                            --><br/><span class="left">{!address2}</span><!--
+                        --></apex:outputPanel><!--
+                        --><apex:outputPanel layout="none" rendered="{!legacyInvoice.Floor_s__c != null}"><!--
+                            --><span>;</span><br/><span class="left">Floor: {!legacyInvoice.Floor_s__c}</span><!--
+                        --></apex:outputPanel>
+                    </td>
+                    <td class="line left bottomline" style="vertical-align: top;">
+                        <apex:outputPanel layout="none" rendered="{!legacyInvoice.Project_Name__c != null}">
+                            <span slass="left">{!legacyInvoice.Project_Name__c}</span>
+                        </apex:outputPanel>
+                        <apex:outputPanel layout="none" rendered="{!legacyInvoice.Project_Name__c == null}">
+                            <span slass="left">&nbsp;</span>
+                        </apex:outputPanel>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- End Project Address table -->
+        
+        <br/><br/>
+        
+        <!-- Begin Professional Services table -->
+        <table class="content">
+            <thead>
+                <tr>
+                    <td class="header bold leftline">PS#</td>
+                    <td class="header bold leftline">Professional Services</td>
+                    <td class="header bold" style="padding-top: 0px;"><img src="{!URLFOR($Resource.Sigma)}" height="0.8em"/></td>
+                    <td class="header bold">Fees</td>
+                    <td class="header bold">{!IF( OR(isCredit1, isCredit2), 'Credit', 'Extended Fee')}</td>
+                </tr>
+            </thead>
+            <tbody>
+                <apex:repeat value="{!legacyInvoice.Legacy_Billing_Items__r}" var="item">
+                    <tr>
+                        <td class="line center leftline"></td>
+                        
+                        <td class="line left leftline)}">
+                            <apex:outputText escape="false" value="{!item.Invoice_Line_Description__c}"/>
+                        </td>
+                        
+                        <td class="line right">{!item.Quantity__c}</td>
+                        
+                        <td class="line right">
+                            <apex:outputText value="${0, number,###,###,##0.00}">
+                                <apex:param value="{!item.Price__c}"/>
+                            </apex:outputText>
+                        </td>
+                        
+                        <td class="line right">
+                            <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!AND(NOT(isCredit1), NOT(isCredit2))}">
+                                <apex:param value="{!item.Extended_Fee__c}"/>
+                            </apex:outputText>
+                            
+                            <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!isCredit1}">
+                                <apex:param value="{!item.cl_Credit_1_Amount__c}"/>
+                            </apex:outputText>
+
+                            <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!isCredit2}">
+                                <apex:param value="{!item.cl_Credit_2_Amount__c}"/>
+                            </apex:outputText>
+
+                        </td>
+                    </tr>
+                </apex:repeat>
+                
+                <tr>
+                    <td class="line right leftline bottomline" colspan="4">
+                        Subtotal:<br/>
+                        Tax:<br/>
+                        <apex:outputText value="Credits:" rendered="{!AND(NOT(isCredit1), NOT(isCredit2))}"/>
+                    </td>
+                    <td class="line right  bottomline">
+                        <apex:outputText value="${0, number,###,###,##0.00}">
+                            <apex:param value="{!IF(isCredit1, legacyInvoice.Subtotal_Credit1__c, IF(isCredit2, legacyInvoice.Subtotal_Credit2__c, legacyInvoice.Subtotal__c))}"/>
+                        </apex:outputText><br/>
+                        
+                        <apex:outputText value="${0, number,###,###,##0.00}">
+                            <apex:param value="{!IF(isCredit1, legacyInvoice.Tax_Credit1__c, IF(isCredit2, legacyInvoice.Tax_Credit2__c, legacyInvoice.Tax__c))}"/>
+                        </apex:outputText><br/>
+                        
+                        <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!AND(NOT(isCredit1), NOT(isCredit2))}">
+                            <apex:param value="{!legacyInvoice.Credit__c}"/>
+                        </apex:outputText>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- End Professional Services table -->
+        
+        <br/>
+        
+        <div class="bold right">
+            {!IF( OR(isCredit1, isCredit2), 'Total Credits:', 'Amount Due:')}&nbsp;
+            
+            <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!AND(NOT(isCredit1), NOT(isCredit2))}">
+                <apex:param value="{!legacyInvoice.Amount_Due__c}"/>
+            </apex:outputText>
+            
+            <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!isCredit1}">
+                <apex:param value="{!legacyInvoice.Total_Credits1__c}"/>
+            </apex:outputText>
+            
+            <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!isCredit2}">
+                <apex:param value="{!legacyInvoice.Total_Credits2__c}"/>
+            </apex:outputText>
+        </div>
+    </div>
+    
+    <br/> <br/>
+    
+    <!-- Begin PROJECT OUTSTANDING INVOICE SUMMARY table -->
+    <table class="content">
+        <thead>
+            <tr>
+                <td class="header bold leftline" colspan="6">PROJECT OUTSTANDING INVOICE SUMMARY</td>
+            </tr>
+            <tr>
+                <td class="header bold leftline">Current Amount </td>
+                <td class="header bold">1-30 days               </td>
+                <td class="header bold">31-60 days              </td>
+                <td class="header bold">61-90 days              </td>
+                <td class="header bold">91+ days                </td>
+                <td class="header bold">Total Due               </td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="line center leftline bottomline" style="width: 16.66%;">
+                    <apex:outputText value="${0, number,###,###,##0.00}">
+                        <apex:param value="{!currentAmount}"/>
+                    </apex:outputText>
+                </td>
+                <td class="line center bottomline" style="width: 16.67%;">
+                    <apex:outputText value="${0, number,###,###,##0.00}">
+                        <apex:param value="{!out30Amount}"/>
+                    </apex:outputText>
+                </td>
+                <td class="line center bottomline" style="width: 16.67%;">
+                    <apex:outputText value="${0, number,###,###,##0.00}">
+                        <apex:param value="{!out60Amount}"/>
+                    </apex:outputText>
+                </td>
+                <td class="line center bottomline" style="width: 16.67%;">
+                    <apex:outputText value="${0, number,###,###,##0.00}">
+                        <apex:param value="{!out90Amount}"/>
+                    </apex:outputText>
+                </td>
+                <td class="line center bottomline" style="width: 16.67%;">
+                    <apex:outputText value="${0, number,###,###,##0.00}">
+                        <apex:param value="{!out90PlusAmount}"/>
+                    </apex:outputText>
+                </td>
+                <td class="line center bottomline" style="width: 16.66%;">
+                    <apex:outputText value="${0, number,###,###,##0.00}">
+                        <apex:param value="{!outstandingAmountDueSum}"/>
+                    </apex:outputText>
+                </td>
+            </tr>
+            
+        </tbody>
+    </table>
+    <!-- End PROJECT OUTSTANDING INVOICE SUMMARY table -->
+    <br/><br/>
+    
+</apex:component>

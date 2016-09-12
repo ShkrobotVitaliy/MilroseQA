@@ -1,0 +1,46 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:variable var="display2Column" value="{!IF(OR(projectView, AND(!projectView, show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="display3Column" value="{!IF(OR(projectView, AND(!projectView, !show2column)), 'table-cell', 'none')}"/>
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="{!IF(projectView, 3, 2)}">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width:50%">Application Permit Response</th>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Design Signing/Sealing &amp; License #</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Design_Signing_Sealing_License_App__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Project Manager:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Project_Manager_App__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Description of work to be completed:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Description_Of_Work_To_Be_Completed_App__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Length of fence:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Length_Of_Fence_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Height of fence:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Height_Of_Fence_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Distance from the property line:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Distance_From_The_Property_Line_App__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Type of material used (e.g., wood):</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Type_Of_Material_Used_App__c}" /></td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

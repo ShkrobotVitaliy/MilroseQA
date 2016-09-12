@@ -1,0 +1,4 @@
+<apex:page sidebar="false" showHeader="false" standardStylesheets="false" 
+      action="  
+https://s3.amazonaws.com/Wave_Manuals/11.05/Field+Representative+Reference+Guide_v7_11_05.pdf">
+</apex:page>

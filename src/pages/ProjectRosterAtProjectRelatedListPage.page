@@ -1,0 +1,199 @@
+<apex:page standardController="Project_Profile__c" extensions="ProjectRosterAtProjectRelatedListContExt" showChat="false" showHeader="false" sidebar="false">
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}" />
+    <script src="{!$Resource.jquery_tablednd_js}" />
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}" />
+    <script src="{!URLFOR($Resource.jquery_vfFloatingHeaders)}" />
+    
+    <style type="text/css" height="100">
+        .actionColumn { 
+            display:    none; 
+            visibility: hidden;
+        }
+        .presence_chat_widget {
+            display:    none; 
+            visibility: hidden;
+        }
+        .pbHeader {
+            display:    none; 
+            visibility: hidden;
+        
+        }
+        td.disabled {
+            background-color: #D2D2D2;
+        }
+        tr.highlight td.disabled {
+            background-color: #99BBD2 !important;
+        }
+        body {
+            margin: 0px !important;
+        }
+    </style>
+    
+    <apex:form >
+        <apex:actionStatus id="displayAllPanelsOverlay" onstart="$('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);" onstop="$('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });"/>
+        <div class="AllInfoPanelHolder" style="position: relative; overflow: auto; -webkit-overflow-scrolling: touch;">
+        <div class="overlay" id="AllPannelOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"/>
+            <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+                <div style="text-align: center;">
+                    <img src="{!$Resource.loading_bar}" />
+                    <p style="color: #000; margin-bottom: 0; font-size: 24px;">Please wait</p>
+                 </div>
+            </div>
+         
+            <apex:pageMessages id="msgs" />
+            
+            <apex:pageBlock >
+                <apex:outputPanel layout="block" style="margin-bottom:10px;text-align: center;">
+                    <apex:commandButton action="{!addToTheRosterAction}" value="Add to the Roster" rendered="{!renderedButtonOrLink}" oncomplete="doRedirect();" styleClass="milroseBtnStyle" status="displayAllPanelsOverlay" reRender="msgs"/>
+                </apex:outputPanel>
+                  
+                <apex:outputPanel layout="block" style="height: 430px;overflow-y: auto;" id="projectRosterOutputPanel"> <!-- MRS 7179 -->
+                  <apex:pageBlockTable value="{!projectRosterList}" var="child">
+                      <apex:column styleClass="{!IF(child.Active__c && child.User_Contact_IsActive__c, '', ' disabled')}">
+                          <apex:facet name="header">
+                              <apex:commandLink action="{!sortAction}" value="Name {!IF(sortAssignmentExtension.sortExpression=='Name__c',IF(sortAssignmentExtension.sortDirection='ASC','▼','▲'),'')}" rerender="projectRosterOutputPanel, msgs">
+                                  <apex:param value="Name__c" name="column" assignTo="{!sortAssignmentExtension.sortExpression}" />
+                              </apex:commandLink>
+                          </apex:facet>
+                        
+                          <apex:outputLink value="/{!child.Contact__c}" target="_blank" rendered="{!IF(child.RecordType.Name == 'Contact', 'true', 'false')}"> {!child.Contact__r.Name} </apex:outputLink>
+                          <apex:outputLink value="/{!child.User__c}" target="_blank" rendered="{!IF(child.RecordType.Name == 'User', 'true', 'false')}"> {!child.User__r.Name} </apex:outputLink>
+                      </apex:column>
+
+                      <apex:column styleClass="{!IF(child.Active__c && child.User_Contact_IsActive__c, '', ' disabled')}">
+                          <apex:facet name="header">
+                              <apex:commandLink action="{!sortAction}" value="Account Name {!IF(sortAssignmentExtension.sortExpression=='Contact_Account_Name__c',IF(sortAssignmentExtension.sortDirection='ASC','▼','▲'),'')}" rerender="projectRosterOutputPanel, msgs">
+                                  <apex:param value="Contact_Account_Name__c" name="column" assignTo="{!sortAssignmentExtension.sortExpression}" />
+                              </apex:commandLink>
+                          </apex:facet>
+                        
+                          <apex:outputLink value="/{!child.Contact__r.AccountId}" target="_blank" rendered="{!IF(child.RecordType.Name == 'Contact', 'true', 'false')}"> {!child.Contact_Account_Name__c} </apex:outputLink>
+                          <apex:outputLabel value="Milrose" rendered="{!IF(child.RecordType.Name == 'User', 'true', 'false')}"/>
+                      </apex:column>
+
+                      <apex:column styleClass="{!IF(child.Active__c && child.User_Contact_IsActive__c, '', ' disabled')}">
+                          <apex:facet name="header">
+                              <apex:commandLink action="{!sortAction}" value="Role {!IF(sortAssignmentExtension.sortExpression=='Role__c',IF(sortAssignmentExtension.sortDirection='ASC','▼','▲'),'')}" rerender="projectRosterOutputPanel, msgs">
+                                  <apex:param value="Role__c" name="column" assignTo="{!sortAssignmentExtension.sortExpression}" />
+                              </apex:commandLink>
+                          </apex:facet>
+                        
+                          <apex:outputLabel value="{!child.Role__c}"/>
+                      </apex:column>
+                      
+                      <apex:column styleClass="{!IF(child.Active__c && child.User_Contact_IsActive__c, '', ' disabled')}">
+                          <apex:facet name="header">
+                              <apex:commandLink action="{!sortAction}" value="DND {!IF(sortAssignmentExtension.sortExpression=='Contact__r.DND__c',IF(sortAssignmentExtension.sortDirection='ASC','▼','▲'),'')}" rerender="projectRosterOutputPanel, msgs">
+                                  <apex:param value="Contact__r.DND__c" name="column" assignTo="{!sortAssignmentExtension.sortExpression}" />
+                              </apex:commandLink>
+                          </apex:facet>
+                        
+                          <apex:outputField value="{!child.Contact__r.DND__c}" />
+                      </apex:column>
+
+                      <apex:column styleClass="{!IF(child.Active__c && child.User_Contact_IsActive__c, '', ' disabled')}">
+                          <apex:facet name="header">
+                              <apex:commandLink action="{!sortAction}" value="Email {!IF(sortAssignmentExtension.sortExpression=='Email__c',IF(sortAssignmentExtension.sortDirection='ASC','▼','▲'),'')}" rerender="projectRosterOutputPanel, msgs">
+                                  <apex:param value="Email__c" name="column" assignTo="{!sortAssignmentExtension.sortExpression}" />
+                              </apex:commandLink>
+                          </apex:facet>
+                          
+                          <apex:outputLabel value="{!child.Email__c}"/>
+                      </apex:column>
+                      
+                      <apex:column style="min-width: 85px;" styleClass="{!IF(child.Active__c && child.User_Contact_IsActive__c, '', ' disabled')}">
+                          <apex:facet name="header">
+                              <apex:commandLink action="{!sortAction}" value="Phone {!IF(sortAssignmentExtension.sortExpression=='Phone__c',IF(sortAssignmentExtension.sortDirection='ASC','▼','▲'),'')}" rerender="projectRosterOutputPanel, msgs">
+                                  <apex:param value="Phone__c" name="column" assignTo="{!sortAssignmentExtension.sortExpression}" />
+                              </apex:commandLink>
+                          </apex:facet>
+                          
+                          <apex:outputLabel value="{!child.Phone__c}"/>
+                      </apex:column>
+                      
+                      <apex:column styleClass="{!IF(child.Active__c && child.User_Contact_IsActive__c, '', ' disabled')}">
+                          <apex:facet name="header">
+                              <apex:commandLink action="{!sortAction}" value="CreatedBy {!IF(sortAssignmentExtension.sortExpression=='CreatedBy.Name',IF(sortAssignmentExtension.sortDirection='ASC','▼','▲'),'')}" rerender="projectRosterOutputPanel, msgs">
+                                  <apex:param value="CreatedBy.Name" name="column" assignTo="{!sortAssignmentExtension.sortExpression}" />
+                              </apex:commandLink>
+                          </apex:facet>
+                          
+                          <apex:outputLink value="/{!child.CreatedById}" target="_blank"> {!child.CreatedBy.Name} </apex:outputLink>
+                      </apex:column>
+
+                      <apex:column style="" styleClass="{!IF(child.Active__c && child.User_Contact_IsActive__c, '', ' disabled')}">
+                          <apex:facet name="header">
+                              <apex:commandLink action="{!sortAction}" value="Date/Time {!IF(sortAssignmentExtension.sortExpression=='CreatedDate',IF(sortAssignmentExtension.sortDirection='ASC','▼','▲'),'')}" rerender="projectRosterOutputPanel, msgs">
+                                  <apex:param value="CreatedDate" name="column" assignTo="{!sortAssignmentExtension.sortExpression}" />
+                              </apex:commandLink>
+                          </apex:facet>
+                          
+                          <apex:outputField value="{!child.CreatedDate}" />
+                      </apex:column>
+
+                      <apex:column headerValue="Remove" styleClass="{!IF(child.Active__c && child.User_Contact_IsActive__c, '', ' disabled')}">
+                            <apex:outputPanel rendered="{!renderedButtonOrLink && !( primaryClientContact == child.Role__c || billingClientContact == child.Role__c || accountingClientContact == child.Role__c ) }">
+                                <a href="#" onclick="removeOrCancelProjectRoster('{!child.Id}', '{!child.RecordType.Name}'); return false;">
+                                    <img src="/img/func_icons/remove12_on.gif" alt="delete" title="Delete" class="deleteItemImage" onmouseover="this.src='/img/func_icons/remove12_on.gif'" onmouseout="this.src='/img/func_icons/remove12_on.gif'"/>
+                                </a>
+                            </apex:outputPanel>
+                      </apex:column>
+
+                      <apex:column styleClass="{!IF(child.Active__c && child.User_Contact_IsActive__c, '', ' disabled')}"> <!-- MRS 7179 -->
+							<apex:facet name="header">
+                                <apex:commandLink action="{!sortAction}" value="Inactive {!IF(sortAssignmentExtension.sortExpression=='Active__c',IF(sortAssignmentExtension.sortDirection='ASC','▼','▲'),'')}" rerender="projectRosterOutputPanel, msgs">
+                                    <apex:param value="Active__c" name="column" assignTo="{!sortAssignmentExtension.sortExpression}" />
+                                </apex:commandLink>
+                            </apex:facet>
+                            <apex:outputPanel rendered="{!renderedButtonOrLink && !( primaryClientContact == child.Role__c || billingClientContact == child.Role__c || accountingClientContact == child.Role__c ) }">
+                                <apex:outputPanel rendered="{!OR(AND (child.Contact__c != null, child.Contact__r.Is_Active__c = true), AND (child.User__c != null, child.User__r.IsActive = true))}">
+                                    <apex:outputPanel rendered="{!child.Active__c}">
+                                      <a href="#" onclick="activateDeactiveRoster('{!child.Id}'); return false;">
+                                        <img src="/img/func_icons/remove12.gif" alt="Deactivate" title="Deactivate" class="deactivatetemImage"/>
+                                      </a>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel rendered="{!!child.Active__c}">
+                                      <a href="#" onclick="activateDeactiveRoster('{!child.Id}'); return false;">
+                                        <img src="/img/func_icons/util/checkmark16.gif" alt="Activate" title="Activate" class="activateItemImage"/>
+                                      </a>
+                                    </apex:outputPanel>
+                                </apex:outputPanel>
+                            </apex:outputPanel>
+                      </apex:column>
+                    </apex:pageBlockTable>
+                </apex:outputPanel>
+            </apex:pageBlock>
+        </div>
+        <apex:actionFunction name="removeRoster" action="{!removeRosterAction}" reRender="msgs, projectRosterOutputPanel" status="displayAllPanelsOverlay">
+            <apex:param name="rosterId" value="" assignTo="{!rosterIdToDelete}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="activateDeactiveRoster" action="{!activateRosterAction}" reRender="msgs, projectRosterOutputPanel" status="displayAllPanelsOverlay">
+            <apex:param name="rosterId" value="" assignTo="{!rosterIdToActivationOrDeactivation}"/>
+        </apex:actionFunction>
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+        
+        <apex:inputField value="{!Project_Profile__c.Name}"                 rendered="false"/>
+        <apex:inputField value="{!Project_Profile__c.Project_Name__c}"      rendered="false"/>
+        <apex:inputField value="{!Project_Profile__c.Project_Manager__c}"   rendered="false"/>
+        <apex:inputField value="{!Project_Profile__c.OwnerId}"              rendered="false"/>
+        <apex:inputField value="{!Project_Profile__c.Account_Executive__c}" rendered="false"/>
+        <apex:inputField value="{!Project_Profile__c.FREP__c}"              rendered="false"/>
+        <apex:inputField value="{!Project_Profile__c.Project_Member__c}"    rendered="false"/>
+        <apex:inputField value="{!Project_Profile__c.Resource__c}"          rendered="false"/>
+    	<apex:inputField value="{!Project_Profile__c.Project_State__c}"     rendered="false"/>
+        
+    </apex:form>
+ 
+    <script>
+        function doRedirect() {
+            window.parent.location.href = '{!redirectUrl}';
+        
+        }
+
+        function removeOrCancelProjectRoster( rosterId, rosterType ){
+            if( confirm("Are you sure you want to delete the Contact from the Project Roster?") ){
+                removeRoster(rosterId);
+            }
+        }
+    </script>
+</apex:page>

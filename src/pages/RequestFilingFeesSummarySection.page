@@ -1,0 +1,346 @@
+<apex:page standardController="Project_Profile__c" extensions="RequestFilingFeeExtension" sidebar="false" showHeader="false" showChat="false">
+   <script src="{!$Resource.jquery_tablednd_js}" />
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}"/>
+    <script src="{!URLFOR($Resource.jquery_vfFloatingHeaders)}" />
+    
+    <apex:form >
+        <apex:actionStatus id="allPanelsOverlay" onstart="$('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);" onstop="$('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });"/>
+
+        <div style="height: 800px; overflow: auto;">
+            <apex:pageMessages id="msgError" />
+
+            <!-- Begin Callback From Email Component -->
+            <apex:actionFunction name="containerUpdateParentRecordCC" action="{!updateCCEmailsAddressForDrawLoop}" reRender="msgError, vendorRequestPanelId" status="allPanelsOverlay">
+                <apex:param name="emailCC" value="" assignTo="{!emailsAddressForDrawLoop}"/>
+            </apex:actionFunction>
+
+            <apex:actionFunction name="containerPerformAfterSaveAction" action="{!updateAfterSend}" oncomplete="hideOverlay(); refreshTables();" reRender="msgError">
+                <apex:param name="reminderDatetime" value="" assignTo="{!reminderDatetime}" />
+            </apex:actionFunction>
+            <!-- End Callback From Email Component --> 
+
+            <apex:actionFunction name="sendInternalRequest" status="allPanelsOverlay" action="{!sendInternalRequest}" reRender="trackSendChekcRequestPanel, msgError" />
+            <apex:actionFunction name="refreshTables" status="allPanelsOverlay" reRender="sendChekcRequestPanel, trackSendChekcRequestPanel, hideTimeTablePanel" />
+            <apex:actionFunction name="updateSendTo" status="allPanelsOverlay" action="{!selectInternalRequest}" reRender="msgError" oncomplete="refreshTables();" >
+                <apex:param name="sendCheckId" value="" assignTo="{!checkRequestId}"/>
+            </apex:actionFunction>
+
+            <div class="AllInfoPanelHolder" style="position: relative; overflow: auto; -webkit-overflow-scrolling: touch;">
+                <div class="overlay" id="AllPannelOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"/>
+                <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+                    <div style="text-align: center;">
+                        <img src="{!$Resource.loading_bar}"/>
+                        <p style="color: #000; margin-bottom: 0px; font-size: 24px;">Please wait</p>
+                    </div>
+                </div>
+
+                <!-- Begin Retainer/Municipal Agency Fees on account with Milrose -->
+                <apex:outputLabel value="Retainer/Municipal Agency Fees on account with Milrose" styleClass="labelText" style="font-size: 16px; padding-left: 8px; color: #3887A8;"/>
+
+                <apex:outputPanel layout="block">
+                    <table class="generalTableStyle" style="width: 100%;">
+                         <tr>
+                             <td class="data dragHandle" style="vertical-align: middle; width: 50%;"> 
+                                 <apex:outputText value="Sum of Amount Remaining from Deposit Invoices." />
+                                 <span class="helpTooltipTop" style="top: 1em; width: 500px; margin-left: 15px; margin-top: 15px;">This number reflects the remaining amount on account with the client for municipal filing fees. Please note that there is a delay between when the last checks were requested and when this number is updated. It will not be updated until after the fees are invoiced and the retainer is applied to the invoice.</span>
+                                 <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltipTop').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltipTop').hide();"/>
+                             </td>
+                             <td class="data dragHandle" style="vertical-align: middle; width: 50%;">
+                                 <apex:outputText value="{0, number, currency}">
+                                     <apex:param value="{!amountRemaining}"/>
+                                 </apex:outputText>
+                             </td>
+                         </tr>
+                    </table>
+                </apex:outputPanel>
+                <!-- End Retainer/Municipal Agency Fees on account with Milrose -->                
+
+                <!-- Begin Send Check Requests -->
+                <apex:outputLabel value="Send Check Requests" styleClass="labelText" style="font-size: 16px; padding-left: 8px; color: #3887A8;"/>
+
+                <apex:outputPanel id="sendChekcRequestPanel" layout="block">
+                    <div style="max-height: 300px; overflow: auto;">
+                        <table id="sendChecksTable" class="generalTableStyle" style="width: 100%;">
+                            <thead class="rich-table-thead" border="solid 1px black;">
+                                <tr class="headerRow">
+                                    <th class="headerRow"><apex:inputCheckbox onclick="selectAll(this, 'selectedRFI')" /></th>
+                                    <th class="headerRow" style="display: {!IF($Profile.Name == 'Platform System Admin', 'table-cell', 'none')};">Check</th>
+                                    <th class="headerRow">Send To</th>
+                                    <th class="headerRow">Internal</th>
+                                    <th class="headerRow">Payee</th>
+                                    <th class="headerRow">Description</th>
+                                    <th class="headerRow">Check<br/>Amount</th>
+                                    <th class="headerRow">Service<br/>Name</th>
+                                    <th class="headerRow">Task ID</th>
+                                    <th class="headerRow">Request<br/>Notes</th>
+                                </tr>
+                            </thead>
+                            <apex:repeat value="{!sendChecks}" var="check">
+                                <tr>
+                                    <td class="data dragHandle" style="vertical-align: middle;"> <apex:inputCheckbox id="selectedRFI" value="{!check.isSelected }"/></td>
+                                    <td class="data dragHandle" style="vertical-align: middle; display: {!IF($Profile.Name == 'Platform System Admin', 'table-cell', 'none')};"><a href="/{!check.check.Id}" target="_blank">{!check.check.Name}</a></td>
+                                    <td class="data dragHandle" style="vertical-align: middle;"> 
+                                        <apex:selectList value="{!check.check.Project_Roster__c}" size="1" disabled="{!check.check.Internal__c}" onchange="refreshTables();">
+                                            <apex:selectOptions value="{!rostersSendTo}"/>
+                                        </apex:selectList>
+                                    </td>
+                                    <td class="data dragHandle" style="vertical-align: middle;"> <apex:inputCheckbox value="{!check.check.Internal__c}" onchange="updateSendTo('{!check.check.Id}');"/></td>
+                                    <td class="data dragHandle onChangeClass" style="vertical-align: middle;"> 
+                                        <apex:outputLink target="_blank" value="/{!check.check.Account__c}">{!check.check.Account__r.Name}</apex:outputLink>
+                                    </td>
+                                    <td class="data dragHandle onChangeClass" style="vertical-align: middle"><apex:outputText value="{!check.check.Description__c}"/></td>
+                                    <td class="data dragHandle onChangeClass" style="vertical-align: middle"><apex:outputField value="{!check.check.Check_Amount__c}"/></td>
+                                    <td class="data dragHandle onChangeClass" style="vertical-align: middle"> 
+                                        <apex:outputLink target="_blank" value="/{!check.check.Service_Item__c}">{!check.check.Service_Item__r.Short_Service_Name_Worktype__c}</apex:outputLink>
+                                    </td>
+                                    <td class="data dragHandle onChangeClass" style="vertical-align: middle"> 
+                                        <apex:outputLink target="_blank" value="/{!check.check.Task_Item__c}">{!check.check.Task_Item__r.Name}</apex:outputLink> 
+                                    </td>
+                                    <td class="data dragHandle onChangeClass" style="vertical-align: middle"><apex:inputText value="{!check.check.Notes__c}"/></td>
+                                </tr>
+                            </apex:repeat>
+                        </table>
+                    </div>
+                    <div id="buttonRequestPanel">
+                        <apex:outputPanel layout="block" style="text-align: right;" rendered="{!project.Project_State__c != 'Closed' && project.Project_State__c != 'On Hold'}">
+                            <apex:commandButton value="Request Fees" action="{!displayEmailPreview}" styleClass="milroseBtnStyle" />
+                            <apex:commandButton value="Internal Request" styleClass="milroseBtnStyle" onclick="if ('{!project.Billing_Company_Name__r.Do_not_lay_out_fees__c}' == 'true') { $('#notificationDoNotLayOutFeesPopupID').show(); } else { openInternalRequestDialog(); } return false;"/>
+                            <apex:commandButton value="Save Changes" action="{!updateSendCheckRequests}" styleClass="milroseBtnStyle" status="allPanelsOverlay" reRender="msgError, sendChekcRequestPanel, trackSendChekcRequestPanel, hideTimeTablePanel"/>
+                        </apex:outputPanel>
+                    </div>
+                </apex:outputPanel>
+                <!-- End Send Check Requests -->
+
+                <!-- Disable Table 'Send Check Requests' & Buttons -->
+                <script>
+                    if ('true' == '{!reviewEmail}') {
+                        $('#sendChecksTable').find('input').attr('disabled', 'disabled');
+                        $('#sendChecksTable').find('select').attr('disabled', 'disabled');
+                        $('#buttonRequestPanel').find('input').attr('disabled', 'disabled').addClass('btnDisabled').removeClass('btn');
+                    }
+                </script>
+
+                <!-- Begin Email Component -->
+                <apex:outputPanel id="emailTemplatePanel" layout="block" rendered="{!reviewEmail}">
+                    <c:PreviewAndSendEmail defaultBody="true" parentDDPRecordId="{!project.Id}" DDPRecordName="{!drawloopName}" 
+                                           emailTemplate="{!emailTemplateName}" 
+                                           draftTemplate="{!draftTemplateName}" 
+                                           sendAddressTo="{!sendTo}" 
+                                           projectProfileRecord="{!project}" 
+                                           showReminderSection="true" 
+                                           showAttachmentsSection="true" 
+                                           attachIds="{!parentDocumentIds}" 
+                                           emailTypeRecord="{!rffEmailType}" 
+                                           additionalBodyItem="{!editedTemplate}" 
+                                           additionalSubjectItem="{!additionalSubject}" 
+                                           showTemplateSelection="false" 
+                                           linkToCloseButton="{!linkToCloseTemplate}"
+                                           contactId="{!contactRecipient}"
+                                           sentEmailBodyReturn="{!sentEmailBodyValue}"/>
+                </apex:outputPanel>
+                <!-- End Email Component -->
+
+                <!-- Begin Track Send Check Requests -->
+                <apex:outputLabel value="Track Check Requests" styleClass="labelText" style="font-size: 16px; padding-left: 8px; color: #3887A8;"/>
+
+                <apex:outputPanel id="trackSendChekcRequestPanel" layout="block">
+                    <div style="max-height: 300px; overflow: auto;" id="trackSendChekcRequestPanelArea">
+                        <table class="BlogForce9Table generalTableStyle" style="width: 100%;">
+                            <thead class="rich-table-thead" border="solid 1px black">
+                                <tr class="headerRow">
+                                    <th class="headerRow">Send To</th>
+                                    <th class="headerRow">Internal</th>
+                                    <th class="headerRow">Date Requested</th>
+                                    <th class="headerRow">Date<br />Received</th>
+                                    <th class="headerRow">Check#</th>
+                                    <th class="headerRow">Payee</th>
+                                    <th class="headerRow">Description</th>
+                                    <th class="headerRow">Check<br/>Amount</th>
+                                    <th class="headerRow">Date Check<br/>Returned</th>
+                                    <th class="headerRow">Return Reason</th>
+                                    <th class="headerRow">Service<br/>Name</th>
+                                    <th class="headerRow">Task ID</th>
+                                    <th class="headerRow">Request<br/>Notes</th>
+                                </tr>
+                            </thead>
+                            <apex:repeat value="{!trackSendChecks}" var="check">
+                                <tr>
+                                    <td class="data dragHandle" style="vertical-align: middle;"><apex:outputField value="{!check.Project_Roster__r.Name__c}"/></td>
+                                    <td class="data dragHandle" style="vertical-align: middle;"><apex:inputCheckbox value="{!check.Internal__c}" disabled="true"/></td>
+                                    <td class="data dragHandle" style="vertical-align: middle;"><apex:outputField value="{!check.Date_Requested__c}"/></td>
+                                    <td class="data dragHandle" style="vertical-align: middle;"><apex:inputField value="{!check.Date_Received__c}"/></td>
+                                    <td class="data dragHandle" style="vertical-align: middle;">
+                                        <apex:inputField value="{!check.Check_Number__c}" rendered="{!ISNULL(check.Check_Number__c)}"/>
+                                        <apex:inputText value="{!check.Check_Number__c}" rendered="{!NOT(ISNULL(check.Check_Number__c))}"/>
+                                    </td>
+                                    <td class="data dragHandle" style="vertical-align: middle;"> 
+                                        <apex:outputLink target="_blank" value="/{!check.Account__c}">{!check.Account__r.Name}</apex:outputLink>
+                                    </td>
+                                    <td class="data dragHandle" style="vertical-align: middle;"> <apex:outputField value="{!check.Description__c}" /></td>
+                                    <td class="data dragHandle" style="vertical-align: middle;"> <apex:outputField value="{!check.Check_Amount__c}" /></td>
+                                    <td class="data dragHandle" style="vertical-align: middle;"> <apex:inputField value="{!check.Date_Check_Returned__c}"/></td>
+                                    <td class="data dragHandle onChangeClass" style="vertical-align: middle;"> <apex:inputText value="{!check.Reasone__c}" /></td>
+                                    <td class="data dragHandle" style="vertical-align: middle;"> 
+                                        <apex:outputLink target="_blank" value="/{!check.Service_Item__c}">{!check.Service_Item__r.Short_Service_Name_Worktype__c}</apex:outputLink>
+                                    </td>
+                                    <td class="data dragHandle" style="vertical-align: middle;"> 
+                                        <apex:outputLink target="_blank" value="/{!check.Task_Item__c}">{!check.Task_Item__r.Name}</apex:outputLink>
+                                    </td>
+                                    <td class="data dragHandle onChangeClass" style="vertical-align: middle;"> <apex:inputText value="{!check.Notes__c}" /></td>
+                                </tr>
+                            </apex:repeat>
+                        </table>
+                    </div>
+                </apex:outputPanel>
+
+                <apex:outputPanel layout="block" style="text-align: right;">
+                    <apex:commandButton value="Save Changes" action="{!updateTrackSendCheckRequests}" styleClass="milroseBtnStyle" status="allPanelsOverlay" reRender="msgError, sendChekcRequestPanel, trackSendChekcRequestPanel, hideTimeTablePanel"/>
+                </apex:outputPanel>
+                <!-- End Track Send Check Requests -->
+                
+                <apex:outputPanel id="hideTimeTablePanel">
+                    <script>
+                        $('.dateFormat').hide();
+                    </script>
+                </apex:outputPanel>
+            </div>
+        </div>
+
+        <!-- Begin External Request Popup -->
+        <div id="internalRequestPopup" style="display: none;">
+            <div style="z-index: 40; opacity: 0.7; filter: alpha(opacity=70); position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; background-color: #8AC;"></div>
+            <div style="position: absolute; width: 100%; z-index: 41; top: 0px; left: 0px; height: 100%; background-color: transparent;">
+
+                <div id="internalRequestPopupNotification" style="width: 550px; position: relative; left: 0; right: 0; top: 20%; border: 1px solid #888; background-color: #F0F8FF; box-shadow: 5px 5px 25px #115577; margin: 0 auto; display: none;">
+                    <div style="bottom: 28px; background-color: #F4F6F9; left: 3px; padding: 3px; border: 1px solid #3887A8; box-shadow: 0px 0px 20px #778899;">
+                        <div style="cursor: default; width: 100%; font-weight: bold; text-align: center; padding-top: 5px; padding-bottom: 5px; background-color: #CDE;">Notification</div>
+                        <div style="text-align: left; padding: 0px 10px;">
+                            <p style="text-indent: 10px;">If the client does not have an existing retainer for municipal fees and has not charged the fees that you are requesting to their credit card Milrose must charge a processing fee for EACH fee that we advance for the client. Does this fee need to be added to your check requests?</p>
+                            <p style="text-indent: 10px;">Note: If this fee only needs to be added to SOME of the check requests that you are submitting now, please cancel this request and submit separate requests for those that do and do not require a processing fee.</p>
+                        </div>
+                        <div style="width: 100%; padding-top: 3px; text-align: center;"><!--
+                            --><div style="width: 20%; display: inline-block; padding-right: 3px; box-sizing: border-box;"><!--
+                                --><apex:commandButton value="Cancel" onclick="$('#internalRequestPopup').hide(); return false;" reRender="" styleClass="milroseBtnStyle" style="width: 100%; margin: 0 !important;"/><!--
+                            --></div><!--
+                            --><div style="width: 40%; display: inline-block; padding-right: 3px; box-sizing: border-box;"><!--
+                                --><apex:commandButton value="Yes" onclick="isCheckProcessingFeeNeeded = true; $('#internalRequestPopupNotification').hide(); $('#internalRequestPopupSelection').show(); return false;" reRender="" styleClass="milroseBtnStyle" style="width: 100%; margin: 0 !important;"/><!--
+                            --></div><!--
+                            --><div style="width: 40%; display: inline-block; padding-right: 0px; box-sizing: border-box;"><!--
+                                --><apex:commandButton value="No" onclick="$('#internalRequestPopupNotification').hide(); $('#internalRequestPopupSelection').show(); return false;" reRender="" styleClass="milroseBtnStyle" style="width: 100%; margin: 0 !important;"/><!--
+                            --></div>
+                        </div>
+                    </div>
+                </div>
+
+                <apex:actionFunction name="sendInternalRequest" action="{!sendInternalRequest}" reRender="msgError, sendChekcRequestPanel, trackSendChekcRequestPanel, hideTimeTablePanel" status="allPanelsOverlay">
+                    <apex:param name="isCheckProcessingFeeOptionNeeded" value="" assignTo="{!isCheckProcessingFeeOptionNeeded}"/>
+                </apex:actionFunction>
+                <div id="internalRequestPopupSelection" style="width: 250px; position: relative; left: 0; right: 0; top: 20%; border: 1px solid #888; background-color: #F0F8FF; box-shadow: 5px 5px 25px #115577; margin: 0 auto;">
+                    <div style="bottom: 28px; background-color: #F4F6F9; left: 3px; padding: 3px; border: 1px solid #3887A8; box-shadow: 0px 0px 20px #778899;">
+                        <div style="cursor: default; width: 100%; font-weight: bold; text-align: center; padding-top: 5px; padding-bottom: 5px; background-color: #CDE;">Please choose an option</div>
+                        <apex:selectList value="{!selectedInternalRequest}" size="1" multiselect="false" style="margin: 5px 0px 0px 0px; width: 100%;">
+                            <apex:selectOptions value="{!options}"/>
+                        </apex:selectList>
+                        <div style="width: 100%; padding-top: 3px; text-align: center;"><!--
+                            --><div style="width: 25%; display: inline-block; padding-right: 3px; box-sizing: border-box;"><!--
+                                --><apex:commandButton value="Close" onclick="$('#internalRequestPopup').hide(); return false;" styleClass="milroseBtnStyle" style="width: 100%; margin: 0 !important;"/><!--
+                            --></div><!--
+                            --><div style="width: 75%; display: inline-block; padding-right: 0px; box-sizing: border-box;"><!--
+                                --><apex:commandButton value="Send Check Request" onclick="$('#internalRequestPopup').hide(); sendInternalRequest( isCheckProcessingFeeNeeded ); return false;" styleClass="milroseBtnStyle" style="width: 100%; margin: 0 !important;"/><!--
+                            --></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!-- End External Request Popup -->
+
+        <!-- Begin Notification Popup -->
+        <div id="notificationDoNotLayOutFeesPopupID" style="display: none;">
+            <div style="z-index: 50; opacity:0.7; filter:alpha(opacity=70); position:absolute; top:0; left:0; width:100%; height:100%; background-color: #8AC;"/>
+            <div style="z-index: 51; position:absolute; top:0; left:0; width:100%; height:100%; background-color: transparent;">
+                <div style="width: 350px; position: relative; left: 0%; right: 0%; top: 20%; border: 1px solid #888; background-color: #F0F8FF; box-shadow: 5px 5px 25px #115577; margin: 0 auto;">
+                    <div style="cursor: default; width: 100%; font-weight: bold; text-align: center; padding-top: 5px; padding-bottom: 5px; background-color: #CDE;">Notification</div>
+                    <div style="text-align: center; padding: 10px;">
+                        <span><b>We do not advance filing fees for this client. Please make sure that the client has pre-paid us for these fees before requesting a check internally.</b></span>
+                        <br/><br/>
+                        <span>
+                            <apex:commandButton value="OK" onclick="$('#notificationDoNotLayOutFeesPopupID').hide(); openInternalRequestDialog(); return false;" styleClass="milroseBtnStyle" style="width: 150px;"/>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End Notification Popup -->
+
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+
+        <apex:inputField value="{!Project_Profile__c.Name}" rendered="false"/>
+        <apex:inputField value="{!Project_Profile__c.Project_Name__c}" rendered="false"/>
+        <apex:inputField value="{!Project_Profile__c.Building__r.Name}" rendered="false"/>
+        <apex:inputField value="{!Project_Profile__c.Floor_s__c}" rendered="false"/>
+        <apex:inputField value="{!Project_Profile__c.Project_Member__c}" rendered="false"/>
+        <apex:inputField value="{!Project_Profile__c.Billing_Company_Name__r.Do_not_lay_out_fees__c}" rendered="false"/>
+        <apex:inputField value="{!Project_Profile__c.Proposal__c}" rendered="false"/>
+        <apex:inputField value="{!Project_Profile__c.Project_State__c}" rendered="false"/>
+        <apex:inputField value="{!Project_Profile__c.Project_Name_For_Email__c}" rendered="false"/> <!-- MRS 6259 -->
+    </apex:form>
+
+    <script>
+        $(document).ready(function() {
+            DatePicker.prototype.position = function() {
+                var datePicker = $('div.datePicker');
+                var scrolledSectionTop = $('div:has(.AllInfoPanelHolder)').scrollTop();
+                var elementLeft = $(this.myElement).position().left;
+                var elementTop = $(this.myElement).position().top;
+                var elementHeight = $(this.myElement).outerHeight();
+                var datePickerHeight = datePicker.outerHeight();
+                var topHeaderHeight = $('#AppBodyHeader').outerHeight();
+                var maxTop = $(window).height() - topHeaderHeight - datePickerHeight - 15;
+                var datePickerTop = elementTop + elementHeight - scrolledSectionTop + 5;
+                if( datePickerTop > maxTop ) datePickerTop = elementTop - datePickerHeight - scrolledSectionTop - 3;
+                $('div.datePicker').css('top', datePickerTop);
+                $('div.datePicker').css('left', elementLeft);
+            }
+            // Hide Calendar on scroll
+            $('div:has(.AllInfoPanelHolder)').scroll(function() {
+                $('#datePicker').hide();
+            });
+            $('#trackSendChekcRequestPanelArea').scroll(function() {
+                $('#datePicker').hide();
+            });
+        });
+
+        function selectAll(cb, cbid) {
+            var inputElem = document.getElementsByTagName("input");
+            for (var i = 0; i < inputElem.length; i++) {
+                if(inputElem[i].id.indexOf(cbid)!= -1) {
+                    inputElem[i].checked = cb.checked;
+                }
+            }
+        }
+
+        var isCheckProcessingFeeNeeded = false;
+        function openInternalRequestDialog() {
+            isCheckProcessingFeeNeeded = false;
+            if( {!isCheckProcessingFeeOptionAvailable} ) {
+                $('#internalRequestPopupNotification').show();
+                $('#internalRequestPopupSelection').hide();
+            } else {
+                $('#internalRequestPopupSelection').show();
+                $('#internalRequestPopupNotification').hide();
+            }
+            $('#internalRequestPopup').show();
+        }
+
+        function showOverlay() {
+            $('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);
+        }
+
+        function hideOverlay() {
+            $('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });
+        }
+    </script>
+</apex:page>

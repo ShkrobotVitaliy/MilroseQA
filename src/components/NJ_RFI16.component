@@ -1,0 +1,208 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="false" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="2">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: 50%;">Application Permit Response</th>
+            </tr>
+
+            <tr>
+                <th colspan="2" style="text-align: left;">Electrical Subcontractor:</th>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Company Name:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.ES_Company_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Contact Name:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.ES_Contact_Name_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Address:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.ES_Address_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Phone:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.ES_Business_Phone_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Email:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.ES_Contact_Email_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">State License #:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.ES_State_License_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Federal Employee ID #:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.ES_Fed_Employee_ID_App__c}"/></td>
+            </tr>
+
+            <tr>
+                <th colspan="2" style="text-align: left;">Low-Voltage Subcontractor:</th>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Company Name:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.LVS_Company_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Contact Name:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.LVS_Contact_Name_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Address:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.LVS_Address_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Phone:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.LVS_Business_Phone_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Email:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.LVS_Contact_Email_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">State License #:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.LVS_State_License_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Federal Employee ID #:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.LVS_Fed_Employee_ID_App__c}"/></td>
+            </tr>
+
+            <tr>
+                <th colspan="2" style="text-align: left;">Fire Alarm Subcontractor:</th>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Company Name:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.FAS_Company_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Contact Name:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.FAS_Contact_Name_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Address:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.FAS_Address_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Phone:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.FAS_Business_Phone_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Email:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.FAS_Contact_Email_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">State License #:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.FAS_State_License_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Federal Employee ID #:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.FAS_Fed_Employee_ID_App__c}"/></td>
+            </tr>
+
+            <tr>
+                <th colspan="2" style="text-align: left;">Plumbing Subcontractor:</th>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Company Name:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.PS_Company_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Contact Name:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.PS_Contact_Name_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Address:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.PS_Address_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Phone:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.PS_Business_Phone_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Email:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.PS_Contact_Email_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">State License #:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.PS_State_License_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Federal Employee ID #:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.PS_Fed_Employee_ID_App__c}"/></td>
+            </tr>
+
+            <tr>
+                <th colspan="2" style="text-align: left;">Mechanical Subcontractor:</th>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Company Name:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.MS_Company_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Contact Name:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.MS_Contact_Name_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Address:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.MS_Address_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Phone:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.MS_Business_Phone_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Email:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.MS_Contact_Email_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">State License #:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.MS_State_License_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Federal Employee ID #:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.MS_Fed_Employee_ID_App__c}"/></td>
+            </tr>
+
+            <tr>
+                <th colspan="2" style="text-align: left;">Sprinkler Subcontractor:</th>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Company Name:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.SS_Company_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Contact Name:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.SS_Contact_Name_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Address:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.SS_Address_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Phone:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.SS_Business_Phone_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Email:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.SS_Contact_Email_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">State License #:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.SS_State_License_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Federal Employee ID #:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.SS_Fed_Employee_ID_App__c}"/></td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

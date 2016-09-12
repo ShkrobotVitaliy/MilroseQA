@@ -1,0 +1,39 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:variable var="display2Column" value="{!IF(OR(projectView, AND(!projectView, show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="display3Column" value="{!IF(OR(projectView, AND(!projectView, !show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="colspanValue" value="{!IF(projectView, 2, 1)}"/>
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="{!IF(projectView, 3, 2)}">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width:50%;">Application Permit Response</th>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">GC Signing/Sealing &amp; License #</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.GC_Signing_Sealing_License_App__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Project Manager</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Project_Manager_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Description Of Work:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.AHV_Description_Of_Work_App__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Dates Desired:</td>
+                <td class="secondColumn"><p>(Next available is <apex:inputField value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.AHV_Dates_Desired_App__c}" styleClass="dataPicker"/>)</p></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Billing client</span> - Confirmation is needed from the billing client before proceeding with the AHV request.</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.AHV_Billing_Client_App__c}"/></td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

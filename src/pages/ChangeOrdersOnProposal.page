@@ -1,0 +1,140 @@
+<apex:page showHeader="false" sidebar="false" showChat="false" standardController="Proposal__c" extensions="ChangeOrdersOnProposalController">
+	<apex:includeScript value="{!URLFOR($Resource.ProposalWizardResources, 'jquery-162.min.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.jqQueryTableSorter, 'jquery.tablesorter.min.js')}" /> 
+	<apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+	<script type="text/javascript">
+		function showOverlay() {
+		  $('#transparentOverlay').show().fadeTo( 0, 0.7);
+		}
+		function hideOverlay() {
+		  $('#transparentOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });
+		}
+		var varSortList = [[1, 0]];
+	</script>
+	<apex:form >
+		<apex:actionFunction name="showAddNoteWindow" action="{!setCurrentCoId}" oncomplete="console.log('{!currentCoId}'); $('#addInstructionPopUp').toggle();" reRender="">
+			<apex:param name="currentCoId" assignTo="{!currentCoId}" value=""/>
+		</apex:actionFunction>
+		
+		<apex:actionFunction name="saveManuaCountToCO" action="{!setCurrentCoId}" oncomplete="changeManualCount();" reRender="">
+			<apex:param name="currentCoId" assignTo="{!currentCoId}" value=""/>
+		</apex:actionFunction>
+		<apex:actionFunction name="changeManualCount" action="{!changeManualCount}" reRender="mainTablePanel, instructionInput"/>
+
+		<div class="overlay" id="transparentOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"></div>
+		<apex:pageMessages id="msgs" />
+
+		<div id="addInstructionPopUp" class="addInstructionPopUpWindowStyle">
+			<apex:outputPanel id="instructionInput" layout="block" style="height: 75%; text-align: center;">
+				<apex:inputTextArea value="{!newInstruction}" style="width: 98.5%; height: 100%; color: green; resize: none;"/> 
+			</apex:outputPanel>
+			<apex:outputPanel layout="block" style="height: 25%;">
+				<table width="100%" height="100%">
+					<tr>
+						<td width="50%" style="text-align: right; padding-right: 10px; padding-top: 10px;">
+							<apex:commandButton value="Add Note" action="{!addNewInstruction}" styleClass="milroseBtnStyle" oncomplete="console.log('{!currentCoId}'); console.log('{!newInstruction}'); $('#addInstructionPopUp').toggle(); hideOverlay();" reRender="mainTablePanel, instructionInput" />
+						</td>
+						<td width="50%" style="padding-left: 10px; padding-top: 10px;">
+							<apex:commandButton value="Cancel"  onclick="$('#addInstructionPopUp').toggle(); hideOverlay();" styleClass="milroseBtnStyle" reRender=""/>
+						</td>
+					</tr>
+				</table>
+			</apex:outputPanel>
+		</div>
+
+		<apex:outputPanel id="mainTablePanel">
+			<table id="mainTable" class="generalTableStyle" style="width: 100%; margin-bottom: 0px;">
+				<thead id="tableHeader">
+					<tr height="47px">
+						<th style=""><div style="padding-left: 14px">CO#</div></th>
+						<th style=""><div style="padding-left: 14px">Status</div></th>
+						<th style=""><div style="padding-left: 14px">Aut.Follow-Up<br/>Count</div></th>
+						<th style=""><div style="padding-left: 14px">Last Follow-Up<br/>Date</div></th>
+						<th style=""><div>Follow-Up Notes</div></th>
+						<th style=""><div>Manual<br/>Follow-Up Count</div></th>
+					</tr>
+				</thead>
+				<tbody id="tableBody">
+					<apex:repeat value="{!changeOrders}" var="key">
+						<tr>
+							<td width="1%" style="width: 50px; text-align: center;"><apex:outputLink value="/{!key}" target="_blank">{!changeOrders[key].Number__c}</apex:outputLink></td>
+							<td width="1%" style="width: 170px; text-align: center;">{!changeOrders[key].Status__c}</td>
+							<td width="1%" style="width: 120px; text-align: center;">{!changeOrders[key].Follow_Ups_Count__c}</td>
+							<td width="1%" style="width: 140px; text-align: center;">
+								<apex:outputText value="{0, date, MM'/'dd'/'yyyy}">
+									<apex:param value="{!changeOrders[key].Last_Follow_Up_Date__c}"/>
+								</apex:outputText>
+							</td>
+							<td style="min-width: 420px; text-align: center; position: relative;">
+								<apex:inputTextArea value="{!changeOrders[key].Follow_Up_Notes__c}" style="width: 99%; resize: vertical; color: green;" rows="4" readonly="true"/>
+								<apex:commandButton style="position: absolute; bottom: 7px; right: 25px;" value="Add New"  onclick="varSortList = $('#mainTable')[0].config.sortList; showOverlay(); showAddNoteWindow('{!key}'); return false;" styleClass="milroseBtnStyle" reRender="msgs"/>
+							</td>
+							<td width="1%" style="width: 117px; text-align: center;">
+								<apex:inputField value="{!changeOrders[key].Manual_Follow_Up_Count__c}" style="width: 97% !important;" onchange="if( this.value >= 0) { this.priorValue = this.value; varSortList = $('#mainTable')[0].config.sortList; saveManuaCountToCO('{!key}'); } else { this.value = this.priorValue; }"/>
+							</td>
+						</tr>
+					</apex:repeat>
+				</tbody>
+			</table>
+
+			<script>
+				$.tablesorter.addParser({ 
+					id: 'status', 
+					is: function(s) { 
+							return false; 
+						}, 
+					format: function(s, table, cell) {
+						if(s == 'Pending Client Approval') {
+							return '';
+						} else {
+							return s;
+						} 
+					}, 
+					type: 'text' 
+				});
+
+				$('#mainTable').tablesorter({
+					dateFormat : "mmddyyyy",
+					headers: {
+						0: { sorter: "digit"  }, 1: { sorter: "status"  }, 2: { sorter: "digit" },    3: { sorter: "shortDate" },  4: { sorter: false }, 5: { sorter: false }
+					},
+					sortList: varSortList
+				});									
+			</script>
+
+		</apex:outputPanel>
+		<style>
+	        #mainTable thead tr th.header {
+	          background-image: url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_both.png') }');
+	          background-repeat: no-repeat;
+			  background-origin: content-box;
+	        }
+	        #mainTable thead tr th.headerSortUp {
+	          background-image: url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_desc.png') }');
+	          background-repeat: no-repeat;
+			  background-origin: content-box;
+	        }
+	        #mainTable thead tr th.headerSortDown {
+	          background-image: url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_asc.png') }');
+	          background-repeat: no-repeat;
+			  background-origin: content-box;
+	        }
+			.addInstructionPopUpWindowStyle {
+				background-color: #E0F0F9;
+				z-index: 1002;
+				display: none;
+				position:fixed;
+				left:20%;
+				top:10%;
+				opacity:1.0;
+				width: 60%;
+				height: 80%;
+				overflow: auto;
+				border-radius: 5px 5px 5px 5px;
+				box-shadow: 5px 5px 30px 5px rgba(0,0,0,0.71);
+				padding: 5px;
+				border: none;
+			} 
+		</style>
+	</apex:form>
+</apex:page>

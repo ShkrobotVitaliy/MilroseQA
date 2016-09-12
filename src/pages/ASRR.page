@@ -1,0 +1,705 @@
+<apex:page renderAs="{!renderAs}" showheader="false" applyhtmltag="false" controller="ASRRController" cache="true">
+    <html>
+        <head>
+            <apex:outputPanel rendered="{!renderAs == 'pdf'}" layout="none">
+                <style type="text/css">
+                    @font-face {
+                        font-family: 'Calibri';
+                        src: url('{!URLFOR($Resource.CalibriFonts, 'calibri.ttf') }');
+                        font-weight: normal;
+                        font-style: normal;
+                    }
+                    @font-face {
+                        font-family: 'Calibri';
+                        src: url('{!URLFOR($Resource.CalibriFonts, 'calibrii.ttf') }');
+                        font-weight: normal;
+                        font-style: italic;
+                    }
+                    @font-face {
+                        font-family: 'Calibri';
+                        src: url('{!URLFOR($Resource.CalibriFonts, 'calibrib.ttf') }');
+                        font-weight: bold;
+                        font-style: normal;
+                    }
+                    @font-face {
+                        font-family: 'Calibri';
+                        src: url('{!URLFOR($Resource.CalibriFonts, 'calibriz.ttf') }');
+                        font-weight: bold;
+                        font-style: italic;
+                    }
+                    @page {
+                        size: letter landscape;
+                        margin: 10mm;
+                        @bottom-left {
+                            font: 11pt Calibri, Arial, Sans-serif;
+                            font-weight: bold;
+                            padding-bottom: 11mm;
+                            content: 'Page ' counter(page) ' of ' counter(pages);
+                        }
+                    }
+                    body {
+                        font: 11pt Calibri, Arial, Sans-serif;
+                    }
+                    table.content {
+                        /*border-collapse: collapse;*/
+                        border-collapse: separate;
+                        border-spacing: 0;
+                        page-break-after: auto;
+                        width: 100%;
+                    }
+                    table.content thead {
+                        display: table-header-group;
+                        page-break-inside: avoid;
+                    }
+                    table.content tbody {
+                        display: table-row-group;
+                        page-break-after: auto;
+                    }
+                    table.content tfoot {
+                        display: table-footer-group;
+                        page-break-after: auto;
+                    }
+                    table.content thead tr {
+                        page-break-inside: avoid;
+                    }
+                    table.content tr {
+                        page-break-inside: avoid;
+                    }
+                    table.content td {
+                        padding: 0px 3px;
+                        font: 8pt Calibri, Arial, Sans-serif;
+                    }
+                    table.content td.title {
+                        font: 11pt Calibri, Arial, Sans-serif;
+                        font-weight: bold;
+                        border-top: none;
+                    }
+                    table.content td.header {
+                        font-weight: bold;
+                        text-align: center;
+                        vertical-align: bottom;
+                        border-top: none;
+                        border-right: 1px solid black;
+                        border-bottom: 1px solid black;
+                        border-left: none;
+                    }
+                    table.content td.phase {
+                        font-weight: bold;
+                        border-top: none;
+                        border-right: none;
+                        border-bottom: 1px solid black;
+                        border-left: none;
+                        background-color: #DDD;
+                    }
+                    table.content td.line {
+                        border-top: none;
+                        border-right: 1px solid black;
+                        border-bottom: 1px solid black;
+                        border-left: none;
+                        vertical-align: top;
+                    }
+                    table.content td.footer {
+                        border-top: none;
+                        border-right: 1px solid black;
+                        border-bottom: 1px solid black;
+                        border-left: none;
+                        background-color: #DDD;
+                        vertical-align: top;
+                        font-weight: bold;
+                    }
+                    .leftpadhalf {
+                        padding-left: 0.5em !important;
+                    }
+                    .bold {
+                        font-weight: bold !important;
+                    }
+                    .left {
+                        text-align: left !important;
+                    }
+                    .center {
+                        text-align: center !important;
+                    }
+                    .right {
+                        text-align: right !important;
+                    }
+                    .text3 {
+                        mso-data-placement: same-cell;
+                        mso-number-format:"\@";/*force text*/
+                    }
+                </style>
+            </apex:outputPanel>
+        </head>
+        <body>
+            <apex:pageMessages id="msgs"/>
+            <apex:outputPanel rendered="{!isValid}" layout="none">
+<!-- XLS -->
+                <apex:outputPanel rendered="{!renderAs != 'pdf'}" layout="none">
+                    <table style="border-collapse: separate; border-spacing: 0; margin-top: 0.5em; font: 12pt Calibri, Arial, Sans-serif; width: 24,58cm;">
+                        <tr style="">
+                            <td rowspan="5">
+                                <img src="{!milroseLogoIdExternalUrl}" style="width: 25mm;"/>
+                            </td>
+                            <td colspan="5" style="font-weight: bold; padding-bottom: 0.65em; padding-left: 1.0em;">MILROSE CONSULTANTS, INC.</td>
+                            <td colspan="7" style="font-weight: bold; border-bottom: 0.5pt solid black; font-size: 16pt; padding-left: 0.5em;">ACCOUNT SUMMARY as of {!MONTH(TODAY())}/{!DAY(TODAY())}/{!YEAR(TODAY())}</td>
+                        </tr>
+                        <tr style="">
+                            <td colspan="5" style="padding-left: 1.0em;">498 Seventh Avenue, 17th Floor</td>
+                            <td colspan="7" style="font-weight: bold; padding-left: 0.5em;">Project Address: {!address1}</td>
+                        </tr>
+                        <tr style="">
+                            <td colspan="5" style="padding-left: 1.0em;">New York, NY 10018</td>
+                            <td colspan="7" style="font-weight: bold; padding-left: 13.5em;">{!address2}</td>
+                        </tr>
+                        <tr style="">
+                            <td colspan="5" style="padding-left: 1.0em;">Tel: 212.643.4545</td>
+                            <td colspan="7" style="padding-left: 0.5em;">Project Name: {!parent.Project_Name__c}</td>
+                        </tr>
+                        <tr style="">
+                            <td colspan="5" style="padding-left: 1.0em;">Fax: 212.643.4859</td>
+                            <td colspan="7" style="padding-left: 0.5em;">Floor(s): {!parent.Floor_s__c}</td>
+                        </tr>
+                        <tr style="">
+                            <td colspan="5"></td>
+                            <td colspan="7" style="padding-left: 0.5em;">Milrose Reference #: {!parent.Name}</td>
+                        </tr>
+                        <apex:repeat value="{!content.tables}" var="table">
+                            <tr style="">
+                                <td colspan="13" style="font: 11pt Calibri, Arial, Sans-serif; font-weight: bold;">{!table.header}</td>
+                            </tr>
+                            <tr style="height: 12pt;">
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;" rowspan="2">PS#</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;" rowspan="2">Service Item</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Proposed</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Change Order</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Application</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; width: 22mm;">Invoice</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; width: 18mm;">Invoice</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Project</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Client</td>
+                                <apex:outputPanel rendered="{!showPurchaseOrder}">
+					<td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Purchase</td>
+				</apex:outputPanel>
+				<td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Amount</td>
+				<td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Amount</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Amount</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center;">Balance</td>
+                            </tr>
+                            <tr style="height: 12pt;">
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Amount</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Amount</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Number</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Number</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Date</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Number</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Reference #</td>
+                                <apex:outputPanel rendered="{!showPurchaseOrder}">
+					<td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Order #</td>
+                                </apex:outputPanel>
+				<td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Billed</td>
+				<td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Paid</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black;">Due</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center;">to Bill</td>
+                            </tr>
+                            <apex:repeat value="{!table.sections}" var="section">
+                                <tr style="display: {!IF(section.showHeader, 'table-row', 'none')};">
+                                    <td colspan="{!IF(showPurchaseOrder, '14', '13')}" style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; border-top: 0.5pt solid black; background-color: #DDD; vertical-align: middle;">
+                                        {!section.header}
+                                    </td>
+                                </tr>
+                                <apex:repeat value="{!section.lines}" var="line">
+                                    <tr style="">
+                                        <td style="font: 9pt Calibri, Arial, Sans-serif; border-top: 0.5pt solid black; border-right: 0.5pt solid black; border-bottom: 0.5pt solid black; vertical-align: top; text-align: center; font-weight: {!line.fontWeight}">{!line.psn}</td>
+                                        <td style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: top; font-weight: {!line.fontWeight}">{!line.serviceItem}</td>
+                                        <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: top; text-align: right; font-weight: {!line.fontWeight}">
+                                            <apex:outputText rendered="{!line.showProposedAmount}" value="${0, number,###,###,##0.00}">
+                                                <apex:param value="{!line.proposedAmount}"/>
+                                            </apex:outputText>
+                                        </td>
+                                        <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: top; text-align: right; font-weight: {!line.fontWeight}">
+                                            <apex:outputText rendered="{!line.showProposedAmountCO && line.proposedAmountCO >= 0}" value="${0, number,###,###,##0.00}">
+                                                <apex:param value="{!line.proposedAmountCO}"/>
+                                            </apex:outputText>
+                                            <apex:outputText rendered="{!line.showProposedAmountCO && line.proposedAmountCO < 0}" value="-${0, number,###,###,##0.00}">
+                                                <apex:param value="{!line.proposedAmountCO * -1}"/>
+                                            </apex:outputText>
+                                        </td>
+                                        <td class="text3" style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: top; text-align: center; font-weight: {!line.fontWeight};">{!IF(line.showMunicipalAgency, line.municipalAgency, '')}</td>
+                                        <td class="text3" style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: top; text-align: center; font-weight: {!line.fontWeight}">
+                                            <apex:outputText rendered="{!line.showInvoiceNumbers}" escape="false" value="{!line.invoiceNumbers}"/>
+                                        </td>
+                                        <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: top; text-align: center; font-weight: {!line.fontWeight}">
+                                            <apex:outputText rendered="{!line.showInvoiceDates}" escape="false" value="{!line.invoiceDates}"/>
+                                        </td>
+                                        <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: top; text-align: center; font-weight: {!line.fontWeight}">{!IF(line.showParentName, parent.Name, '')}</td>
+                                        <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: top; text-align: center; font-weight: {!line.fontWeight}">{!IF(line.showClientProject, parent.Client_Project__c, '')}</td>
+                                        <apex:outputPanel rendered="{!showPurchaseOrder}">
+						<td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: top; text-align: center; font-weight: {!line.fontWeight}">
+	                                    		<apex:outputText escape="false" value="{!line.purchaseOrder}"/>
+	                                        </td>
+                                        </apex:outputPanel>
+					<td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: top; text-align: right; font-weight: {!line.fontWeight}">
+                                            <apex:outputText rendered="{!line.showInvoiceNumbers}" escape="false" value="{!line.amountsBilled}"/>
+                                        </td>
+                                        <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: top; text-align: right; font-weight: {!line.fontWeight}">
+                                            <apex:outputText rendered="{!line.showInvoiceNumbers}" escape="false" value="{!line.amountsPaid}"/>
+                                        </td>
+                                        <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: top; text-align: right; font-weight: {!line.fontWeight}">
+                                            <apex:outputText rendered="{!line.showInvoiceNumbers}" escape="false" value="{!line.amountsDue}"/>
+                                        </td>
+                                        <td style="font: 9pt Calibri, Arial, Sans-serif; border-top: 0.5pt solid black; border-bottom: 0.5pt solid black; border-left: 0.5pt solid black; vertical-align: top; text-align: right; font-weight: {!line.fontWeight}">
+                                            <apex:outputText rendered="{!line.showBalanceToBill && line.balanceToBill >= 0}" value="${0, number,###,###,##0.00}">
+                                                <apex:param value="{!line.balanceToBill}"/>
+                                            </apex:outputText>
+                                            <apex:outputText rendered="{!line.showBalanceToBill && line.balanceToBill < 0}" value="-${0, number,###,###,##0.00}">
+                                                <apex:param value="{!line.balanceToBill * -1}"/>
+                                            </apex:outputText>
+                                        </td>
+                                    </tr>
+                                </apex:repeat>
+                            </apex:repeat>
+                            <tr style="">
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border-top: 0.5pt solid black; border-right: 0.5pt solid black; border-bottom: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: right;">Subtotal</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: center;"></td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: right;">
+                                    <apex:outputText rendered="{!table.showProposedAmount}" value="${0, number,###,###,##0.00}">
+                                        <apex:param value="{!table.proposedAmount}"/>
+                                    </apex:outputText>
+                                </td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: right;">
+                                    <apex:outputText rendered="{!table.showProposedAmountCO && table.proposedAmountCO >= 0}" value="${0, number,###,###,##0.00}">
+                                        <apex:param value="{!table.proposedAmountCO}"/>
+                                    </apex:outputText>
+                                    <apex:outputText rendered="{!table.showProposedAmountCO && table.proposedAmountCO < 0}" value="-${0, number,###,###,##0.00}">
+                                        <apex:param value="{!table.proposedAmountCO * -1}"/>
+                                    </apex:outputText>
+                                </td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: center;"></td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: center;"></td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: center;"></td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: center;"></td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: center;"></td>
+                                <apex:outputPanel rendered="{!showPurchaseOrder}">
+					<td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: center;"></td>
+                                </apex:outputPanel>
+				<td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: right;">
+                                    <apex:outputText rendered="{!table.showAmountBilled}" value="${0, number,###,###,##0.00}">
+                                        <apex:param value="{!table.amountBilled}"/>
+                                    </apex:outputText>
+                                </td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: right;">
+                                    <apex:outputText rendered="{!table.showAmountPaid}" value="${0, number,###,###,##0.00}">
+                                        <apex:param value="{!table.amountPaid}"/>
+                                    </apex:outputText>
+                                </td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: right; background-color: black; color: white;">
+                                    <apex:outputText rendered="{!table.showAmountDue}" value="${0, number,###,###,##0.00}">
+                                        <apex:param value="{!table.amountDue}"/>
+                                    </apex:outputText>
+                                </td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border-top: 0.5pt solid black; border-bottom: 0.5pt solid black; border-left: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: right; border-right: none;">
+                                    <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!table.showBalanceToBill && table.balanceToBill >= 0}">
+                                        <apex:param value="{!table.balanceToBill}"/>
+                                    </apex:outputText>
+                                    <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!table.showBalanceToBill && table.balanceToBill < 0}">
+                                        <apex:param value="{!table.balanceToBill * -1}"/>
+                                    </apex:outputText>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="13" style="font: 9pt Calibri, Arial, Sans-serif;">
+                                </td>
+                            </tr>
+                        </apex:repeat>
+                        <tr style="">
+                            <td colspan="{!IF(showPurchaseOrder, '14', '13')}" style="font: 12pt Calibri, Arial, Sans-serif; font-weight: bold;">Project Total</td>
+                        </tr>
+                        <!-- <apex:repeat value="{!content.transactions}" var="tr">
+                            <tr style="">
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border-top: 0.5pt solid black; border-right: 0.5pt solid black; border-bottom: 0.5pt solid black; vertical-align: middle; text-align: center;">{!tr.Document_Number__c}</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle;">{!tr.Statement_Reference__c}</td>
+                                <apex:outputPanel rendered="{!showPurchaseOrder}">
+					<td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle;"></td>
+                                </apex:outputPanel>
+				<td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle;"></td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle;"></td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle;"></td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle;"></td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle;"></td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle;"></td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle;"></td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle;"></td>
+				<td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle;"></td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; text-align: right;">
+                                    <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!!ISBLANK(TEXT(tr.c2g__DocumentOutstandingValue__c)) && tr.c2g__DocumentOutstandingValue__c >= 0}">
+                                        <apex:param value="{!tr.c2g__DocumentOutstandingValue__c}"/>
+                                    </apex:outputText>
+                                    <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!!ISBLANK(TEXT(tr.c2g__DocumentOutstandingValue__c)) && tr.c2g__DocumentOutstandingValue__c < 0}">
+                                        <apex:param value="{!tr.c2g__DocumentOutstandingValue__c * -1}"/>
+                                    </apex:outputText>
+                                </td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; border-top: 0.5pt solid black; border-bottom: 0.5pt solid black; vertical-align: middle; text-align: right; border-right: none;"></td>
+                            </tr>
+                        </apex:repeat> -->
+                        <tr style="">
+                            <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: right; border-top: 0.5pt solid black;">Total</td>
+                            <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: center; border-top: 0.5pt solid black;"></td>
+                            <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: right; border-top: 0.5pt solid black;">
+                                <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!content.proposedAmount >= 0}">
+                                    <apex:param value="{!content.proposedAmount}"/>
+                                </apex:outputText>
+                                <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!content.proposedAmount < 0}">
+                                    <apex:param value="{!content.proposedAmount * -1}"/>
+                                </apex:outputText>
+                            </td>
+                            <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: right; border-top: 0.5pt solid black;">
+                                <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!content.proposedAmountCO >= 0}">
+                                    <apex:param value="{!content.proposedAmountCO}"/>
+                                </apex:outputText>
+                                <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!content.proposedAmountCO < 0}">
+                                    <apex:param value="{!content.proposedAmountCO * -1}"/>
+                                </apex:outputText>
+                            </td>
+                            <apex:outputPanel rendered="{!showPurchaseOrder}">
+			    	<td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: center; border-top: 0.5pt solid black;"></td>
+                            </apex:outputPanel>
+			    <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: center; border-top: 0.5pt solid black;"></td>
+                            <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: center; border-top: 0.5pt solid black;"></td>
+                            <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: center; border-top: 0.5pt solid black;"></td>
+                            <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: center; border-top: 0.5pt solid black;"></td>
+                            <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: center; border-top: 0.5pt solid black;"></td>
+                            <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: right; border-top: 0.5pt solid black;">
+                                <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!content.amountBilled >= 0}">
+                                    <apex:param value="{!content.amountBilled}"/>
+                                </apex:outputText>
+                                <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!content.amountBilled < 0}">
+                                    <apex:param value="{!content.amountBilled * -1}"/>
+                                </apex:outputText>
+                            </td>
+                            <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: right; border-top: 0.5pt solid black;">
+                                <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!content.amountPaid >= 0}">
+                                    <apex:param value="{!content.amountPaid}"/>
+                                </apex:outputText>
+                                <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!content.amountPaid < 0}">
+                                    <apex:param value="{!content.amountPaid * -1}"/>
+                                </apex:outputText>
+                            </td>
+                            <td style="font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: right; background-color: black; color: white; border-top: 0.5pt solid black;">
+                                <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!content.amountDue >= 0}">
+                                    <apex:param value="{!content.amountDue}"/>
+                                </apex:outputText>
+                                <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!content.amountDue < 0}">
+                                    <apex:param value="{!content.amountDue * -1}"/>
+                                </apex:outputText>
+                            </td>
+                            <td style="font: 9pt Calibri, Arial, Sans-serif; border-top: 0.5pt solid black; border-bottom: 0.5pt solid black; border-left: 0.5pt solid black; background-color: #DDD; vertical-align: middle; font-weight: bold; text-align: right; border-top: 0.5pt solid black;">
+                                <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!content.balanceToBill >= 0}">
+                                    <apex:param value="{!content.balanceToBill}"/>
+                                </apex:outputText>
+                                <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!content.balanceToBill < 0}">
+                                    <apex:param value="{!content.balanceToBill * -1}"/>
+                                </apex:outputText>
+                            </td>
+                        </tr>
+                        <tr style="">
+                            <td colspan="13">
+                            </td>
+                        </tr>
+                        <tr style="">
+                            <td colspan="13" style="font-weight: bold;">
+                                DIRECT ALL BILLING INQUIRIES TO:
+                            </td>
+                        </tr>
+                        <apex:outputPanel rendered="{!parent.Billing_Company_Name__r.A_R_Coordinator_Full_Name__c != null}" layout="none">
+                            <tr style="">
+                                <td colspan="13" style="text-align: left;">
+                                    {!parent.Billing_Company_Name__r.A_R_Coordinator_Full_Name__c}
+                                </td>
+                            </tr>
+                            <apex:outputPanel rendered="{!parent.Billing_Company_Name__r.A_R_Coordinator_Phone__c != null}" layout="none">
+                                <tr style="">
+                                    <td colspan="13" style="text-align: left;">
+                                        {!parent.Billing_Company_Name__r.A_R_Coordinator_Phone__c}
+                                    </td>
+                                </tr>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!parent.Billing_Company_Name__r.A_R_Coordinator_Email__c != null}" layout="none">
+                                <tr style="">
+                                    <td colspan="13" style="text-align: left;">
+                                        {!parent.Billing_Company_Name__r.A_R_Coordinator_Email__c}
+                                    </td>
+                                </tr>
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!parent.Billing_Company_Name__r.A_R_Coordinator_Full_Name__c == null}" layout="none">
+                            <tr style="">
+                                <td colspan="13">
+                                    Milrose Consultants
+                                </td>
+                            </tr>
+                            <tr style="">
+                                <td colspan="13">
+                                    212-643-4545
+                                </td>
+                            </tr>
+                        </apex:outputPanel>
+                    </table>
+                </apex:outputPanel>
+
+
+<!-- PDF -->
+                <apex:outputPanel rendered="{!renderAs == 'pdf'}" layout="none">
+                    <div style="width: 100%; display: table;">
+                        <div style="width: 10%; display: table-cell;">
+                            <img src="{!URLFOR($Resource.MilroseLogo)}" style="width: 25mm;"/>
+                        </div>
+                        <div style="width: 40%; display: table-cell; vertical-align: top;">
+                            <div class="bold" style="padding-bottom: 0.65em;"><span>MILROSE CONSULTANTS, INC.</span></div>
+                            <div><span>498 Seventh Avenue, 17th Floor</span></div>
+                            <div><span>New York, NY 10018</span></div>
+                            <div><span>Tel: 212.643.4545</span></div>
+                            <div><span>Fax: 212.643.4859</span></div>
+                        </div>
+                        <div style="width: 40%; display: table-cell; vertical-align: top;">
+                            <div class="bold" style="border-bottom: 0.5pt solid black; font-size: 16pt;"><span class="leftpadhalf">ACCOUNT SUMMARY as of {!MONTH(TODAY())}/{!DAY(TODAY())}/{!YEAR(TODAY())}</span></div>
+                            <div class="bold"><span class="leftpadhalf">Project Address: {!address1}</span></div>
+                            <div class="bold"><span style="padding-left: 7.5em;">{!address2}</span></div>
+                            <div><span class="leftpadhalf">Project Name: {!parent.Project_Name__c}</span></div>
+                            <div><span class="leftpadhalf">Floor(s): {!parent.Floor_s__c}</span></div>
+                            <div><span class="leftpadhalf">Milrose Reference #: {!parent.Name}</span></div>
+                        </div>
+                    </div>
+                    <table class="content" style="margin-top: 0.5em;">
+                        <apex:repeat value="{!content.tables}" var="table">
+                            <thead>
+                                <tr>
+                                    <td colspan="{!IF(showPurchaseOrder, '14', '13')}" class="title">{!table.header}</td>
+                                </tr>
+                                <tr>
+                                    <td class="header" style="border-left: none;">PS#</td>
+                                    <td class="header">Service Item</td>
+                                    <td class="header">Proposed Amount</td>
+                                    <td class="header">Change&nbsp;Order Amount</td>
+                                    <td class="header">Application Number</td>
+                                    <td class="header">Invoice Number</td>
+                                    <td class="header">Invoice Date</td>
+                                    <td class="header">Project Number</td>
+                                    <td class="header">Client Reference&nbsp;#</td>
+									<td class="header" rendered="{!showPurchaseOrder}">Purchase Order&nbsp;#</td> <!-- MRS 7403 -->
+				    				<td class="header">Amount Billed</td>
+                                    <td class="header">Amount Paid</td>
+                                    <td class="header">Amount Due</td>
+                                    <td class="header" style="border-right: none;">Balance to Bill</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <apex:repeat value="{!table.sections}" var="section">
+                                    <tr style="display: {!IF(section.showHeader, 'table-row', 'none')};">
+                                        <td colspan="{!IF(showPurchaseOrder, '14', '13')}" class="phase"> <!-- MRS 7403 -->
+                                            {!section.header}
+                                        </td>
+                                    </tr>
+                                    <apex:repeat value="{!section.lines}" var="line">
+                                        <tr>
+                                            <td class="line center" style="font-weight: {!line.fontWeight}">{!line.psn}</td>
+                                            <td class="line left" style="font-weight: {!line.fontWeight}">{!line.serviceItem}</td>
+                                            <td class="line center" style="font-weight: {!line.fontWeight}">
+                                                <apex:outputText rendered="{!line.showProposedAmount}" value="${0, number,###,###,##0.00}">
+                                                    <apex:param value="{!line.proposedAmount}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="line center" style="font-weight: {!line.fontWeight}">
+                                                <apex:outputText rendered="{!line.showProposedAmountCO && line.proposedAmountCO >= 0}" value="${0, number,###,###,##0.00}">
+                                                    <apex:param value="{!line.proposedAmountCO}"/>
+                                                </apex:outputText>
+                                                <apex:outputText rendered="{!line.showProposedAmountCO && line.proposedAmountCO < 0}" value="-${0, number,###,###,##0.00}">
+                                                    <apex:param value="{!line.proposedAmountCO * -1}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="line center" style="font-weight: {!line.fontWeight}">{!IF(line.showMunicipalAgency, line.municipalAgency, '')}</td>
+                                            <td class="line center" style="font-weight: {!line.fontWeight}">
+                                                <apex:outputText rendered="{!line.showInvoiceNumbers}" escape="false" value="{!line.invoiceNumbers}"/>
+                                            </td>
+                                            <td class="line center" style="font-weight: {!line.fontWeight}">
+                                                <apex:outputText rendered="{!line.showInvoiceDates}" escape="false" value="{!line.invoiceDates}"/>
+                                            </td>
+                                            <td class="line center" style="font-weight: {!line.fontWeight}">{!IF(line.showParentName, parent.Name, '')}</td>
+                                            <td class="line left" style="font-weight: {!line.fontWeight}">{!IF(line.showClientProject, parentSplitedClient_Project, '')}</td> <!-- MRS 7403 -->
+											<td class="line left" style="font-weight: {!line.fontWeight}" rendered="{!showPurchaseOrder}">
+	                                            <apex:outputText escape="false" value="{!line.purchaseOrder}"/>
+	                                        </td>
+					    					<td class="line right" style="font-weight: {!line.fontWeight}">
+                                                <apex:outputText rendered="{!line.showInvoiceNumbers}" escape="false" value="{!line.amountsBilled}"/>
+                                            </td>
+                                            <td class="line right" style="font-weight: {!line.fontWeight}">
+                                                <apex:outputText rendered="{!line.showInvoiceNumbers}" escape="false" value="{!line.amountsPaid}"/>
+                                            </td>
+                                            <td class="line right" style="font-weight: {!line.fontWeight}">
+                                                <apex:outputText rendered="{!line.showInvoiceNumbers}" escape="false" value="{!line.amountsDue}"/>
+                                            </td>
+                                            <td class="line right" style="font-weight: {!line.fontWeight}; border-right: none;">
+                                                <apex:outputText rendered="{!line.showBalanceToBill && line.balanceToBill >= 0}" value="${0, number,###,###,##0.00}">
+                                                    <apex:param value="{!line.balanceToBill}"/>
+                                                </apex:outputText>
+                                                <apex:outputText rendered="{!line.showBalanceToBill && line.balanceToBill < 0}" value="-${0, number,###,###,##0.00}">
+                                                    <apex:param value="{!line.balanceToBill * -1}"/>
+                                                </apex:outputText>
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </apex:repeat>
+                                <tr>
+                                    <td class="footer" style="border-left: none; text-align: right;">Subtotal</td>
+                                    <td class="footer center"></td>
+                                    <td class="footer center">
+                                        <apex:outputText rendered="{!table.showProposedAmount}" value="${0, number,###,###,##0.00}">
+                                            <apex:param value="{!table.proposedAmount}"/>
+                                        </apex:outputText>
+                                    </td>
+                                    <td class="footer center">
+                                        <apex:outputText rendered="{!table.showProposedAmountCO && table.proposedAmountCO >= 0}" value="${0, number,###,###,##0.00}">
+                                            <apex:param value="{!table.proposedAmountCO}"/>
+                                        </apex:outputText>
+                                        <apex:outputText rendered="{!table.showProposedAmountCO && table.proposedAmountCO < 0}" value="-${0, number,###,###,##0.00}">
+                                            <apex:param value="{!table.proposedAmountCO * -1}"/>
+                                        </apex:outputText>
+                                    </td>
+                                    <td class="footer center"></td>
+                                    <td class="footer center"></td>
+                                    <td class="footer center"></td>
+                                    <td class="footer center"></td>
+                                    <td class="footer center"></td>
+									<td class="footer center" rendered="{!showPurchaseOrder}"></td> <!-- MRS 7403 -->
+                                    <td class="footer right">
+                                        <apex:outputText rendered="{!table.showAmountBilled}" value="${0, number,###,###,##0.00}">
+                                            <apex:param value="{!table.amountBilled}"/>
+                                        </apex:outputText>
+                                    </td>
+                                    <td class="footer right">
+                                        <apex:outputText rendered="{!table.showAmountPaid}" value="${0, number,###,###,##0.00}">
+                                            <apex:param value="{!table.amountPaid}"/>
+                                        </apex:outputText>
+                                    </td>
+                                    <td class="footer right" style="background-color: black; color: white;">
+                                        <apex:outputText rendered="{!table.showAmountDue}" value="${0, number,###,###,##0.00}">
+                                            <apex:param value="{!table.amountDue}"/>
+                                        </apex:outputText>
+                                    </td>
+                                    <td class="footer right" style="border-right: none;">
+                                        <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!table.showBalanceToBill && table.balanceToBill >= 0}">
+                                            <apex:param value="{!table.balanceToBill}"/>
+                                        </apex:outputText>
+                                        <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!table.showBalanceToBill && table.balanceToBill < 0}">
+                                            <apex:param value="{!table.balanceToBill * -1}"/>
+                                        </apex:outputText>
+                                    </td>
+                                </tr>
+                                <tr><td colspan="13">&nbsp;</td></tr>
+                            </tbody>
+                        </apex:repeat>
+                        <thead>
+                            <tr>
+                                <td colspan="13" class="title">Project Total</td>
+                            </tr>
+                        </thead>
+                        <!-- <tbody>
+                            <apex:repeat value="{!content.transactions}" var="tr">
+                                <tr>
+                                    <td class="line center" style="border-left: none;">{!tr.Document_Number__c}</td>
+                                    <td class="line left">{!tr.Statement_Reference__c}</td>
+                                    <td class="line left"></td>
+                                    <td class="line left"></td>
+                                    <td class="line left"></td>
+                                    <td class="line left"></td>
+                                    <td class="line left"></td>
+                                    <td class="line left"></td>
+                                    <td class="line left"></td>
+                                    <td class="line left"></td>
+                                    <td class="line left"></td>
+                                    <td class="line right">
+                                        <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!!ISBLANK(TEXT(tr.c2g__DocumentOutstandingValue__c)) && tr.c2g__DocumentOutstandingValue__c >= 0}">
+                                            <apex:param value="{!tr.c2g__DocumentOutstandingValue__c}"/>
+                                        </apex:outputText>
+                                        <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!!ISBLANK(TEXT(tr.c2g__DocumentOutstandingValue__c)) && tr.c2g__DocumentOutstandingValue__c < 0}">
+                                            <apex:param value="{!tr.c2g__DocumentOutstandingValue__c * -1}"/>
+                                        </apex:outputText>
+                                    </td>
+                                    <td class="line right" style="border-right: none;"></td>
+                                </tr>
+                            </apex:repeat>
+                        </tbody> -->
+                        <tfoot>
+                            <tr>
+                                <td class="footer totaltop" style="border-left: none; text-align: right; border-top: 1px solid black;">Total</td>
+                                <td class="footer center" style="border-top: 1px solid black;"></td>
+                                <td class="footer center" style="border-top: 1px solid black;">
+                                    <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!content.proposedAmount >= 0}">
+                                        <apex:param value="{!content.proposedAmount}"/>
+                                    </apex:outputText>
+                                    <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!content.proposedAmount < 0}">
+                                        <apex:param value="{!content.proposedAmount * -1}"/>
+                                    </apex:outputText>
+                                </td>
+                                <td class="footer center" style="border-top: 1px solid black;">
+                                    <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!content.proposedAmountCO >= 0}">
+                                        <apex:param value="{!content.proposedAmountCO}"/>
+                                    </apex:outputText>
+                                    <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!content.proposedAmountCO < 0}">
+                                        <apex:param value="{!content.proposedAmountCO * -1}"/>
+                                    </apex:outputText>
+                                </td>
+                                <td class="footer center" style="border-top: 1px solid black;"></td>
+                                <td class="footer center" style="border-top: 1px solid black;"></td>
+                                <td class="footer center" style="border-top: 1px solid black;"></td>
+                                <td class="footer center" style="border-top: 1px solid black;"></td>
+                                <td class="footer center" style="border-top: 1px solid black;"></td>
+								<td class="footer center" style="border-top: 1px solid black;" rendered="{!showPurchaseOrder}"></td> <!-- MRS 7403 -->
+                                <td class="footer right" style="border-top: 1px solid black;">
+                                    <apex:outputText value="${0, number,###,###,##0.00}">
+                                        <apex:param value="{!content.amountBilled}"/>
+                                    </apex:outputText>
+                                </td>
+                                <td class="footer right" style="border-top: 1px solid black;">
+                                    <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!content.amountPaid >= 0}">
+                                        <apex:param value="{!content.amountPaid}"/>
+                                    </apex:outputText>
+                                    <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!content.amountPaid < 0}">
+                                        <apex:param value="{!content.amountPaid * -1}"/>
+                                    </apex:outputText>
+                                </td>
+                                <td class="footer right" style="background-color: black; color: white; border-top: 1px solid black;">
+                                    <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!content.amountDue >= 0}">
+                                        <apex:param value="{!content.amountDue}"/>
+                                    </apex:outputText>
+                                    <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!content.amountDue < 0}">
+                                        <apex:param value="{!content.amountDue * -1}"/>
+                                    </apex:outputText>
+                                </td>
+                                <td class="footer right" style="border-right: none; border-top: 1px solid black;">
+                                    <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!content.balanceToBill >= 0}">
+                                        <apex:param value="{!content.balanceToBill}"/>
+                                    </apex:outputText>
+                                    <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!content.balanceToBill < 0}">
+                                        <apex:param value="{!content.balanceToBill * -1}"/>
+                                    </apex:outputText>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <div style="page-break-inside: avoid;">
+                        <br/>
+                        <span class="bold">DIRECT ALL BILLING INQUIRIES TO:</span><br/>
+                        <apex:outputPanel rendered="{!parent.Billing_Company_Name__r.A_R_Coordinator_Full_Name__c != null}" layout="none">
+                            <span class="left">{!parent.Billing_Company_Name__r.A_R_Coordinator_Full_Name__c}</span><br/>
+                            <apex:outputPanel rendered="{!parent.Billing_Company_Name__r.A_R_Coordinator_Phone__c != null}" layout="none"><span class="left">{!parent.Billing_Company_Name__r.A_R_Coordinator_Phone__c}</span><br/></apex:outputPanel>
+                            <apex:outputPanel rendered="{!parent.Billing_Company_Name__r.A_R_Coordinator_Email__c != null}" layout="none"><span class="left">{!parent.Billing_Company_Name__r.A_R_Coordinator_Email__c}</span></apex:outputPanel>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!parent.Billing_Company_Name__r.A_R_Coordinator_Full_Name__c == null}" layout="none">
+                            <span class="left">Milrose Consultants</span><br/>
+                            <span class="left">212-643-4545</span>
+                        </apex:outputPanel>
+                    </div>
+                </apex:outputPanel>
+            </apex:outputPanel>
+        </body>
+    </html>
+</apex:page>

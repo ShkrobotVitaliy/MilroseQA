@@ -1,0 +1,28 @@
+<apex:page standardController="Account" id="page" extensions="CompanyServiceRelatedListContExt">
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+ <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+ <style type="text/css" height="100">
+ .actionColumn {display:none; visibility:hidden}
+ .presence_chat_widget {display:none; visibility:hidden}
+ .pbHeader {display:none; visibility:hidden}
+  body {
+     margin: 0px !important;
+  }
+ </style>
+ <script>
+    function redirect(val) {
+        window.parent.location.href = '/'+val;
+    }
+ </script>
+ <apex:pageBlock id="pageBlock">
+  <apex:pageBlockTable id="pageBlockTable" value="{!Account.Services__r}" var="child">
+   <apex:column >
+       <apex:facet name="header">Service</apex:facet>
+       <apex:outputLabel style="cursor: pointer;text-decoration: underline;" onclick="redirect('{!child.Service__c}')" value="{!child.Service__r.Name}"/>
+   </apex:column>
+   <apex:column rendered="{!rerenderHightLowPrice}" value="{!child.Low_Price__c}"/>
+   <apex:column value="{!child.Medium_Price__c}"/>
+   <apex:column rendered="{!rerenderHightLowPrice}" value="{!child.High_Price__c}"/>
+  </apex:pageBlockTable>
+ </apex:pageBlock>
+</apex:page>

@@ -1,0 +1,134 @@
+<apex:page showHeader="false" sidebar="false" standardcontroller="Task_Item__c" extensions="AttendAppointmentController" id="AttendAppointment" action="{!pageLoad}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script src="{!URLFOR($Resource.jquery_vfFloatingHeaders)}" />
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    <script>
+        function focusLastElement() {
+            $('#appointmentTableId').last().find('.appointmentType').focus();
+        }
+        function theadFixed() {
+            $('#appointmentTableId thead tr td').each(function () {
+                console.log($(this));
+                 console.log($(this).outerWidth());
+                $(this).css('width', $(this).width()+'px');
+            });
+            $('#appointmentTableId thead').css('height', $('#appointmentTableId thead').height()+'px');
+            $('#appointmentTableId thead').css('position', 'absolute');
+            $('#appointmentTableId tbody').css('margin-top', $('#appointmentTableId thead').height()+'px');
+        }
+    </script>
+    <apex:form id="mainForm" style="max-height: 300px;overflow-y: scroll;">
+        <apex:pageMessages id="msgs"/>
+        <apex:actionFunction name="addAttendee" action="{!addAttendee}" reRender="attendeeU, attendeeC, msgs" status="inlineStatus">
+            <apex:param name="isUser" value="" assignTo="{!isUser}"/>
+            <apex:param name="appointmentId" value="" assignTo="{!appointmentId}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="updateAppointmentWith" reRender="appointmentWith" status="inlineStatus"/>
+        <apex:actionFunction name="updateAttendees" action="{!updateAttendees}" reRender="attendeeU, attendeeC, createEventPanel" status="inlineStatus">
+            <apex:param name="isUser" value="" assignTo="{!isUser}"/>
+            <apex:param name="appointmentId" value="" assignTo="{!appointmentId}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="updateAppointment" action="{!updateAppointment}" reRender="createEventButton, msgs, createEventPanel" status="inlineStatus">
+            <apex:param name="appointmentId" value="" assignTo="{!appointmentId}"/>
+        </apex:actionFunction>        
+        <apex:actionFunction name="createEventAction" action="{!createEvent}" reRender="msgs, eventLinkPanel" oncomplete="gotoNewEvent(); return false;" status="inlineStatus">
+            <apex:param name="appointmentId" assignTo="{!appointmentId}" value=""/>
+        </apex:actionFunction> 
+        <apex:outputPanel id="eventLinkPanel">
+            <script>
+                function gotoNewEvent() {
+                    window.top.location='{!createEventLink}';
+                }
+            </script>
+        </apex:outputPanel>
+
+        <apex:actionStatus id="inlineStatus" onstart="$('.serviceSelectBlock select').css('width', '100%'); $('.inlineStatus').css('display', 'inline-block');" onstop="$('.inlineStatus').css('display', 'none');"/>
+
+        <table id="appointmentTableId" class="generalTableStyle">
+            <thead>
+                <tr >
+                    <td class="header" >Appointment Type</td>
+                    <td class="header" >Notes</td>
+                    <td class="header"  colspan="2">Appointment With</td>
+                    <td class="header" >Create Event</td>
+                    <td class="header" >Event Link</td>
+                </tr>
+            </thead>
+            <tbody>
+                <apex:repeat value="{!AttendAppointmentWrappList}" var="attendAppointmentWrapp">
+                    <tr>
+                        <td rowspan="1" style="padding: 4px 0px 4px 4px; margin: 0px; vertical-align: top;">
+                            <apex:selectList styleClass="appointmentType" style="width: 100%; margin: 0px -2px;" multiselect="false" size="1" value="{!attendAppointmentWrapp.appointment.Appointment_Type__c}" onchange="updateAppointment('{!attendAppointmentWrapp.appointment.id}'); return false;" disabled="{!attendAppointmentWrapp.event.Id != null}">
+                                <apex:selectOptions value="{!appointmentTypeOptions}"/>
+                            </apex:selectList>
+                        </td>
+                        <td rowspan="1" style="padding: 5px; margin: 0px; vertical-align: top;">
+                            <apex:inputTextArea style="width: 100%; margin: 0px -3px;" value="{!attendAppointmentWrapp.appointment.Notes__c}" onchange="updateAppointment('{!attendAppointmentWrapp.appointment.id}'); return false;" disabled="{!attendAppointmentWrapp.event.Id != null}"/>
+                        </td>
+                        <td rowspan="1" style="vertical-align: top; border-bottom: none; vertical-align: top; text-align: center;">
+                            <apex:outputPanel layout="block" id="attendeeU">
+                                <apex:repeat value="{!attendAppointmentWrapp.attendeeUList}" var="attendeeU">
+                                    <div style="text-align: center;">
+                                        <apex:inputField rendered="{!attendAppointmentWrapp.event.Id == null}" styleClass="{!attendeeU} attendeeU" value="{!attendeeU.User__c}">
+                                            <apex:actionSupport event="onblur" action="{!updateAttendees}" reRender="attendeeU, createEventPanel" status="inlineStatus">
+                                                <apex:param name="isUser" value="true" assignTo="{!isUser}"/>
+                                                <apex:param name="appointmentId" value="{!attendAppointmentWrapp.appointment.Id}" assignTo="{!appointmentId}"/>
+                                            </apex:actionSupport>
+                                        </apex:inputField>
+                                        <apex:inputText disabled="true" rendered="{!attendAppointmentWrapp.event.Id != null}" value="{!attendeeU.User__r.Name}"/>
+                                    </div>
+                                </apex:repeat>
+                                <script>
+                                    $('.attendeeU select').remove();
+                                </script>
+                            </apex:outputPanel>
+                            <apex:commandButton styleClass="milroseBtnStyle" style="margin-top: 3px;" value="Add New" onclick="addAttendee('true', '{!attendAppointmentWrapp.appointment.Id}'); return false;" disabled="{!attendAppointmentWrapp.event.Id != null}"/>
+                        </td>
+                        <td rowspan="1" style="vertical-align: top; border-bottom: none; vertical-align: top; text-align: center;">
+                            <apex:outputPanel layout="block" id="attendeeC">
+                                <apex:repeat value="{!attendAppointmentWrapp.attendeeCList}" var="attendeeC">
+                                    <div style="text-align: center;">
+                                        <apex:inputField rendered="{!attendAppointmentWrapp.event.Id == null}" styleClass="{!attendeeC} attendeeC" value="{!attendeeC.Contact__c}">
+                                            <apex:actionSupport event="onblur" action="{!updateAttendees}" reRender="attendeeC, createEventPanel" status="inlineStatus">
+                                                <apex:param name="isUser" value="false" assignTo="{!isUser}"/>
+                                                <apex:param name="appointmentId" value="{!attendAppointmentWrapp.appointment.Id}" assignTo="{!appointmentId}"/>
+                                            </apex:actionSupport>
+                                        </apex:inputField>
+                                        <apex:inputText disabled="true" rendered="{!attendAppointmentWrapp.event.Id != null}" value="{!attendeeC.Contact__r.Name}"/>
+                                    </div>
+                                </apex:repeat>
+                            </apex:outputPanel>
+                            <apex:commandButton styleClass="milroseBtnStyle" style="margin-top: 3px;" value="Add New" onclick="addAttendee('false', '{!attendAppointmentWrapp.appointment.Id}'); return false;" disabled="{!attendAppointmentWrapp.event.Id != null}"/>
+                        </td>
+                        <td rowspan="1" style="padding: 4px; margin: 0px; vertical-align: top; text-align: center;">
+                            <!-- <apex:commandButton styleClass="milroseBtnStyle" action="{!createEvent}" value="New Event" title="New Event" /> -->
+                            <apex:outputPanel id="createEventPanel">
+                                <apex:commandButton id="createEventButton" styleClass="milroseBtnStyle" onclick="createEventAction( '{!attendAppointmentWrapp.appointment.Id}' ); return false;" value="New Event" title="New Event" disabled="{!(attendAppointmentWrapp.event.Id != null) || !attendAppointmentWrapp.isNewEvent}"/>
+                            </apex:outputPanel>
+                        </td>
+                        <td rowspan="1" style="padding: 4px; margin: 0px; vertical-align: top; text-align: center;">
+                            <apex:outputLink target="_blank" value="/{!attendAppointmentWrapp.event.Id}?retURL=%2F{!taskItem.Id}" rendered="{!attendAppointmentWrapp.event.Id != null}">Event Link</apex:outputLink>
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </tbody>
+        </table>
+        <div style="width: 100%; text-align: right; display: table;">
+        <div style="width: 100%; text-align: right; display:table-cell;">
+            <div style="display: inline-block; vertical-align: middle;">
+                <div class="inlineStatus" style="display: none;">
+                    <img src="/img/loading32.gif" width="16" height="16"/>&nbsp;
+                </div>
+            </div>
+        </div>
+            <apex:commandButton action="{!addNewAppointment}" value="Add New" rerender="mainForm" oncomplete="focusLastElement()" styleClass="milroseBtnStyle" style="display: table-cell;" status="inlineStatus"/>
+        </div>
+
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+
+        <apex:inputField value="{!Task_Item__c.X3rd_Party_Authority_ID__c}" rendered="false"/>
+        <script>
+            //theadFixed();
+        </script>
+    </apex:form>
+</apex:page>

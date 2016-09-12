@@ -1,0 +1,47 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:variable var="display2Column" value="{!IF(OR(projectView, AND(!projectView, show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="display3Column" value="{!IF(OR(projectView, AND(!projectView, !show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="colspanValue" value="{!IF(projectView, 2, 1)}"/>
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="{!IF(projectView, 3, 2)}" style="text-align: left;">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: 50%;" >Application Permit Response</th>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader"><apex:outputText value="Design Signing/Sealing & License #"/></span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Design_Signing_License_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Project Manager:</span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Project_Manager_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Description of work to be completed:</span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Description_of_work_to_be_completed_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Length of curb cut (including splays):</span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Length_of_Curb_Cut_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Distance from the nearest corner:</span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Distance_from_the_Nearest_Corner_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Measurement of New Curb:</span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Measurement_of_New_Curb_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Measurement of the Street Frontage for the BPP:</span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Measurement_of_the_Street_Frontage_App__c}" /></td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

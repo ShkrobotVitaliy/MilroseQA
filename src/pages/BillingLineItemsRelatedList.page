@@ -1,0 +1,80 @@
+<apex:page standardController="Pro_forma_Invoice__c" extensions="BillingLineItemsExtensions">
+    <style type="text/css" height="100">
+        .actionColumn {
+            display     : none; 
+            visibility  : hidden
+        }
+        .presence_chat_widget {
+            display     : none; 
+            visibility  : hidden
+        } 
+        .pbHeader {
+            display     : none; 
+            visibility  : hidden
+        }
+        body {
+            margin: 0px !important;
+        }
+    </style>
+    
+    <apex:pageMessages id="message"/>     
+    
+    <apex:outputPanel layout="block" style="height: 200px;overflow-y: auto;">
+        <apex:pageBlock title="Billing Line Items">
+            <apex:pageBlockTable value="{!BillingLineItems}" var="billItem">
+                
+                <apex:column >
+                    <apex:facet name="header"> Action </apex:facet>
+                    <apex:form >
+                        <apex:outputLink value="/{!billItem.Id}/e?retURL={!billItem.Id}" target="_blank">Edit</apex:outputLink>
+                        &#160;|&#160;
+                        <apex:commandLink action="{!removeBillItemLookUp}" value="Remove" target="_top">
+                            <apex:param name="billItemIdForremove" value="{!billItem.Id}" assignTo="{!billItemId}"/>
+                        </apex:commandLink>
+                    </apex:form>
+                </apex:column>
+            
+                <apex:column >
+                    <apex:facet name="header"> Line Item Number                                </apex:facet>
+                    <apex:outputLink value="/{!billItem.Id}" target="_blank"> {!billItem.Name} </apex:outputLink> 
+                </apex:column>
+                
+                <apex:column >
+                    <apex:facet name="header">Service name                                                                                  </apex:facet>
+                    <apex:outputLink value="/{!billItem.Service_Item__c}" target="_blank"> {!billItem.Service_Item__r.Service_Name_Full__c} </apex:outputLink> 
+                </apex:column>
+                
+                <apex:column >
+                    <apex:facet name="header">Milestone Date</apex:facet>
+                    <div align="right">
+                        <apex:outputField value="{!billItem.Milestone_Date__c}"/>
+                    </div>
+                </apex:column>
+                
+                <apex:column >
+                    <apex:facet name="header"> Quantity         </apex:facet>
+                    <div align="right"> {!billItem.Quantity__c} </div>                 
+                </apex:column>
+                
+                <apex:column >
+                    <apex:facet name="header"> Unit Price </apex:facet>
+                    <div align="right">
+                        <apex:outputText value="${0, number, ###,###.00}"> <apex:param value="{!billItem.Unit_Price__c}" /> </apex:outputText>
+                    </div>
+                </apex:column>
+            
+                <apex:column >
+                    <apex:facet name="header"> Amount </apex:facet>
+                    <div align="right">
+                        <apex:outputText value="${0, number, ###,###.00}"> <apex:param value="{!billItem.Amount__c}" /> </apex:outputText>
+                    </div>
+                </apex:column>
+                
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+    </apex:outputPanel>
+    
+    <apex:form > 
+        <apex:inputField value="{!Pro_forma_Invoice__c.Sales_Invoice__c}" rendered="false"/>
+    </apex:form> 
+</apex:page>

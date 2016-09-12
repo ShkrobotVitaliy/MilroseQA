@@ -1,0 +1,3 @@
+<apex:page title="Documents" showHeader="false" sidebar="false" standardcontroller="Deposit_Invoice__c" extensions="LStore.storedDocInline" id="aP">
+    <LStore:storedDocInlinePageComponent componentController="{!customControllerInline}" />
+</apex:page>

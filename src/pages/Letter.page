@@ -1,0 +1,185 @@
+<apex:page renderAs="pdf" applyhtmltag="false" showheader="false" controller="LetterPDFController"> <!-- renderAs="pdf" applyhtmltag="false"  -->
+    <html>
+        <head>
+            <style type="text/css">
+            @page {
+                size: letter portrait;
+                margin: 50.0mm 12.7mm 20.0mm 25.4mm;
+                @top-center {
+                    font: 9pt Arial, Sans-serif;
+                    padding-top: 8.47mm;
+                    content: element(header);
+                }
+                @bottom-center {
+                    padding-bottom: 8.47mm;
+                    content: element(footer);
+                }
+            }
+            body {
+                padding: 0;
+                margin: 0;
+            }
+            #page-header {
+                position: running(header);
+            }
+            #page-footer {
+                position: running(footer);
+            }
+            .page-number:before {
+                content: counter(page);
+            }
+            .page-count:before {
+                content: counter(pages);
+            }
+            body {
+                font: 9pt Calibri, Arial, Sans-serif;
+            }
+            table.content {
+                /*border-collapse: collapse;*/
+                border-collapse: separate;
+                border-spacing: 0;
+                page-break-after: auto;
+                width: 100%;
+            }
+            table.content thead {
+                display: table-header-group;
+                page-break-inside: avoid;
+            }
+            table.content tbody {
+                display: table-row-group;
+                page-break-after: auto;
+            }
+            table.content tfoot {
+                display: table-footer-group;
+                page-break-after: auto;
+            }
+            table.pageBreakAfter {
+                page-break-after: always;
+            }
+            table.pageBreakBefore {
+                page-break-before: always;
+            }
+            table.content thead tr {
+                page-break-inside: avoid;
+            }
+            table.content tr {
+                page-break-inside: avoid;
+            }
+            table.content td {
+                padding: 2px 4px;
+            }
+            table.content td.header {
+                text-align: center;
+                border-top: 1px solid black;
+                border-right: 1px solid black;
+                border-bottom: none;
+                border-left: none;
+                background-color: #365F91;
+                color: #FFFFFF;
+                vertical-align: middle;
+            }
+            table.content td.line, table.content td.footer {
+                border-top: 1px solid black;
+                border-right: 1px solid black;
+                border-bottom: none;
+                border-left: none;
+                vertical-align: middle;
+                text-align: center;
+            }
+            td.bottomline {
+                border-bottom: 1px solid black !important;;
+            }
+            td.leftline {
+                border-left: 1px solid black !important;;
+            }
+            .leftpadhalf {
+                padding-left: 0.5em !important;
+            }
+            .bold {
+                font-weight: bold !important;
+            }
+            .left {
+                text-align: left !important;
+            }
+            .center {
+                text-align: center !important;
+            }
+            .right {
+                text-align: right !important;
+            }
+            .justify {
+                text-align: justify !important;
+            }
+            .smf {
+                font-size: 8pt !important;
+            }
+            </style>
+        </head>
+        <body>
+            <apex:pageMessages id="msgs"/>
+            
+            <apex:outputPanel layout="block" style="width: 100%;">
+                <!-- Begin Header -->
+                <div id="page-header" style="width: 100%; display: table;">
+                    <div style="width: 15%; display: table-cell;">
+                        <img src="{!URLFOR($Resource.MilroseLogo)}" style="width: 25mm;"/>
+                    
+                        <div style="display: table-cell;">
+                            <p style="font-size: 9px; color: #5C5E63;">
+                            Louis S. Milo<br />
+                            President
+                            <br /><br />
+                            William Rose<br />
+                            Senior Vice President
+                            <br />
+                            Domenick A. Chieco<br />
+                            Senior Vice President
+                            <br />
+                            Gustavo L. Mazza<br />
+                            Vice President
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Header -->
+                
+                <apex:outputPanel layout="block" style="width: 100%;">
+                    <div style="margin-left: 150px;">
+                        <apex:outputField value="{!project.Letter_Body_Project_1__c}" rendered="{!isProjectProfile && fieldNumber == '1'}"/>
+                        <apex:outputField value="{!project.Letter_Body_Project_2__c}" rendered="{!isProjectProfile && fieldNumber == '2'}"/>
+                        <apex:outputField value="{!project.Letter_Body_Project_3__c}" rendered="{!isProjectProfile && fieldNumber == '3'}"/>
+                        <apex:outputField value="{!project.Letter_Body_Service_1__c}" rendered="{!isServiceItem && fieldNumber == '1'}"/>
+                        <apex:outputField value="{!project.Letter_Body_Service_2__c}" rendered="{!isServiceItem && fieldNumber == '2'}"/>
+                        <apex:outputField value="{!project.Letter_Body_Service_3__c}" rendered="{!isServiceItem && fieldNumber == '3'}"/>
+                        <apex:outputField value="{!project.Letter_Body_Task_1__c}" rendered="{!isTaskItem && fieldNumber == '1'}"/>
+                        <apex:outputField value="{!project.Letter_Body_Task_2__c}" rendered="{!isTaskItem && fieldNumber == '2'}"/>
+                        <apex:outputField value="{!project.Letter_Body_Task_3__c}" rendered="{!isTaskItem && fieldNumber == '3'}"/>
+                    </div>
+                </apex:outputPanel>    
+                
+                <div id="page-footer" style="width: 100%; display: table;">
+                    <div style="width: 100%; display: table;">
+                        <div class="right" style="width: 50%; display: table-cell;">
+                            Page <span class="page-number"/> of <span class="page-count"/>
+                        </div>
+                    </div>
+                    <br/>
+                    <div style="width: 100%; display: table;">
+                        <div class="center" style="width: 100%;">
+                            <div style="display: inline-block; color: gray;">address:                                              </div>
+                            <div style="display: inline-block; color: blue;">{!fulfillmentOffice.Address__c} </div>
+                            <div style="display: inline-block; color: gray;">tel:                                                  </div>
+                            <div style="display: inline-block; color: blue;">{!fulfillmentOffice.Phone__c}   </div>
+                            <div style="display: inline-block; color: gray;">fax:                                                  </div>
+                            <div style="display: inline-block; color: blue;">{!fulfillmentOffice.Fax__c}     </div>
+                            <div style="display: inline-block; color: gray;">web:                                                  </div>
+                            <div style="display: inline-block; color: blue;">{!fulfillmentOffice.URL__c}     </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </apex:outputPanel>
+            
+        </body>
+    </html>
+</apex:page>

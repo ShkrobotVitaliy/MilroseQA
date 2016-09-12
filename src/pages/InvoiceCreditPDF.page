@@ -1,0 +1,470 @@
+<apex:page renderAs="pdf" applyhtmltag="false" showheader="false" controller="InvoicePDFController">
+     <html>
+        <head>
+            <style type="text/css">
+            @page {
+                size: letter portrait;
+                margin: 50.0mm 12.7mm 20.0mm 25.4mm;
+                @top-center {
+                    font: 9pt Arial, Sans-serif;
+                    padding-top: 8.47mm;
+                    content: element(header);
+                }
+                @bottom-center {
+                    padding-bottom: 8.47mm;
+                    content: element(footer);
+                }
+            }
+            body {
+                padding: 0;
+                margin: 0;
+            }
+            #page-header {
+                position: running(header);
+            }
+            #page-footer {
+                position: running(footer);
+            }
+            .page-number:before {
+                content: counter(page);
+            }
+            .page-count:before {
+                content: counter(pages);
+            }
+            body {
+                font: 9pt Calibri, Arial, Sans-serif;
+            }
+            table.content {
+                /*border-collapse: collapse;*/
+                border-collapse: separate;
+                border-spacing: 0;
+                page-break-after: auto;
+                width: 100%;
+            }
+            table.content thead {
+                display: table-header-group;
+                page-break-inside: avoid;
+            }
+            table.content tbody {
+                display: table-row-group;
+                page-break-after: auto;
+            }
+            table.content tfoot {
+                display: table-footer-group;
+                page-break-after: auto;
+            }
+            table.pageBreakAfter {
+                page-break-after: always;
+            }
+            table.pageBreakBefore {
+                page-break-before: always;
+            }
+            table.content thead tr {
+                page-break-inside: avoid;
+            }
+            table.content tr {
+                page-break-inside: avoid;
+            }
+            table.content td {
+                padding: 2px 4px;
+            }
+            table.content td.header {
+                text-align: center;
+                border-top: 1px solid black;
+                border-right: 1px solid black;
+                border-bottom: none;
+                border-left: none;
+                background-color: #365F91;
+                color: #FFFFFF;
+                vertical-align: middle;
+            }
+            table.content td.line, table.content td.footer {
+                border-top: 1px solid black;
+                border-right: 1px solid black;
+                border-bottom: none;
+                border-left: none;
+                vertical-align: middle;
+                text-align: center;
+            }
+            td.bottomline {
+                border-bottom: 1px solid black !important;;
+            }
+            td.leftline {
+                border-left: 1px solid black !important;;
+            }
+            .leftpadhalf {
+                padding-left: 0.5em !important;
+            }
+            .bold {
+                font-weight: bold !important;
+            }
+            .left {
+                text-align: left !important;
+            }
+            .center {
+                text-align: center !important;
+            }
+            .right {
+                text-align: right !important;
+            }
+            .justify {
+                text-align: justify !important;
+            }
+            .smf {
+                font-size: 8pt !important;
+            }
+            </style>
+        </head>
+        
+        <script>
+            var indexRow = 1;
+        </script>
+        
+        <body>
+            <apex:pageMessages id="msgs"/>
+            
+            <apex:outputPanel layout="block" style="width: 100%;">
+                <!-- Begin Header -->
+                <div id="page-header" style="width: 100%; display: table;">
+                    <div style="width: 15%; display: table-cell;">
+                        <img src="{!URLFOR($Resource.MilroseLogo)}" style="width: 25mm;"/>
+                    </div>
+                    
+                    <div style="width: 36%; display: table-cell; vertical-align: top;">
+                        <div><span class="leftpadhalf bold">MILROSE CONSULTANTS, INC.</span> </div>
+                        <div><span class="leftpadhalf">498 Seventh Avenue, 17th Floor</span> </div>
+                        <div><span class="leftpadhalf">New York, NY 10018            </span> </div>
+                        <div><span class="leftpadhalf">Tel: 212.643.4545             </span> </div>
+                        <div><span class="leftpadhalf">Fax: 212.643.4859             </span> </div>
+                    </div>
+                    
+                    <div style="width: 2%; display: table-cell; vertical-align: top;"/>
+                    
+                    <div style="width: 45%; display: table-cell; vertical-align: top;">
+                        <div>
+                            <span class="leftpadhalf bold">CREDIT NOTE ID:</span>
+                            <apex:outputText value="{!proformaInvoice.cl_FF_Sales_Credit_Note_Name_1__c}" rendered="{!isCredit1}"/>
+                            <apex:outputText value="{!proformaInvoice.cl_FF_Sales_Credit_Note_Name_2__c}" rendered="{!isCredit2}"/>                        
+                        </div>
+                        
+                        <div style="border-bottom: 0.5pt solid black;">
+                            <span class="leftpadhalf bold">CREDIT NOTE DATE:</span>
+                            <apex:outputPanel rendered="{!isCredit1}">
+                                &nbsp;{!MONTH(proformaInvoice.cl_FF_Sales_Credit_Note_1__r.c2g__CreditNoteDate__c)}/{!DAY(proformaInvoice.cl_FF_Sales_Credit_Note_1__r.c2g__CreditNoteDate__c)}/{!YEAR(proformaInvoice.cl_FF_Sales_Credit_Note_1__r.c2g__CreditNoteDate__c)}
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!isCredit2}">
+                                &nbsp;{!MONTH(proformaInvoice.cl_FF_Sales_Credit_Note_2__r.c2g__CreditNoteDate__c)}/{!DAY(proformaInvoice.cl_FF_Sales_Credit_Note_2__r.c2g__CreditNoteDate__c)}/{!YEAR(proformaInvoice.cl_FF_Sales_Credit_Note_2__r.c2g__CreditNoteDate__c)}
+                            </apex:outputPanel>
+                        </div>
+                        
+                        <div style="">
+                            <div>
+                                <span class="leftpadhalf bold">MILROSE REFERENCE #:</span>
+                                &nbsp;{!proformaInvoice.Project_Number__c}
+                            </div>
+                            
+                            <div>
+                                <span class="leftpadhalf bold">CLIENT PROJECT #:</span>
+                                &nbsp;{!proformaInvoice.Client_Project__c}
+                            </div>
+                            
+                            <div>
+                                <span class="leftpadhalf bold">CLIENT PO #:</span>
+                                &nbsp;{!proformaInvoice.Purchase_Order__r.Purchase_Order__c}
+                            </div>
+                            
+                            <div style="border-bottom: 0.5pt solid black;">
+                                <span class="leftpadhalf bold">ACCOUNT MANAGER:</span>
+                                &nbsp;{!proformaInvoice.Account_Manager__r.Name}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Header -->
+                
+                <div id="page-footer" style="width: 100%; display: table;">
+                    <div style="width: 100%; display: table;">
+                        <div class="right" style="width: 50%; display: table-cell;">
+                            Page <span class="page-number"/> of <span class="page-count"/>
+                        </div>
+                    </div>
+                    <br/>
+                    <div style="width: 100%; display: table;">
+                        <div class="center" style="width: 100%;">
+                            <div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">Offices in:  </div>
+                            <div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">New York     </div>
+                            <div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">New Jersey   </div>
+                            <div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">Philadelphia </div>
+                            <div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">Connecticut  </div>
+                            <div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">Long Island  </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="page-content" style="width: 100%;">
+                    <br/>
+                    <table style="width: 100%; border-collapse: collapse; border-spacing: 0;">
+                        <tr>
+                            <!-- Begin Empty section -->
+                            <td style="width: 50%; border-top: 1px solid black;"></td>
+                            <!-- End Empty section -->
+                            
+                            <!-- Begin CREDIT TO section -->
+                            <td style="width: 50%; border-top: 1px solid black;">
+                                <div>
+                                    <span class="bold left">CREDIT TO:</span><br/>
+                                    
+                                    <apex:outputPanel layout="none" rendered="{!proformaInvoice.Billing_Client_Company__r.Name != null}">
+                                        <span>{!proformaInvoice.Billing_Client_Company__r.Name}</span><br/>
+                                    </apex:outputPanel>
+                                    
+                                    <apex:outputPanel layout="none" rendered="{!proformaInvoice.Billing_Contact__r.MailingStreet != null}">
+                                        <span>{!proformaInvoice.Billing_Contact__r.MailingStreet}</span><br/>
+                                    </apex:outputPanel>
+                                    
+                                    <apex:outputPanel layout="none" rendered="{! OR(null != proformaInvoice.Billing_Contact__r.MailingCity, null != proformaInvoice.Billing_Contact__r.MailingState, null != proformaInvoice.Billing_Contact__r.MailingPostalCode)}">
+                                        <span>{!proformaInvoice.Billing_Contact__r.MailingCity}<span style="display: {!IF(proformaInvoice.Billing_Contact__r.MailingCity != null && ( proformaInvoice.Billing_Contact__r.MailingState != null || proformaInvoice.Billing_Contact__r.MailingPostalCode != null ), 'inline', 'none')};">, </span>{!proformaInvoice.Billing_Contact__r.MailingState}<span style="display: {!IF(proformaInvoice.Billing_Contact__r.MailingState != null && proformaInvoice.Billing_Contact__r.MailingPostalCode != null, 'inline', 'none')};"> </span>{!proformaInvoice.Billing_Contact__r.MailingPostalCode}</span><br/>
+                                    </apex:outputPanel>
+                                    
+                                    <apex:outputPanel layout="none">
+                                        <span>Attn: {!proformaInvoice.Billing_Contact__r.Salutation} {!proformaInvoice.Billing_Contact__r.Name}</span>
+                                    </apex:outputPanel>
+                                </div>
+                            </td>
+                            <!-- End CREDIT TO section -->
+                        </tr>
+                    </table>
+                    
+                    <br/>
+                    
+                    <!-- Begin Project Address table -->
+                    <table class="content">
+                        <thead>
+                            <tr>
+                                <td class="header bold leftline" style="width: 60%; vertical-align: top;">Project Address </td>
+                                <td class="header bold" style="width: 40%; vertical-align: top;">Project Details          </td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="line left leftline bottomline" style="vertical-align: top;">
+                                    <apex:outputPanel layout="none" rendered="{!address1 != ''}"><!--
+                                        --><span class="left">{!address1}</span><!--
+                                    --></apex:outputPanel><!--
+                                    --><apex:outputPanel layout="none" rendered="{!address2 != ''}"><!--
+                                        --><br/><span class="left">{!address2}</span><!--
+                                    --></apex:outputPanel><!--
+                                    --><apex:outputPanel layout="none" rendered="{!proformaInvoice.Floor_s__c != null}"><!--
+                                        --><span>;</span><br/><span class="left">Floor: {!proformaInvoice.Floor_s__c}</span><!--
+                                    --></apex:outputPanel>
+                                </td>
+                                <td class="line left bottomline" style="vertical-align: top;">
+                                    <apex:outputPanel layout="none" rendered="{!proformaInvoice.Project_Name__c != null}">
+                                        <span slass="left">{!proformaInvoice.Project_Name__c}</span>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{!proformaInvoice.Project_Name__c == null}">
+                                        <span slass="left">&nbsp;</span>
+                                    </apex:outputPanel>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <!-- End Project Address table -->
+                    
+                    <br/><br/>
+                    
+                    <!-- Begin Professional Services table -->
+                    <table class="content">
+                        <thead>
+                            <tr>
+                                <td class="header bold leftline" style="display : {!IF(isServicesExist, 'table-cell', 'none')};">PS#</td>
+                                <td class="header bold leftline">Professional Services</td>
+                                <td class="header bold">Credit</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <apex:variable value="{!1}" var="rowNum"/>
+                            
+                            <apex:repeat value="{!proformaInvoice.Billing_Line_Items__r}" var="item">
+                                <tr>
+                                    <td class="line center leftline" style="display : {!IF(isServicesExist, 'table-cell', 'none')};">
+                                        <apex:outputText value="{!item.Service_Name_Short__c}" rendered="{! AND(isServicesExist, NOT(item.isReimbursable__c)) }"/>
+                                    </td>
+                                    
+                                    <td class="line left leftline">
+                                        <apex:outputText value="{!item.Service_Item__r.Phase__r.Name__c} " rendered="{!(item.Service_Item__c != null && item.Service_Item__r.Subtype__c == 'After Hours Variance' && item.Service_Item__r.Phase__c != null && !item.Service_Item__r.Phase__r.Is_default__c && item.Service_Item__r.Phase__r.Name__c != 'Single Phase')}"/>
+                                        <apex:outputText value="{0, date, dd'/'MM'/'yyyy} " rendered="{!!(item.Service_Item__c != null && item.Service_Item__r.Subtype__c == 'After Hours Variance' && item.Service_Item__r.Phase__c != null && !item.Service_Item__r.Phase__r.Is_default__c && item.Service_Item__r.Phase__r.Name__c != 'Single Phase')}">
+                                            <apex:param value="{!item.Milestone_Date__c}"/>
+                                        </apex:outputText>
+
+                                        <apex:outputText value="{!item.Description__c} " rendered="{!item.isReimbursable__c}"/>
+                                        
+                                        <apex:outputText value="{!item.Service_Name__c} " rendered="{! AND(isServicesExist, NOT(item.isReimbursable__c))}"/>
+
+                                        <apex:outputText value="{!item.Municipal_Agency_ID__c} " rendered="{! AND(isServicesExist, NOT(item.isReimbursable__c), item.Service_Name__c != '')}"/>
+                                        <apex:outputText value="{!proformaInvoice.Project_Profile__r.Billing_Method__c} Billing" rendered="{! AND(isServicesExist, NOT(item.isReimbursable__c), item.Service_Name__c == '')}" />
+                                        
+                                        <apex:outputPanel rendered="{! AND(!isServicesExist, NOT(item.isReimbursable__c)) }">
+                                            <apex:outputPanel rendered="{! proformaInvoice.Project_Profile__r.Billing_Method__c == 'Installment' }">
+                                                {!proformaInvoice.Project_Profile__r.Frequency__c} {!proformaInvoice.Project_Profile__r.Billing_Method__c} Billing {!FLOOR(rowNum)} of {!countBLIs}
+                                                
+                                                <apex:variable var="rowNum" value="{!rowNum + 1}"/>
+                                            </apex:outputPanel>
+                                            
+                                            <apex:outputPanel rendered="{! AND(proformaInvoice.Project_Profile__r.Billing_Method__c == 'Percentage', proformaInvoice.Project_Profile__r.Interval__c) }">
+                                                {!proformaInvoice.Project_Profile__r.Billing_Method__c} Billing
+                                            </apex:outputPanel>
+                                        </apex:outputPanel>
+                                    </td>
+                                                                        
+                                    <td class="line right">
+                                        <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!isCredit1}">
+                                            <apex:param value="{!item.cl_Credit_1_Amount__c}"/>
+                                        </apex:outputText>
+            
+                                        <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!isCredit2}">
+                                            <apex:param value="{!item.cl_Credit_2_Amount__c}"/>
+                                        </apex:outputText>
+                                    </td>
+                                </tr>
+                            </apex:repeat>
+                            
+                            <tr>
+                                <td class="line right leftline bottomline" colspan="{!IF(isServicesExist, '2', '1')}">
+                                    Subtotal:<br/>
+                                    Tax:<br/>
+                                </td>
+                                <td class="line right  bottomline">
+                                    <apex:outputText value="${0, number,###,###,##0.00}">
+                                        <apex:param value="{!IF(isCredit1, proformaInvoice.Credit_1_Amount__c, IF(isCredit2, proformaInvoice.Credit_2_Amount__c, ''))}"/>
+                                    </apex:outputText><br/>
+                                    
+                                    <apex:outputText value="${0, number,###,###,##0.00}">
+                                        <apex:param value="{!IF(isCredit1, proformaInvoice.Credit_1_Tax_Amount__c, IF(isCredit2, proformaInvoice.Credit_2_Tax_Amount__c, ''))}"/>
+                                    </apex:outputText><br/>
+                                    
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <!-- End Professional Services table -->
+                    
+                    <br/>
+                    
+                    <div class="bold right">
+                        Total Credits:&nbsp;
+                        
+                        <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!isCredit1}">
+                            <apex:param value="{!proformaInvoice.Credit_1_Amount_Due__c}"/>
+                        </apex:outputText>
+                        
+                        <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!isCredit2}">
+                            <apex:param value="{!proformaInvoice.Credit_2_Amount_Due__c}"/>
+                        </apex:outputText>
+                    </div>
+                </div>
+                
+                <br/> <br/>
+                
+                <!-- Begin PROJECT OUTSTANDING INVOICE SUMMARY table -->
+                <table class="content">
+                    <thead>
+                        <tr>
+                            <td class="header bold leftline" colspan="6">PROJECT OUTSTANDING INVOICE SUMMARY</td>
+                        </tr>
+                        <tr>
+                            <td class="header bold leftline">Current Amount </td>
+                            <td class="header bold">1-30 days               </td>
+                            <td class="header bold">31-60 days              </td>
+                            <td class="header bold">61-90 days              </td>
+                            <td class="header bold">91+ days                </td>
+                            <td class="header bold">Total Due               </td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="line center leftline bottomline" style="width: 16.66%;">
+                                <apex:outputText value="${0, number,###,###,##0.00}">
+                                    <apex:param value="{!proformaInvoice.Project_Profile__r.Outst_Amt_Today__c}"/>
+                                </apex:outputText>
+                            </td>
+                            <td class="line center bottomline" style="width: 16.67%;">
+                                <apex:outputText value="${0, number,###,###,##0.00}">
+                                    <apex:param value="{!proformaInvoice.Project_Profile__r.Outst_Amt_30__c}"/>
+                                </apex:outputText>
+                            </td>
+                            <td class="line center bottomline" style="width: 16.67%;">
+                                <apex:outputText value="${0, number,###,###,##0.00}">
+                                    <apex:param value="{!proformaInvoice.Project_Profile__r.Outst_Amt_60__c}"/>
+                                </apex:outputText>
+                            </td>
+                            <td class="line center bottomline" style="width: 16.67%;">
+                                <apex:outputText value="${0, number,###,###,##0.00}">
+                                    <apex:param value="{!proformaInvoice.Project_Profile__r.Outst_Amt_90__c}"/>
+                                </apex:outputText>
+                            </td>
+                            <td class="line center bottomline" style="width: 16.67%;">
+                                <apex:outputText value="${0, number,###,###,##0.00}">
+                                    <apex:param value="{!proformaInvoice.Project_Profile__r.Outst_Amt_90_Plus__c}"/>
+                                </apex:outputText>
+                            </td>
+                            <td class="line center bottomline" style="width: 16.66%;">
+                                <apex:outputText value="${0, number,###,###,##0.00}">
+                                    <apex:param value="{!proformaInvoice.Project_Profile__r.Total_Due__c}"/>
+                                </apex:outputText>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <!-- End PROJECT OUTSTANDING INVOICE SUMMARY table -->
+                <br/><br/>
+                
+                <!-- Begin Footer -->
+                <table class="content">
+                    <tbody>  
+                        <tr>
+                            <td style="vertical-align: top; width: 33.33%;">
+                                <span class="bold left">MAKE CHECKS PAYABLE TO:                                                         </span><br/>
+                                <span class="left">Milrose Consultants, Inc.                                                            </span><br/>
+                                <span class="left">ATTN: Accounts Receivable                                                            </span><br/>
+                                <br/>
+                                <span class="bold left">MILROSE CONSULTANTS ACCEPTS<br/>ALL MAJOR CREDIT CARDS                          </span><br/>
+                                <span class="bold left"><a href="https://www.milrose.com/payments/">https://www.milrose.com/payments/</a> </span><br/> <!-- MRS 7475 -->
+                            </td>
+                            
+                            <td style="vertical-align: top; width: 33.34%;">
+                                <span class="bold left">DIRECT ALL BILLING INQUIRIES TO:                                 </span><br/>
+                                <span class="left">{!proformaInvoice.A_R_Coordinator_Full_Name__c}                       </span><br/>
+                                <span class="left">{!proformaInvoice.A_R_Coordinator_Phone__c}                           </span><br/>
+                                <span class="left">{!proformaInvoice.Billing_Client_Company__r.A_R_coordinator__r.Email} </span>
+                            </td>
+                            
+                            <td style="vertical-align: top; width: 33.33%;">
+                                <span class="bold left">TO INITIATE A WIRE TRANSFER: </span><br/>
+                                <span class="left">Bank of America                   </span><br/>
+                                <span class="left">1185 Avenue of the Americas       </span><br/>
+                                <span class="left">New York, NY 10036                </span><br/>
+                                <span class="left">ACCT # 4837307121                 </span><br/>
+                                <span class="left">ABA # 021000322                   </span>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td style="vertical-align: top; width: 33.33%;">
+                            </td>
+                            
+                            <td style="vertical-align: top; width: 33.34%;">
+                                <apex:outputField value="{!proformaInvoice.Display_Text_on_Invoice__c}"/>
+                            </td>
+                            
+                            <td style="vertical-align: top; width: 33.33%;">
+                            </td>
+                        </tr>  
+                    </tbody>
+                </table>
+                <!-- End Footer -->
+            </apex:outputPanel>
+        </body>
+    </html>
+    
+</apex:page>

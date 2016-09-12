@@ -1,0 +1,33 @@
+<apex:page standardController="Task_Item__c" extensions="MunicipalApprovalScanningController">
+    <script type="text/javascript">
+        var masrObjectPrefix = 'a05'; //Municipal_Approval_Scanning_Request__c
+
+        var projectProfileIdField = 'CF00N1200000BDFZY_lkid' //Project_Profile__c
+        var projectProfileNameField = 'CF00N1200000BDFZY' //Project_Profile__c
+        var taskItemIdField = 'CF00N1200000BDFZZ_lkid'; //Task_Item__c
+        var taskItemNameField = 'CF00N1200000BDFZZ'; //Task_Item__c
+        var mrcNumberField = '00NA000000AefOL'; //MRC_Number__c
+        var jobAddressIdField = 'CF00NA000000Af0f3_lkid'; //Job_Address__c
+        var jobAddressNameField = 'CF00NA000000Af0f3'; //Job_Address__c
+        var munipicalAgencyField = '00NA000000AefOQ'; //Municipal_Agency_ID__c
+
+        var retUrl = '{!retURL}';
+
+        window.location = '/' + masrObjectPrefix + '/e' +
+                          addPair( taskItemIdField, '{!taskId}', true ) +
+                          addPair( taskItemNameField, encodeURIComponent('{!taskName}'), false ) +
+                          addPair( projectProfileIdField, '{!projectId}', false ) +
+                          addPair( projectProfileNameField, encodeURIComponent('{!projectName}'), false ) +
+                          addPair( mrcNumberField, '{!mrcNumber}', false ) +
+                          addPair( jobAddressIdField, '{!jobAddressId}', false ) +
+                          addPair( jobAddressNameField, encodeURIComponent('{!jobAddressName}'), false ) +
+                          addPair( munipicalAgencyField, encodeURIComponent('{!munipicalAgency}'), false ) +
+                          retUrl;
+
+        function addPair( field, fieldData, isFirst ) {
+            var result = isFirst ? '?' : '&';
+            result += field + '=' + fieldData;
+            return result;
+        }
+    </script>
+</apex:page>

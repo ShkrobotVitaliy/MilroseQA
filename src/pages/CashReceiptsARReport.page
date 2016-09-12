@@ -1,0 +1,15 @@
+<apex:page sidebar="false" showHeader="false" >
+<style type="text/css">
+    .Mylinks{
+        font-size: 16px;
+    }
+</style> 
+    
+    <apex:pageBlock >
+
+        <apex:iframe src="/00O12000005l6Ek?isdtp=nv" height="600px" width="100%" scrolling="true"/>
+
+    </apex:pageBlock>
+
+    <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+</apex:page>

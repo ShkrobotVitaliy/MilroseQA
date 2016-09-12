@@ -1,0 +1,61 @@
+<apex:page controller="SendLetterAsAttachmentController">
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}" />
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}" />
+    
+    <apex:form >
+        <apex:actionFunction name="containerUpdateParentRecordTO" action="{!updateRecordTOField}" reRender="pageMessages" status="allPanelsOverlay">
+            <apex:param name="emailTO" value="" assignTo="{!emailsToDDP}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="containerUpdateParentRecordCC" action="{!updateRecordCCField}" reRender="pageMessages" status="allPanelsOverlay">
+            <apex:param name="emailCC" value="" assignTo="{!emailsCCDDP}"/>
+        </apex:actionFunction>
+
+        <apex:pageMessages id="pageMessages" />
+    
+        <apex:actionStatus id="allPanelsOverlay" onstart="$('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);" onstop="$('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });"/>
+        
+        <!-- Loading -->
+        <div class="AllInfoPanelHolder" style="position: relative; overflow: auto; -webkit-overflow-scrolling: touch; min-height: 400px;">
+            <div class="overlay" id="AllPannelOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"/>
+            <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+                <div style="text-align: center;">
+                    <img src="{!$Resource.loading_bar}" />
+                    <p style="color: #000; margin-bottom: 0px; font-size: 24px;">Please wait</p>
+                </div>
+            </div>
+                
+            <div style="font-size: 130%; font-weight: bold;">Send Letter</div>
+            
+            <apex:outputPanel id="previewEmailArea" style="margin: 10px;">
+                <c:PreviewAndSendEmail parentDDPRecordId="{!projectId}" 
+                                       DDPRecordName="{!drawloopName}" 
+                                       emailTemplate="{!templateName}" 
+                                       draftTemplate="{!templateDraftName}" 
+                                       sendAddressTo="" 
+                                       projectProfileRecord="{!project}" 
+                                       attachIds="{!parentDocumentIds}" 
+                                       emailTypeRecord="{!letterEmailType}"
+                                       showTemplateSelection="false"
+                                       selectRecipient="true"/>
+
+            </apex:outputPanel>
+        
+            <apex:commandButton value="Close" action="{!close}" style="margin-left: 22px !important;"/>
+        </div>
+    </apex:form>
+    
+    <script type="text/javascript">
+        function showOverlay(){
+            $('#overlayContent').show().fadeTo('slow', 1.0); 
+            $('#AllPannelOverlay').show().fadeTo('slow', 0.7);
+        }
+        function hideOverlay(){
+            $('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); 
+            $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });
+        }
+        function containerPerformAfterSaveAction(){
+            showOverlay();
+            
+        }
+    </script>
+</apex:page>

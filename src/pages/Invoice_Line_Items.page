@@ -1,0 +1,66 @@
+<apex:page standardStylesheets="false" showHeader="false" sidebar="false" standardController="Invoice_line_items__c" recordSetVar="tasks"> 
+<apex:stylesheet value="{!URLFOR($Resource.Styles, 'styles.css')}" />
+<h1>Sub Task Items</h1>
+<apex:form >
+<apex:dataTable value="{!tasks}" var="pitem" rowClasses="odd,even"> 
+<apex:column headerValue="Tasks">
+            <apex:outputText value="{!pitem.name}"/>
+         </apex:column>
+         
+<apex:column headerValue="Invoice Number">
+            <apex:outputField value="{!pitem.Invoice_Number__c}">
+            </apex:outputField>
+         </apex:column>         
+
+<apex:column headerValue="Invoice Number">
+            <apex:outputField value="{!pitem.Invoice_Number__c}">
+            </apex:outputField>
+         </apex:column>
+
+        
+         
+<apex:column headerValue="Resolved On">
+            <apex:outputText value="{!pitem.Resolved_on__c}"/>
+         </apex:column> 
+         
+<apex:column headerValue="MRC #">
+            <apex:outputText value="{!pitem.MRC__c}"/>
+         </apex:column> 
+                
+<apex:column headerValue="Client">
+            <apex:outputText value="{!pitem.Client_Company__c}"/>
+         </apex:column>                
+
+
+<apex:column headerValue="Project Address">
+            <apex:outputText value="{!pitem.Project_Address__c}"/>
+         </apex:column>   
+         
+<apex:column headerValue="Application No">
+            <apex:outputText value="{!pitem.Application_Number__c}"/>
+         </apex:column>         
+         
+                         
+<apex:column headerValue="Floor">
+            <apex:outputText value="{!pitem.Floor__c}"/>
+         </apex:column>                
+                
+<apex:column headerValue="Created By">
+            <apex:outputText value="{!pitem.CreatedBy}"/>
+         </apex:column>    
+         
+<apex:column headerValue="Created On">
+            <apex:outputText value="{!pitem.CreatedDate}"/>
+         </apex:column>                    
+                
+                
+
+         
+
+         
+         
+</apex:dataTable>
+<br/>
+      <apex:commandButton id="update" action="{!quicksave}" value="Save Changes"  styleclass="updateButton"/>
+</apex:form>
+</apex:page>

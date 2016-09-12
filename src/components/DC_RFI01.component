@@ -1,0 +1,32 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="false" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="2" style="text-align: left;">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: 50%;">Application Permit Response</th>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Contact Name &amp; Information (address, phone, fax &amp; mobile)</span></td>
+                <td class="secondColumn"> <apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_DC__r.Contact_Name_Information_App__c}" /> </td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Contractor ID \#</span></td>
+                <td class="secondColumn"> <apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_DC__r.Contractor_ID_App__c}" /> </td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Construction Estimated Start Date</span></td>
+                <td class="secondColumn"> <apex:inputField value="{!rfiScopeRecord.RFI_Scope_Description_DC__r.Construction_Estimated_Start_Date_App__c}" /> </td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Construction End Date</span></td>
+                <td class="secondColumn"> <apex:inputField value="{!rfiScopeRecord.RFI_Scope_Description_DC__r.Construction_End_Date_App__c}" /> </td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

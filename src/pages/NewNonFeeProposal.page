@@ -1,0 +1,3 @@
+<apex:page standardcontroller="Proposal__c" extensions="NewNonFeeProposalExtensions" action="{!createNewNonFeeProposal}">
+ 
+</apex:page>

@@ -1,0 +1,77 @@
+<apex:page standardController="Form_Meta_Data_Object_1__c"  extensions="CommonFormController" >
+<head>
+<script src="/soap/ajax/25.0/connection.js"></script>
+<script src="/soap/ajax/25.0/apex.js"></script>
+</head>
+
+
+<img src="/img/loading32.gif" id="SkyeditorLoagingImage" style="display:none;"/>
+
+<table border="0" cellpadding="0" cellspacing="0" style="width:100%;" ><tr><td>
+<apex:outputPanel rendered="{! NOT(hidePageBody)}" id="pagePanel" styleClass="base" layout="block">
+<apex:outputPanel style="position:relative;" >
+</apex:outputPanel><apex:form id="sve_form1"   styleClass="sve_form1"   >
+<apex:outputPanel layout="block"   style="position:relative;width:830px;height:1056px;" >
+<img   src="{!URLFOR($Resource.F23_3_2)}"   style="width:830px;height:1056px;left:0px;top:0px;position:absolute;" /><apex:outputPanel id="Component1_Wrapper" style="left:65px;top:10px;position:absolute;">
+<apex:commandButton action="{!prevPage}"   id="Component1"   immediate="false"   value="Previous"   style="width:66px;" >
+</apex:commandButton>
+</apex:outputPanel>
+<apex:outputPanel id="Component3_Wrapper" style="left:220px;top:10px;position:absolute;">
+<apex:commandButton action="{!cancelPage}"   id="Component3"   immediate="false"   value="Cancel"   style="width:66px;" >
+</apex:commandButton>
+</apex:outputPanel>
+<apex:outputPanel id="Component4_Wrapper" style="left:330px;top:10px;position:absolute;">
+<apex:commandButton action="{!savePage}"   id="Component4"   immediate="false"   value="Save"   style="width:66px;" >
+</apex:commandButton>
+</apex:outputPanel>
+<apex:outputPanel id="Component5_Wrapper" style="left:665px;top:10px;position:absolute;">
+<apex:commandButton action="{!nextPage}"   id="Component5"   immediate="false"   value="Next"   style="width:66px;" >
+</apex:commandButton>
+</apex:outputPanel>
+<apex:outputPanel styleclass="fieldwrapper " style="left:87px;top:141px;position:absolute;" >
+<apex:inputField id="Component6"   style="color:#000000;font-size:1.0em;font-weight:Normal;"   value="{!record.CheckBox1__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:87px;top:162px;position:absolute;" >
+<apex:inputField id="Component7"   style="color:#000000;font-size:1.0em;font-weight:Normal;"   value="{!record.Checkbox10__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:87px;top:198px;position:absolute;" >
+<apex:inputField id="Component8"   style="color:#000000;font-size:1.0em;font-weight:Normal;"   value="{!record.Checkbox100__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:70px;top:301px;position:absolute;" >
+<apex:inputField id="Component36"   style="width:697px;height:330px;color:#000000;font-size:10pt;font-weight:Normal;font-family: Arial Unicode MS;"   value="{!record.TEXT_Area_LONG__c}">
+</apex:inputField>
+</apex:outputPanel>
+<apex:outputPanel styleclass="fieldwrapper " style="left:490px;top:705px;position:absolute;" >
+    <apex:inputField id="Component33"   style="width:285px;height:11px;color:#000000;font-size:10pt;font-weight:Normal;"   value="{!record.Signator_1_Full_Name__c}">
+    </apex:inputField>
+</apex:outputPanel>
+ </apex:outputPanel></apex:form><script type="text/javascript">
+function aggregateCalc_all(triggerId) {
+}
+</script>
+</apex:outputPanel>
+</td></tr></table>
+<div id="CustomLookupForSFoneDialog" style="display:none;" >
+    <apex:pageBlock >
+        <div id="CustomLookUpForSFoneConditons">
+        </div> 
+        <div id="CustomLookUpForSFoneTextConditons" style="clear:left;">
+        </div><br style="clear:left;" />
+    </apex:pageBlock>
+    <apex:pageBlock >
+        <apex:pageBlockButtons location="top" styleClass="CustomLookUpForSFoneButtons">
+        </apex:pageBlockButtons>
+        <div style="height:480px; overflow-y:scroll;" >
+            <table class="list" id="CustomLookUpForSFoneListTable" cellspacing="0" cellpadding="0" border="0" >
+                <thead class="CustomLookUpForSFoneListHeader">
+                </thead>
+                <tbody class="CustomLookUpForSFoneListBody"> 
+                </tbody>
+            </table>
+        </div>
+    </apex:pageBlock>
+</div>
+</apex:page>

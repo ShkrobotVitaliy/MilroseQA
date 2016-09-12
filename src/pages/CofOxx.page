@@ -1,0 +1,71 @@
+<apex:page standardController="Service_Detail__c">
+    <apex:form >
+        <apex:pageBlock title="For MRC# {!Service_Detail__c.MRC__c}">
+            <apex:pageMessages />
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Save" action="{!save}"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection >
+                <apex:inputField value="{!Service_Detail__c.Application_Number__c}"/>
+<apex:inputField value="{!Service_Detail__c.X1st_Notice__c}"/>
+<apex:inputField value="{!Service_Detail__c.X2nd_Notice__c}"/>
+<apex:inputField value="{!Service_Detail__c.Alt_Materials_OTCR_Build_Bulletin_Num__c}"/>
+<apex:inputField value="{!Service_Detail__c.Applicant_of_Record_SF__c}"/>
+<apex:inputField value="{!Service_Detail__c.Application_Number__c}"/>
+<apex:inputField value="{!Service_Detail__c.Application_Type__c}"/>
+<apex:inputField value="{!Service_Detail__c.Approved_Date__c}"/>
+<apex:inputField value="{!Service_Detail__c.Asbestos_By__c}"/>
+<apex:inputField value="{!Service_Detail__c.D2_or_D14__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Appl_Package_Rec_from_DOB__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Appl_Pack_Received_from_Metro__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Appl_Pack_Sent_to_Client__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Appl_Pack_To_Contractor__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Appl_Pack_to_Metro__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Appl_Pack_to_Special_Inspector__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Asb_Recd_Owner__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Asb_Req_Owner__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Assigned_to_Expd__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Check_Received__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Check_Requested__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Cost_Affidavit_Received__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Cost_Affidavit_Sent__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Cost_Received__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Cost_Requested__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Drawing_Received__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_of_SP_Inspection__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Recd_Seal_Sign__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Scanned__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Sent_Seal_Sign__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Sent_to_Scan__c}"/>
+<apex:inputField value="{!Service_Detail__c.Docket_No__c}"/>
+<apex:inputField value="{!Service_Detail__c.ECD_End_Construction_Date__c}"/>
+<apex:inputField value="{!Service_Detail__c.Examiner_SF__c}"/>
+<apex:inputField value="{!Service_Detail__c.Filed_Date__c}"/>
+<apex:inputField value="{!Service_Detail__c.Final_Notice__c}"/>
+<apex:inputField value="{!Service_Detail__c.Link_to_Documents__c}"/>
+<apex:inputField value="{!Service_Detail__c.MRC__c}"/>
+<apex:inputField value="{!Service_Detail__c.Objection_Date__c}"/>
+<apex:inputField value="{!Service_Detail__c.PAA_Required__c}"/>
+<apex:inputField value="{!Service_Detail__c.Page_Layout__c}"/>
+<apex:inputField value="{!Service_Detail__c.Prefiled_Date__c}"/>
+<apex:inputField value="{!Service_Detail__c.Prof_Certification__c}"/>
+<apex:inputField value="{!Service_Detail__c.Project__c}"/>
+<apex:inputField value="{!Service_Detail__c.Proposal_Amount__c}"/>
+<apex:inputField value="{!Service_Detail__c.Proposal_Order__c}"/>
+<apex:inputField value="{!Service_Detail__c.Qty__c}"/>
+<apex:inputField value="{!Service_Detail__c.RP604__c}"/>
+<apex:inputField value="{!Service_Detail__c.Service__c}"/>
+<apex:inputField value="{!Service_Detail__c.Service_Link__c}"/>
+<apex:inputField value="{!Service_Detail__c.Show_on_Reports__c}"/>
+<apex:inputField value="{!Service_Detail__c.Status__c}"/>
+<apex:inputField value="{!Service_Detail__c.Total_Cost__c}"/>
+<apex:inputField value="{!Service_Detail__c.Vendor_Assigned_SF__c}"/>
+<apex:inputField value="{!Service_Detail__c.Vendor_Assigned_Company__c}"/>
+<apex:inputField value="{!Service_Detail__c.Date_Vendor_Invoiced__c}"/>
+<apex:inputField value="{!Service_Detail__c.Work_Type__c}"/>
+<apex:inputField value="{!Service_Detail__c.Zoning_Approval_Date__c}"/>
+<apex:inputField value="{!Service_Detail__c.Zoning_Lot_Cert__c}"/>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

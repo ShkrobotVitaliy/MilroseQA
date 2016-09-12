@@ -1,0 +1,610 @@
+<apex:page renderAs="pdf" showheader="false" applyhtmltag="false" controller="AIAInvoiceController">
+    <head>
+        <style type="text/css">
+            @font-face {
+                font-family: 'Calibri';
+                src: url('{!URLFOR($Resource.CalibriFonts, 'calibri.ttf') }');
+                font-weight: normal;
+                font-style: normal;
+            }
+            @font-face {
+                font-family: 'Calibri';
+                src: url('{!URLFOR($Resource.CalibriFonts, 'calibrii.ttf') }');
+                font-weight: normal;
+                font-style: italic;
+            }
+            @font-face {
+                font-family: 'Calibri';
+                src: url('{!URLFOR($Resource.CalibriFonts, 'calibrib.ttf') }');
+                font-weight: bold;
+                font-style: normal;
+            }
+            @font-face {
+                font-family: 'Calibri';
+                src: url('{!URLFOR($Resource.CalibriFonts, 'calibriz.ttf') }');
+                font-weight: bold;
+                font-style: italic;
+            }
+            @page {
+                size: letter landscape;
+                margin: 10mm 10mm 8mm 10mm;
+                @top-right {
+                    font: 11pt Calibri, Arial, Sans-serif;
+                    font-weight: bold;
+                    padding-top: 6mm;
+                    padding-right: 7mm;
+                    content: 'PAGE ' counter(page) ' OF ' counter(pages) ' PAGES';
+                }
+            }
+            body {
+                font: 11pt Calibri, Arial, Sans-serif;
+            }
+            table.fp, table.fpi, table.sphead {
+                 width: 100%;
+                 border-collapse: collapse;
+                 border-spacing: 0;
+            }
+            table.fp {
+                 page-break-after: always;
+            }
+            table.fp td, table.fpi td, table.sphead td {
+                padding: 0px;
+            }
+            table.fpi td {
+                border: 1px solid black;
+            }
+            table.sp {
+                /*border-collapse: collapse;*/
+                border-collapse: separate;
+                border-spacing: 0;
+                page-break-after: auto;
+                width: 100%;
+            }
+            table.sp thead {
+                display: table-header-group;
+                page-break-inside: avoid;
+            }
+            table.sp tbody {
+                display: table-row-group;
+                page-break-after: auto;
+            }
+            table.sp tfoot {
+                display: table-footer-group;
+                page-break-after: auto;
+            }
+            table.sp thead tr {
+                page-break-inside: avoid;
+            }
+            table.sp tr {
+                page-break-inside: avoid;
+            }
+            table.sp td {
+                padding: 0px 3px;
+            }
+            table.sp td.title {
+                font-weight: bold;
+                text-align: center;
+                border-top: none;
+                border-right: 1px solid black;
+                border-bottom: 1px solid black;
+                border-left: none;
+            }
+            table.sp td.header {
+                font-weight: bold;
+                text-align: center;
+                vertical-align: bottom;
+                border-top: none;
+                border-right: 1px solid black;
+                border-bottom: 1px solid black;
+                border-left: none;
+            }
+            table.sp td.line {
+                border-top: none;
+                border-right: 1px solid black;
+                border-bottom: none;
+                border-left: none;
+                vertical-align: top;
+                text-align: center;
+            }
+            table.sp td.footer {
+                border-top: 1px solid black;
+                border-right: 1px solid black;
+                border-bottom: 1px solid black;
+                border-left: none;
+                vertical-align: top;
+                text-align: center;
+            }
+            .leftpadhalf {
+                padding-left: 0.5em !important;
+            }
+            .bold {
+                font-weight: bold !important;
+            }
+            .left {
+                text-align: left !important;
+            }
+            .center {
+                text-align: center !important;
+            }
+            .right {
+                text-align: right !important;
+            }
+            .smf {
+                font-size: 8pt !important;
+            }
+        </style>
+    </head>
+    <apex:pageMessages id="msgs"/>
+    <apex:outputPanel layout="block" rendered="{!isValid}" style="width: 100%; padding: 0; margin: 0;">
+        <table class="sphead">
+            <tr>
+                <td class="bold left" style="border-bottom: 2px solid black;">APPLICATION AND CERTIFICATE FOR PAYMENT</td>
+                <td class="bold right" style="border-bottom: 2px solid black;"><div style="padding-right: 7mm;">INVOICE:&nbsp;{!content.pfi.Name_without_Prefix__c}</div></td>
+            </tr>
+        </table>
+        <table class="fp">
+            <tr>
+                <td style="width: 24.0%;">TO OWNER:</td>
+                <td style="width: 4.8%;"></td>
+                <td style="width: 3.7%;"></td>
+                <td style="width: 3.7%;"></td>
+                <td rowspan="4" colspan="4" style="vertical-align: top;">PROJECT: {!content.projectName}</td>
+                <td rowspan="9" style="width: 24.7%; vertical-align: top;">
+                    APPLICATION #: {!content.prevInvoicesNo}<br/>
+                    PERIOD TO: {!MONTH(TODAY())}/{!DAY(TODAY())}/{!YEAR(TODAY())}<br/>
+                    PROJECT NOS: {!content.clientProject}<br/>
+                    CONTRACT DATE: {!MONTH(content.proposalDate)}/{!DAY(content.proposalDate)}/{!YEAR(content.proposalDate)}
+                </td>
+                <td colspan="2">Distribution to:</td>
+            </tr>
+            <tr>
+                <td colspan="4"><span style="padding-left: 6px;">{!content.billingCompany}</span></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td colspan="4"><span style="padding-left: 6px;">{!content.billingContactAddr1}</span></td>
+                <td style="border: 1px solid black;"></td>
+                <td style="padding-left: 2px;">Owner</td>
+            </tr>
+            <tr>
+                <td colspan="4"><span style="padding-left: 6px;">{!content.billingContactAddr2}</span></td>
+                <td style="border: 1px solid black;"></td>
+                <td style="padding-left: 2px;">Const. Mgr</td>
+            </tr>
+            <tr>
+                <td colspan="4">FROM CONTRACTOR:</td>
+                <td colspan="4">VIA ARCHITECT:</td>
+                <td style="border: 1px solid black;"></td>
+                <td style="padding-left: 2px;">Architect</td>
+            </tr>
+            <tr>
+                <td colspan="8"><span style="padding-left: 6px;">Milrose Consultants, Inc.</span></td>
+                <td style="border: 1px solid black;"></td>
+                <td style="padding-left: 2px;">Contractor</td>
+            </tr>
+            <tr>
+                <td colspan="8"><span style="padding-left: 6px;">498 Seventh Avenue, 17th Floor</span></td>
+                <td style="border: 1px solid black;"></td>
+                <td style="padding-left: 2px;"></td>
+            </tr>
+            <tr>
+                <td colspan="8"><span style="padding-left: 6px;">New York, NY 10018</span></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td colspan="4" style="border-bottom: 2px solid black;">CONTRACT FOR: Expediting Services</td>
+                <td style="width: 4.6%;"></td>
+                <td style="width: 7.7%;"></td>
+                <td style="width: 2.9%;"></td>
+                <td style="width: 12.1%;"></td>
+                <td style="width: 3.8%;"></td>
+                <td style="width: 9.0%;"></td>
+            </tr>
+
+            <tr>
+                <td colspan="6" style="vertical-align: top;">
+                    <div class="bold">CONTRACTOR'S APPLICATION FOR PAYMENT</div>
+                    <div class="smf">Application is made for payment as shown below, in connection with the Contract</div>
+                    <div class="smf">Continuation Sheet is attached.</div>
+                </td>
+                <td></td>
+                <td colspan="4" class="smf">The undersigned Contractor certifies that to the best of the Contractor's knowledge, information and belief the Work covered by thes Application for Payment has been completed in accordance with the Contract Documents, that all amounts have been paid by the Contractor for Work for which previous Certificates for Payment were issued and payments received from the Owner, and that current payment shown herein is now due.</td>
+            </tr>
+
+            <tr>
+                <td colspan="3" style="vertical-align: top;">
+                        <div class="bold" style="display: inline-block;">1. ORIGINAL CONTRACT SUM</div><!--
+                        --><div style="display: inline-block; border-bottom: 1px dotted black; width: 121px; margin: 0px 3px;"></div><!--
+                        --><div class="" style="display: inline-block; float: right; margin-right: 2px;">$</div>
+                </td>
+                <td colspan="3" style="border: 1px solid black; text-align: center;">
+                    <apex:outputText value="{0, number,###,###,##0.00}">
+                         <apex:param value="{!content.proposalStartFees}"/>
+                    </apex:outputText>
+                </td>
+                <td></td>
+                <td colspan="4">CONTRACTOR:</td>
+            </tr>
+            <tr>
+                <td colspan="3" style="vertical-align: top;">
+                        <div class="bold" style="display: inline-block;">2. Net change by Change Orders</div><!--
+                        --><div style="display: inline-block; border-bottom: 1px dotted black; width: 103px; margin: 0px 3px;"></div><!--
+                        --><div class="" style="display: inline-block; float: right; margin-right: 2px;">$</div>
+                </td>
+                <td colspan="3" style="border: 1px solid black; text-align: center;">
+                    <apex:outputText value="{0, number,###,###,##0.00}">
+                         <apex:param value="{!content.approvedChOrdFees}"/>
+                    </apex:outputText>
+                </td>
+                <td></td>
+                <td colspan="4"></td>
+            </tr>
+            <tr>
+                <td colspan="3" style="vertical-align: top;">
+                        <div class="bold" style="display: inline-block;">3. CONTRACT SUM TO DATE (Line 1 +/- 2)</div><!--
+                        --><div style="display: inline-block; border-bottom: 1px dotted black; width: 47px; margin: 0px 3px;"></div><!--
+                        --><div class="" style="display: inline-block; float: right; margin-right: 2px;">$</div>
+                </td>
+                <td colspan="3" style="border: 1px solid black; text-align: center;">
+                    <apex:outputText value="{0, number,###,###,##0.00}">
+                         <apex:param value="{!content.proposalEndFees}"/>
+                    </apex:outputText>
+                </td>
+                <td></td>
+                <td colspan="4">
+                    By:&nbsp;<div style="display: inline-block; width: 250px; border-bottom: 1px solid black;">&nbsp;</div>&nbsp;&nbsp;&nbsp;Date:&nbsp;<div style="display: inline-block; width: 163px; border-bottom: 1px solid black;">&nbsp;</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3" style="vertical-align: top;">
+                        <div class="bold" style="display: inline-block;">4. TOTAL COMPLETED &amp; STORED TO DATE</div><!--
+                        --><div style="display: inline-block; border-bottom: 1px dotted black; width: 43px; margin: 0px 3px;"></div><!--
+                        --><div class="" style="display: inline-block; float: right; margin-right: 2px;">$</div>
+                </td>
+                <td colspan="3" style="border: 1px solid black; text-align: center;">
+                    <apex:outputText value="{0, number,###,###,##0.00}">
+                         <apex:param value="{!content.totalCompleted}"/>
+                    </apex:outputText>
+                </td>
+                <td></td>
+                <td colspan="4"></td>
+            </tr>
+            <tr>
+                <td colspan="6" style="vertical-align: top;">
+                    <span class="smf" style="padding-left: 25px; vertical-align: top;">(Column G on Continuation Sheet)</span>
+                </td>
+                <td></td>
+                <td colspan="4"><div style="display: inline-block; width: 65px;">State of:</div><div style="display: inline-block; width: 207px; border-bottom: 1px solid black;">&nbsp;</div></td>
+            </tr>
+            <tr>
+                <td colspan="6" style="vertical-align: top;">
+                    <div class="bold">5. RETAINAGE:</div>
+                </td>
+                <td></td>
+                <td colspan="4"><div style="display: inline-block; width: 65px;">County of:</div><div style="display: inline-block; width: 207px; border-bottom: 1px solid black;">&nbsp;</div></td>
+            </tr>
+            <tr>
+                <td colspan="2" style="vertical-align: top;">
+                    <div style="display: inline-block; margin-left: 20px;">a.</div><!--
+                    --><div style="display: inline-block; width: 40px; text-align: center; margin: 0px 3px; border-bottom: 1px solid black;">0%</div><!--
+                    --><div style="display: inline-block;">of Completed Work</div><!--
+                    --><div style="display: inline-block; float: right; margin-right: 2px;">$</div>
+                </td>
+                <td colspan="3" style="border: 1px solid black;"></td>
+                <td></td>
+                <td></td>
+                <td colspan="4">Subscribed and sworn to before</td>
+            </tr>
+            <tr>
+                <td colspan="6" style="vertical-align: top;">
+                    <span class="smf" style="padding-left: 25px; vertical-align: top;">(Columns D+E on Continuation Sheet)</span>
+                </td>
+                <td></td>
+                <td colspan="4"><div style="display: inline-block; width: 50px;">me this</div><div style="display: inline-block; width: 40px; border-bottom: 1px solid black;">&nbsp;</div><div style="display: inline-block; width: 55px; text-align: center;">day of</div><div style="display: inline-block; width: 150px; border-bottom: 1px solid black;">&nbsp;</div></td>
+            </tr>
+            <tr>
+                <td colspan="2" style="vertical-align: top;">
+                    <div style="display: inline-block; margin-left: 20px;">b.</div><!--
+                    --><div style="display: inline-block; width: 40px; text-align: center; margin: 0px 3px; border-bottom: 1px solid black;">0%</div><!--
+                    --><div style="display: inline-block;">of Stored Material</div><!--
+                    --><div style="display: inline-block; float: right; margin-right: 2px;">$</div>
+                </td>
+                <td colspan="3" style="border: 1px solid black;"></td>
+                <td></td>
+                <td></td>
+                <td colspan="4"></td>
+            </tr>
+            <tr>
+                <td colspan="6" style="vertical-align: top;">
+                    <span class="smf" style="padding-left: 25px; vertical-align: top;">(Column F on Continuation Sheet)</span>
+                </td>
+                <td></td>
+                <td colspan="4"><div style="display: inline-block; width: 100px;">Notary Public:</div><div style="display: inline-block; width: 195px; border-bottom: 1px solid black;">&nbsp;</div></td>
+            </tr>
+            <tr>
+                <td colspan="6" style="vertical-align: top;">
+                    <div style="display: inline-block; margin-left: 20px;">Total retainage (Line 5a + 5b or</div>
+                </td>
+                <td></td>
+                <td colspan="4" style="border-bottom: 2px solid black;">My Commission expires:</td>
+            </tr>
+            <tr>
+                <td colspan="3" style="vertical-align: top;">
+                    <div style="display: inline-block; margin-left: 20px;">Total in Column 1 of Continuation Sheet)</div><!--
+                    --><div style="display: inline-block; border-bottom: 1px dotted black; width: 32px; margin: 0px 3px;"></div><!--
+                    --><div class="" style="display: inline-block; float: right; margin-right: 2px;">$</div>
+                </td>
+                <td colspan="3" style="border: 1px solid black;"></td>
+                <td></td>
+                <td colspan="4" class="bold">CERTIFICATE FOR PAYMENT</td>
+            </tr>
+            <tr>
+                <td colspan="3" style="vertical-align: top;">
+                    <div class="bold" style="display: inline-block;">6. TOTAL EARNED LESS RETAINAGE</div><!--
+                    --><div style="display: inline-block; border-bottom: 1px dotted black; width: 86px; margin: 0px 3px;"></div><!--
+                    --><div class="" style="display: inline-block; float: right; margin-right: 2px;">$</div>
+                </td>
+                <td colspan="3" style="border: 1px solid black; text-align: center;">
+                    <apex:outputText value="{0, number,###,###,##0.00}">
+                         <apex:param value="{!content.totalCompleted}"/>
+                    </apex:outputText>
+                </td>
+                <td></td>
+                <td colspan="4" rowspan="5" class="smf">In accordance with Contract Documents, based on on-site observations and the data comprising application, the Architect certifies to the Owner that to the best of the Architect's knowledge, information and belief the Work has progressed as indicated, the quality of the work is in accordance with the Contract Documents, and the Contractor is entitled to payment of the AMOUNT CERTIFIED.</td>
+            </tr>
+            <tr>
+                <td colspan="6" style="vertical-align: top;">
+                    <span class="smf" style="padding-left: 25px; vertical-align: top;">(Line 4 less Line 5 Total)</span>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td colspan="3" style="vertical-align: top;">
+                    <div class="bold" style="display: inline-block;">7. LESS PREVIOUS CERTIFICATES FOR PAYMENT</div><!--
+                    --><div style="display: inline-block; border-bottom: 1px dotted black; width: 12px; margin: 0px 3px;"></div><!--
+                    --><div class="" style="display: inline-block; float: right; margin-right: 2px;">$</div>
+                </td>
+                <td colspan="3" style="border: 1px solid black; text-align: center;">
+                    <apex:outputText value="{0, number,###,###,##0.00}">
+                         <apex:param value="{!content.priorBilling}"/>
+                    </apex:outputText>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td colspan="6" style="vertical-align: top;">
+                    <span class="smf" style="padding-left: 25px; vertical-align: top;">(Line 6 from prior Certificate)</span>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td colspan="3" style="vertical-align: top;">
+                    <div class="bold" style="display: inline-block;">8. CURRENT PAYMENT DUE</div><!--
+                    --><div style="display: inline-block; border-bottom: 1px dotted black; width: 132px; margin: 0px 3px;"></div><!--
+                    --><div class="" style="display: inline-block; float: right; margin-right: 2px;">$</div>
+                </td>
+                <td colspan="3" style="border: 1px solid black; text-align: center;">
+                    <apex:outputText value="{0, number,###,###,##0.00}">
+                         <apex:param value="{!content.currentBilling}"/>
+                    </apex:outputText>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td colspan="6" style="vertical-align: top;">
+                    <div class="bold" style="display: inline-block;">9. BALANCE TO FINISH, INCLUDE RETAINAGE</div>
+                </td>
+                <td></td>
+                <td colspan="4">
+                    <div class="bold" style="display: inline-block;">AMOUNT CERTIFIED</div><!--
+                    --><div style="display: inline-block; border-bottom: 1px dotted black; width: 197px; margin: 0px 3px;"></div><!--
+                    --><div style="display: inline-block; float: right; margin-right: 2px;">
+                        <div style="display: inline-block; margin-right: 2px;">$</div><!--
+                        --><div style="display: inline-block; border-bottom: 1px solid black; width: 143px; margin: 0px 3px; text-align:center;">
+                            <apex:outputText value="{0, number,###,###,##0.00}">
+                                 <apex:param value="{!content.currentBilling}"/>
+                            </apex:outputText>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="vertical-align: top;">
+                    <span class="smf" style="padding-left: 25px; vertical-align: top;">(Line 3 less Line 6)</span><!--
+                    --><div class="" style="display: inline-block; float: right; margin-right: 2px;">$</div>
+                </td>
+                <td colspan="4">
+                    <div style="width: 143px; border-bottom: 1px solid black; text-align: center;">
+                        <apex:outputText value="{0, number,###,###,##0.00}">
+                             <apex:param value="{!content.balanceToFinishFirstPage}"/>
+                        </apex:outputText>
+                    </div>
+                </td>
+                <td></td>
+                <td colspan="4" rowspan="2" class="smf">(Attach explanation if amount certified differs from the amount applied for. Initial all figures on this application and on the Continuation Sheet that are changed to conform to the amount certified.)</td>
+            </tr>
+            <tr>
+                <td colspan="6" style="vertical-align: top;"></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td colspan="6" style="vertical-align: top;">
+                    <table class="fpi">
+                        <tr>
+                            <td style="width: 48%; text-align: center;">CHANGE ORDER SUMMARY</td>
+                            <td style="width: 26%; text-align: center;">ADDITIONS</td>
+                            <td style="width: 26%; text-align: center;">DEDUCTIONS</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0px 3px;">Total changes approved in previous months by Owner</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0px 3px;">Total approved this month</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0px 3px; text-align: right;">TOTALS</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0px 3px;">NET CHANGES by Change Order</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </table>
+                </td>
+                <td></td>
+                <td colspan="4">
+                    ARCHITECT:<br/>
+                    <br/>
+                    By:&nbsp;<div style="display: inline-block; width: 250px; border-bottom: 1px solid black;">&nbsp;</div>&nbsp;&nbsp;&nbsp;Date:&nbsp;<div style="display: inline-block; width: 163px; border-bottom: 1px solid black;">&nbsp;</div><br/>
+                    <div class="smf" style="width: 100%;">This Certificate is not negotiable. The AMOUNT CERTIFIED is payable only to the Contractor named herein. Issuance, payment and acceptacne of payment are without prejudice to any rights of the Owner of Contractor under this Contract.</div>
+                </td>
+            </tr>
+        </table>
+        <table class="sphead">
+            <tr>
+                <td colspan="3" class="bold" style="border-bottom: 2px solid black;">CONTINUATION SHEET</td>
+            </tr>
+            <tr>
+                <td>ATTACHMENT TO PAY APPLICATION</td>
+                <td class="right" style="padding-right: 3px;">APPLICATION NUMBER:</td>
+                <td>{!content.prevInvoicesNo}</td>
+            </tr>
+            <tr>
+                <td>PROJECT: {!content.projectName}</td>
+                <td class="right" style="padding-right: 3px;">APPLICATION DATE:</td>
+                <td>{!MONTH(TODAY())}/{!DAY(TODAY())}/{!YEAR(TODAY())}</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="right" style="padding-right: 3px;">PERIOD TO:</td>
+                <td>{!MONTH(TODAY())}/{!DAY(TODAY())}/{!YEAR(TODAY())}</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="right" style="padding-right: 3px;">ARCHITECTS PROJECT NO:</td>
+                <td>{!content.clientProject}</td>
+            </tr>
+            <tr>
+                <td colspan="3"></td>
+            </tr>
+        </table>
+        <table class="sp">
+            <thead>
+                <tr>
+                    <td class="title" style="font-weight: normal; border-top: 1px solid black; border-left: 1px solid black;">A</td>
+                    <td class="title" style="font-weight: normal; border-top: 1px solid black;">B</td>
+                    <td class="title" style="font-weight: normal; border-top: 1px solid black;">C</td>
+                    <td class="title" style="font-weight: normal; border-top: 1px solid black;">D</td>
+                    <td class="title" style="font-weight: normal; border-top: 1px solid black;">E</td>
+                    <td class="title" style="font-weight: normal; border-top: 1px solid black;">F</td>
+                    <td class="title" colspan="2" style="font-weight: normal; border-top: 1px solid black;">G</td>
+                    <td class="title" style="font-weight: normal; border-top: 1px solid black;">H</td>
+                    <td class="title" style="font-weight: normal; border-top: 1px solid black;">I</td>
+                </tr>
+                <tr>
+                    <td rowspan="2" class="title" style="border-left: 1px solid black;">Item No.</td>
+                    <td rowspan="2" class="title">Description of Work</td>
+                    <td rowspan="2" class="title">Scheduled Value</td>
+                    <td class="title" colspan="2">Work Completed</td>
+                    <td rowspan="2" class="title">Materials Presently Stored (Not In D&nbsp;or&nbsp;E)</td>
+                    <td rowspan="2" class="title">Total Completed And Stored To Date (D&nbsp;+&nbsp;E&nbsp;+&nbsp;F)</td>
+                    <td rowspan="2" class="title">% (G/C)</td>
+                    <td rowspan="2" class="title">Balance To Finish (C&nbsp;-&nbsp;G)</td>
+                    <td rowspan="2" class="title">Retainage</td>
+                </tr>
+                <tr>
+                    <td class="title">From Previous Application (D&nbsp;+&nbsp;E)</td>
+                    <td class="title">This Period</td>
+                </tr>
+            </thead>
+            <tbody>
+                <apex:variable var="counter" value="{!1}"/>
+                <apex:repeat value="{!content.lines}" var="line">
+                    <tr>
+                        <td class="line" style="border-left: 1px solid black;">{!counter}</td>
+                        <td class="line left">{!line.serviceName}</td>
+                        <td class="line">
+                            <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!line.showServiceAmount}">
+                                 <apex:param value="{!line.serviceAmount}"/>
+                            </apex:outputText>
+                        </td>
+                        <td class="line">
+                            <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!line.showPriorBilling}">
+                                 <apex:param value="{!line.priorBilling}"/>
+                            </apex:outputText>
+                        </td>
+                        <td class="line">
+                            <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!line.showCurrentBilling}">
+                                 <apex:param value="{!line.currentBilling}"/>
+                            </apex:outputText>
+                        </td>
+                        <td class="line">N/A</td>
+                        <td class="line">
+                            <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!line.showTotalCompleted}">
+                                 <apex:param value="{!line.totalCompleted}"/>
+                            </apex:outputText>
+                        </td>
+                        <td class="line">
+                            <apex:outputText value="{0, number,###,###,##0.00}" rendered="{!line.showPercentage}">
+                                 <apex:param value="{!line.percentage}"/>
+                            </apex:outputText>
+                        </td>
+                        <td class="line">
+                            <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!line.showBalanceToFinish}">
+                                 <apex:param value="{!line.balanceToFinish}"/>
+                            </apex:outputText>
+                        </td>
+                        <td class="line">N/A</td>
+                    </tr>
+                    <apex:variable var="counter" value="{!counter + 1}"/>
+                </apex:repeat>
+            </tbody>
+            <tbody>
+                <tr>
+                    <td class="footer" style="border-left: 1px solid black;"></td>
+                    <td class="footer left">TOTALS</td>
+                    <td class="footer">
+                        <apex:outputText value="${0, number,###,###,##0.00}">
+                             <apex:param value="{!content.serviceAmount}"/>
+                        </apex:outputText>
+                    </td>
+                    <td class="footer">
+                        <apex:outputText value="${0, number,###,###,##0.00}">
+                             <apex:param value="{!content.priorBilling}"/>
+                        </apex:outputText>
+                    </td>
+                    <td class="footer">
+                        <apex:outputText value="${0, number,###,###,##0.00}">
+                             <apex:param value="{!content.currentBilling}"/>
+                        </apex:outputText>
+                    </td>
+                    <td class="footer">N/A</td>
+                    <td class="footer">
+                        <apex:outputText value="${0, number,###,###,##0.00}">
+                             <apex:param value="{!content.totalCompleted}"/>
+                        </apex:outputText>
+                    </td>
+                    <td class="footer">
+                        <apex:outputText value="{0, number,###,###,##0.00}">
+                             <apex:param value="{!content.percentage}"/>
+                        </apex:outputText>
+                    </td>
+                    <td class="footer">
+                        <apex:outputText value="${0, number,###,###,##0.00}">
+                             <apex:param value="{!content.balanceToFinish}"/>
+                        </apex:outputText>
+                    </td>
+                    <td class="footer">N/A</td>
+                </tr>
+            </tbody>
+        </table>
+    </apex:outputPanel>
+</apex:page>

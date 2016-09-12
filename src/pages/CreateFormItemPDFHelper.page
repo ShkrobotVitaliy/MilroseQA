@@ -1,0 +1,14 @@
+<apex:page controller="CreateFormItemPDFController" action="{!runDdp}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <apex:form >
+        <script type="text/javascript">
+            $(document).ready(function () {
+                runDdp();
+            });
+        </script>
+        Sending request for Document creation...<br/>
+        <apex:pageMessages id="msgs"/>
+        <apex:commandButton rendered="{!!isValid}" value="Go Back" action="{!goBack}"/>
+        <apex:actionFunction name="runDdp" action="{!runDdp}"/>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,188 @@
+<apex:component >
+    <style type="text/css">
+        table                               { border-collapse: collapse; }
+        td, th                              { white-space: normal; }
+        td                                  { padding: 2px 8px 2px 2px !important; }
+        a                                   { color: #00f; }
+        textarea                            { height: 100%; width: 100%; resize: none; }
+        td.td-table                         { padding: 0 !important; }
+        .t-italic                           { font-style: italic; }
+        input.dataPicker                    { width: 30%; }
+        .sectionRow                         { display: table-row; }
+        .component-name                     { background: #17467A !important; color: #fff !important; font-size: 14px;
+                                              text-align: left !important; text-decoration: underline; }
+        .component-massage                  { font-weight: 400; font-size: 12px !important; }
+        .mainRequestHeader                  { font-weight: 700; }
+        td.permission-massage               { background: #D9D9D9; text-align: center; font-style: italic; }
+        .tr-separator                       { background: #548DD4; height: 5px; }
+        .sectionTitle                       { background: #DBE5F1; }
+        .titleDescription                   { background: #8DB3E2; color: #fff; text-decoration: underline; }
+        .generalTableStyle th.sectionHint   { background: #fff; color: #00f; text-align: left; }
+        .col-content                        { margin-left: 2%; margin-right: 2%; }
+    </style>
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+    <script>
+       	if ( typeof DatePicker != "undefined" ) {
+	        DatePicker.prototype.position = function() {
+	            var datePicker = $('div.datePicker');
+	            var elementLeft = $(this.myElement).position().left;
+	            var elementTop = $(this.myElement).position().top;
+	            var elementHeight = $(this.myElement).outerHeight();
+	            var datePickerHeight = datePicker.outerHeight();
+	            var topHeaderHeight = $('#AppBodyHeader').outerHeight();
+	            var maxTop = $(window).height() - topHeaderHeight - datePickerHeight - 15;
+	            var datePickerTop = elementTop + elementHeight + 5;
+	            if( datePickerTop > maxTop ) datePickerTop = elementTop - datePickerHeight - 3;
+	            $('div.datePicker').css('top', datePickerTop);
+	            $('div.datePicker').css('left', elementLeft);
+	        };
+       	}
+
+        $(document).ready(function() {
+            $('textarea')
+              .attr("maxlength", "1000")
+              .css("width", "100%");
+        });
+    </script>
+
+    <apex:attribute name="scopeName" description="Name of the scope template to be shown" type="String" required="true" />
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" />
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="false" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <c:NYC_RFI01 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI01'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI02 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI02'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI03 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI03'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI04 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI04'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI05 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI05'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI06 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI06'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI07 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI07'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI08 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI08'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI08B recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI08B'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI09 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI09'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI10 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI10'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI11 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI11'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI12 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI12'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI13 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI13'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI14 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI14'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI15 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI15'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI16 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI16'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI17 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI17'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI18 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI18'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI19 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI19'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI20 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI20'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI21 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI21'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI22 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI22'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI23 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI23'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI24 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI24'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI25 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI25'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI26 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI26'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI27 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI27'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI28 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI28'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NYC_RFI29 recordId="{!recordId}" rendered="{!scopeName == 'NYC_RFI29'}" projectView="{!projectView}" show2column="{!show2column}"/>
+
+    <!-- LI_RFI -->
+    <c:LI_RFI01 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI01'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI02 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI02'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI03 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI03'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI04 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI04'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI05 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI05'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI06 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI06'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI07 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI07'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI08 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI08'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI09 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI09'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI10 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI10'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI11 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI11'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI12 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI12'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI13 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI13'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI14 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI14'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI15 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI15'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI16 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI16'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI17 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI17'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI18 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI18'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI19 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI19'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI20 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI20'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI21 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI21'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI22 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI22'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI23 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI23'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI24 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI24'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI25 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI25'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI26 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI26'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:LI_RFI27 recordId="{!recordId}" rendered="{!scopeName == 'LI_RFI27'}" projectView="{!projectView}" show2column="{!show2column}"/>
+
+    <!-- CT_RFI -->
+    <c:CT_RFI01 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI01'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI02 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI02'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI03 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI03'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI04 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI04'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI05 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI05'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI06 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI06'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI07 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI07'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI08 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI08'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI09 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI09'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI10 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI10'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI11 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI11'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI12 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI12'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI13 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI13'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI14 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI14'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI15 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI15'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI16 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI16'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI17 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI17'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI18 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI18'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI19 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI19'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI20 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI20'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI21 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI21'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI22 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI22'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI23 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI23'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI24 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI24'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI25 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI25'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI26 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI26'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:CT_RFI27 recordId="{!recordId}" rendered="{!scopeName == 'CT_RFI27'}" projectView="{!projectView}" show2column="{!show2column}"/>
+
+    <!-- NJ_RFI -->
+    <c:NJ_RFI01 recordId="{!recordId}" rendered="{!scopeName == 'NJ_RFI01'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NJ_RFI02 recordId="{!recordId}" rendered="{!scopeName == 'NJ_RFI02'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NJ_RFI03 recordId="{!recordId}" rendered="{!scopeName == 'NJ_RFI03'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NJ_RFI04 recordId="{!recordId}" rendered="{!scopeName == 'NJ_RFI04'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NJ_RFI05 recordId="{!recordId}" rendered="{!scopeName == 'NJ_RFI05'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NJ_RFI06 recordId="{!recordId}" rendered="{!scopeName == 'NJ_RFI06'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NJ_RFI07 recordId="{!recordId}" rendered="{!scopeName == 'NJ_RFI07'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NJ_RFI08 recordId="{!recordId}" rendered="{!scopeName == 'NJ_RFI08'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NJ_RFI09 recordId="{!recordId}" rendered="{!scopeName == 'NJ_RFI09'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NJ_RFI10 recordId="{!recordId}" rendered="{!scopeName == 'NJ_RFI10'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NJ_RFI11 recordId="{!recordId}" rendered="{!scopeName == 'NJ_RFI11'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NJ_RFI12 recordId="{!recordId}" rendered="{!scopeName == 'NJ_RFI12'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NJ_RFI13 recordId="{!recordId}" rendered="{!scopeName == 'NJ_RFI13'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NJ_RFI14 recordId="{!recordId}" rendered="{!scopeName == 'NJ_RFI14'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NJ_RFI15 recordId="{!recordId}" rendered="{!scopeName == 'NJ_RFI15'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:NJ_RFI16 recordId="{!recordId}" rendered="{!scopeName == 'NJ_RFI16'}" projectView="{!projectView}" show2column="{!show2column}"/>
+
+    <!-- PENN / MD / DE  -->
+    <c:PA_RFI01 recordId="{!recordId}" rendered="{!scopeName == 'PA_RFI01'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:PA_RFI02 recordId="{!recordId}" rendered="{!scopeName == 'PA_RFI02'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:PA_RFI03 recordId="{!recordId}" rendered="{!scopeName == 'PA_RFI03'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:PA_RFI04 recordId="{!recordId}" rendered="{!scopeName == 'PA_RFI04'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:PA_RFI05 recordId="{!recordId}" rendered="{!scopeName == 'PA_RFI05'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:PA_RFI06 recordId="{!recordId}" rendered="{!scopeName == 'PA_RFI06'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:PA_RFI07 recordId="{!recordId}" rendered="{!scopeName == 'PA_RFI07'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:PA_RFI08 recordId="{!recordId}" rendered="{!scopeName == 'PA_RFI08'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:PA_RFI09 recordId="{!recordId}" rendered="{!scopeName == 'PA_RFI09'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:PA_RFI10 recordId="{!recordId}" rendered="{!scopeName == 'PA_RFI10'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:PA_RFI11 recordId="{!recordId}" rendered="{!scopeName == 'PA_RFI11'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:PA_RFI12 recordId="{!recordId}" rendered="{!scopeName == 'PA_RFI12'}" projectView="{!projectView}" show2column="{!show2column}"/>
+
+    <!-- DC  -->
+    <c:DC_RFI01 recordId="{!recordId}" rendered="{!scopeName == 'DC_RFI01'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:DC_RFI02 recordId="{!recordId}" rendered="{!scopeName == 'DC_RFI02'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:DC_RFI03 recordId="{!recordId}" rendered="{!scopeName == 'DC_RFI03'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:DC_RFI04 recordId="{!recordId}" rendered="{!scopeName == 'DC_RFI04'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:DC_RFI05 recordId="{!recordId}" rendered="{!scopeName == 'DC_RFI05'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:DC_RFI06 recordId="{!recordId}" rendered="{!scopeName == 'DC_RFI06'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:DC_RFI07 recordId="{!recordId}" rendered="{!scopeName == 'DC_RFI07'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:DC_RFI08 recordId="{!recordId}" rendered="{!scopeName == 'DC_RFI08'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:DC_RFI09 recordId="{!recordId}" rendered="{!scopeName == 'DC_RFI09'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:DC_RFI10 recordId="{!recordId}" rendered="{!scopeName == 'DC_RFI10'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:DC_RFI11 recordId="{!recordId}" rendered="{!scopeName == 'DC_RFI11'}" projectView="{!projectView}" show2column="{!show2column}"/>
+    <c:DC_RFI12 recordId="{!recordId}" rendered="{!scopeName == 'DC_RFI12'}" projectView="{!projectView}" show2column="{!show2column}"/>
+</apex:component>

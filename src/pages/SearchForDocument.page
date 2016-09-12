@@ -1,0 +1,862 @@
+<apex:page controller="SearchForDocumentContExt" sidebar="false" showChat="false">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+
+    <apex:stylesheet value="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/css/jquery.dataTables.css')}"/>
+    <script src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.js')}" />
+    <script src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.dataTables.js')}" />
+    <script src="{!URLFOR($Resource.DatetimeUS)}" />
+    <script src="{!URLFOR($Resource.DateUS)}" />
+
+    <script>function setFocusOnLoad() {}</script>
+    <script>
+        function numberRecordBlock() {
+            if($("select[id$=typeDocument]").val() != '') {
+                $("span[id$=numberRecordBlock]").show();
+            } else {
+                $("span[id$=numberRecordBlock]").hide();
+            }
+        }
+        function showOverlay(){
+            $('#overlayContent').show().fadeTo('slow', 1.0); 
+            $('#AllPannelOverlay').show().fadeTo('slow', 0.7);
+        }
+        function hideOverlay(){
+            $('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); 
+            $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });
+        }
+    </script>
+
+    <apex:stylesheet value="{!$Resource.HomePage_CSS}"/> 
+    <style>
+        .searchForDocumentClass table.detailList {
+            width: auto !important;
+        }
+        .searchForDocumentClass table.detailList td {
+            padding-right: 0 !important;
+            width: auto !important;
+            padding-left: 5px !important;
+        }
+        .searchForDocumentClass table.detailList th {
+            padding-right: 0 !important;
+            width: auto !important;
+            padding-left: 20px !important;
+        }
+
+        .homeTab .searchForDocumentClass .tertiaryPalette {
+            background-color: #1797C0;
+        }
+        body{
+             overflow:auto;
+        }
+    </style>
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}" />
+
+    <apex:form >
+        <apex:pageMessages id="messagesId" />
+        <apex:actionFunction name="clearFilter" action="{!clearFilter}" reRender="artifacts, mainFilterSection, artifactsBlockId, messagesId" status="allPanelsOverlay"/>
+        <apex:actionFunction name="onChangeField" reRender="artifacts, mainFilterSection, artifactsBlockId, messagesId" status="allPanelsOverlay"/>
+
+        <apex:actionFunction name="rerenderMainFilterPanel" reRender="mainFilterSection" oncomplete="rerenderAddFiltersAndTable();"/>
+        <apex:actionFunction name="rerenderAddFiltersAndTable" action="{!clearFiltersForLegacyDocs}" reRender="artifacts, mainFilterSection, artifactsBlockId" status="allPanelsOverlay"/>
+
+       <apex:outputPanel styleClass="searchForDocumentClass">
+            <apex:actionStatus id="allPanelsOverlay" onstart="showOverlay();" onstop="hideOverlay();"/>
+            <div class="overlay" id="AllPannelOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"/>
+            <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+                <div style="text-align: center;">
+                    <img src="{!$Resource.loading_bar}" />
+                    <p style="color: #000; margin-bottom: 0px; font-size: 24px;">Please wait</p>
+                </div>
+            </div>
+            
+            <apex:actionFunction name="search" action="{!searchAction}"/>
+           
+            <apex:pageBlock title="Filter" mode="inlineEdit" id="mainBlockId">
+                <apex:pageBlockButtons location="bottom">
+                    <apex:commandButton value="Search" action="{!searchAction}" /> <!-- reRender="artifacts, mainFilterSection, artifactsBlockId, messagesId" status="allPanelsOverlay" -->
+                </apex:pageBlockButtons>
+
+                <apex:outputPanel id="mainFilterSection" layout="block">
+
+                    <apex:pageBlockSection columns="3">
+
+                           <apex:pageBlockSectionItem >
+                               <apex:outputLabel value="{!$ObjectType.LStore__Stored_Document__c.fields.Artifacts_Category__c.Label}:"/>
+                               <apex:selectList value="{!lstoreStoredDocumenFilter.Artifacts_Category__c}" multiselect="false" size="1" onchange="clearFilter();">
+                                    <apex:selectOptions value="{!artifactsCategory}"/>
+                               </apex:selectList>
+                           </apex:pageBlockSectionItem>
+
+                           <apex:pageBlockSectionItem id="uploadLevelSection" rendered="{!lstoreStoredDocumenFilter.Artifacts_Category__c != getAccountingDocuments && lstoreStoredDocumenFilter.Artifacts_Category__c != getProposals}">
+                               <apex:outputLabel value="Upload Level:"/>
+                               <apex:outputPanel id="typeObjectKeyPrefixBlock">
+                                   <apex:selectList id="typeDocument" value="{!filterFields.typeObjectKeyPrefix}" multiselect="false" size="1" onchange="numberRecordBlock();">
+                                       <apex:selectOptions value="{!typeDocument}"/>
+                                   </apex:selectList>
+                               </apex:outputPanel>
+                           </apex:pageBlockSectionItem>
+
+                           <apex:pageBlockSectionItem id="generationLevelSection" rendered="{!lstoreStoredDocumenFilter.Artifacts_Category__c == getAccountingDocuments }">
+                               <apex:outputLabel value="Generated Level:"/>
+                               <apex:outputPanel id="typeGenerationObjectKeyPrefixBlock">
+                                   <apex:selectList id="typeGeneratedDocument" value="{!filterFields.typeObjectKeyPrefix}" multiselect="false" size="1"
+                                   onchange="numberRecordBlock(); rerenderMainFilterPanel();">
+                                       <apex:selectOptions value="{!typeGeneratedDocument}"/>
+                                    </apex:selectList>
+                               </apex:outputPanel>
+                           </apex:pageBlockSectionItem>
+
+                           <apex:pageBlockSectionItem id="documentTypeSection" rendered="{!lstoreStoredDocumenFilter.Artifacts_Category__c == getAccountingDocuments }">
+                               <apex:outputLabel value="Document Type:"/>
+                               <apex:outputPanel id="documentTypeObjectKeyPrefixBlock">
+                                   <apex:selectList id="typeDocumentType" value="{!filterFields.accountingDocTypeObjectKeyPrefix}" multiselect="false" size="1" onchange="numberRecordBlock(); rerenderAddFiltersAndTable();">
+                                       <apex:selectOptions value="{!documentTypeOptions}"/>
+                                   </apex:selectList>
+                               </apex:outputPanel>
+                           </apex:pageBlockSectionItem>
+
+                     </apex:pageBlockSection>
+                 </apex:outputPanel>
+                 <apex:outputPanel id="artifacts" layout="block">
+
+                    <!--Additional Documents-->
+                    <apex:outputPanel layout="block" rendered="{!getAdditionalDocuments == lstoreStoredDocumenFilter.Artifacts_Category__c || lstoreStoredDocumenFilter.Artifacts_Category__c == null}" >
+
+                        <apex:pageBlockSection columns="4" collapsible="false" title="Additional Filters">
+                            <!--Document Title-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel id="DrawingsTitleOutputPanel" value="Document Title:"/>
+                                <apex:inputText id="DrawingsTitleField" value="{!lstoreStoredDocumenFilter.Drawings_Title__c}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Description-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Document Description:"/>
+                                <apex:inputText value="{!lstoreStoredDocumenFilter.LStore__Description__c}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Document Author-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Document Author:"/>
+                                <apex:inputText value="{!filterFields.author}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Key Words-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Key Words:"/>
+                                <apex:inputText value="{!lstoreStoredDocumenFilter.LStore__Keywords__c}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Project MRC#-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Project MRC #:"/>
+                                <apex:inputText value="{!filterFields.projectNamber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Project Name-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Project Name:"/>
+                                <apex:inputText value="{!filterFields.projectName}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Address-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Address:"/>
+                                <apex:inputText value="{!filterFields.address}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Service #-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Service #:"/>
+                                <apex:inputText value="{!filterFields.serviceItemNumber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Task Item #-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Task Item #:"/>
+                                <apex:inputText value="{!filterFields.taskItemNumber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Proposal #-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Proposal #:"/>
+                                <apex:inputText value="{!filterFields.proposalNumber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Proposal Draft#-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Proposal Draft #:"/>
+                                <apex:inputText value="{!filterFields.proposalDraftNumber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Change Order #-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Change Order #:"/>
+                                <apex:inputText value="{!filterFields.changeOrderNumber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Created By-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Created By:"/>
+                                <apex:inputText value="{!filterFields.createdByName}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Created-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Created Date:"/>
+                                <apex:inputField value="{!lstoreStoredDocumenFilter.Drawing_Revision_Date__c}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Primary Client-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Primary Client:"/>
+                                <apex:inputText value="{!filterFields.primaryClient}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Billing Client-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Billing Client:"/>
+                                <apex:inputText value="{!filterFields.billingClient}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Accounting Client-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Accounting Client:"/>
+                                <apex:inputText value="{!filterFields.accountingClient}" />
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+
+                    </apex:outputPanel>
+
+                    <!--Drawings-->
+                    <apex:outputPanel layout="block" rendered="{!getDrawings == lstoreStoredDocumenFilter.Artifacts_Category__c}" >
+                        <apex:pageBlockSection columns="4" collapsible="false" title="Additional Filters">
+                            <!--Drawings Title-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel id="DrawingsTitleOutputPanel" value="Drawings Title:"/>
+                                <apex:inputText id="DrawingsTitleField" value="{!lstoreStoredDocumenFilter.Drawings_Title__c}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Drawings Description-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel id="DrawingsTitleOutputPanel" value="Drawings Description:"/>
+                                <apex:inputText id="DrawingsTitleField" value="{!lstoreStoredDocumenFilter.LStore__Description__c}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Drawing Number-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel id="DrawingsTitleOutputPanel" value="Drawings Number:"/>
+                                <apex:inputText id="DrawingsTitleField" value="{!lstoreStoredDocumenFilter.Drawing_Number__c}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Drawing Author-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Drawings Author:"/>
+                                <apex:inputText value="{!filterFields.author}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Work Type-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Work Type:"/>
+                                <apex:inputText value="{!lstoreStoredDocumenFilter.Worktype__c}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Municipal Form Type/Name-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Municipal Form Type/Name:"/>
+                                <apex:inputText value="{!filterFields.municipalFormTypeName}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Municipal Description ID-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.LStore__Stored_Document__c.fields.Municipal_Description_ID__c.Label}:"/>
+                                <apex:inputField value="{!lstoreStoredDocumenFilter.Municipal_Description_ID__c}" style="width: 138px;"/>
+                            </apex:pageBlockSectionItem>
+
+                            <!--Tenant-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Tenant:"/>
+                                <apex:inputText value="{!lstoreStoredDocumenFilter.Tenant__c}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Key Words-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Key Words:"/>
+                                <apex:inputText value="{!lstoreStoredDocumenFilter.LStore__Keywords__c}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Project MRC#-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Project MRC#:"/>
+                                <apex:inputText value="{!filterFields.projectNamber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Project Name-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Project Name:"/>
+                                <apex:inputText value="{!filterFields.projectName}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Address-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Address:"/>
+                                <apex:inputText value="{!filterFields.address}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Service #-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Service #:"/>
+                                <apex:inputText value="{!filterFields.serviceItemNumber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Task Item #-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Task Item #:"/>
+                                <apex:inputText value="{!filterFields.taskItemNumber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Proposal #-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Proposal #:"/>
+                                <apex:inputText value="{!filterFields.proposalNumber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Created By-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Created By:"/>
+                                <apex:inputText value="{!filterFields.createdByName}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Created-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Created Date:"/>
+                                <apex:inputField value="{!lstoreStoredDocumenFilter.Drawing_Revision_Date__c}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Primary Client-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Primary Client:"/>
+                                <apex:inputText value="{!filterFields.primaryClient}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Billing Client-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Billing Client:"/>
+                                <apex:inputText value="{!filterFields.billingClient}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Accounting Client-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Accounting Client:"/>
+                                <apex:inputText value="{!filterFields.accountingClient}" />
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                    </apex:outputPanel>
+
+                    <!--Generated Forms-->
+                    <apex:outputPanel layout="block" rendered="{!getGeneratedForms == lstoreStoredDocumenFilter.Artifacts_Category__c}" >
+                        <apex:pageBlockSection columns="4" collapsible="false" title="Additional Filters">
+
+                            <!--Form Ref #-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel id="formRefNumberOutputPanel" value="Form Ref #:"/>
+                                <apex:inputText id="formRefNumberField" value="{!filterFields.formNamber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Short Name-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel id="shortNameOutputPanel" value="Short Name:"/>
+                                <apex:inputText id="shortNameField" value="{!filterFields.shortName}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Long Name-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel id="longNameOutputPanel" value="Long Name:"/>
+                                <apex:inputText id="longNameField" value="{!filterFields.longName}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Description-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel id="DrawingsTitleOutputPanel" value="Description:"/>
+                                <apex:inputText id="DrawingsTitleField" value="{!lstoreStoredDocumenFilter.LStore__Description__c}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Region-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel id="formRegionOutputPanel" value="Region:"/>
+                                <apex:selectList id="formRegionField" value="{!filterFields.formRegion}" multiselect="false" size="1">
+                                    <apex:selectOptions value="{!regionNameOptions}"/>
+                                </apex:selectList>
+                            </apex:pageBlockSectionItem>
+
+                            <!--Municipality-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel id="formMunicipalityOutputPanel" value="Municipality:"/>
+                                <apex:inputText id="formMunicipalityField" value="{!lstoreStoredDocumenFilter.Municipal_Agency_Id__c}" />
+                            </apex:pageBlockSectionItem>
+                            
+                            <!--Project MRC#-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Project MRC #:"/>
+                                <apex:inputText value="{!filterFields.projectNamber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Service #-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Service #:"/>
+                                <apex:inputText value="{!filterFields.serviceItemNumber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Task Item #-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Task Item #:"/>
+                                <apex:inputText value="{!filterFields.taskItemNumber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Created By-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Created By:"/>
+                                <apex:inputText value="{!filterFields.createdByName}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Created-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Created Date:"/>
+                                <apex:inputField value="{!lstoreStoredDocumenFilter.Drawing_Revision_Date__c}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Primary Client-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Primary Client:"/>
+                                <apex:inputText value="{!filterFields.primaryClient}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Billing Client-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Billing Client:"/>
+                                <apex:inputText value="{!filterFields.billingClient}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Accounting Client-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Accounting Client:"/>
+                                <apex:inputText value="{!filterFields.accountingClient}" />
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                    </apex:outputPanel>
+
+                    <!--Proposals-->
+                    <apex:outputPanel layout="block" rendered="{!getProposals == lstoreStoredDocumenFilter.Artifacts_Category__c}" >
+                        <apex:pageBlockSection columns="4" collapsible="false" title="Additional Filters">
+
+                            <!--Proposal #-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Proposal #:"/>
+                                <apex:inputText value="{!filterFields.proposalNumber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Change Order #-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Change Order #:"/>
+                                <apex:inputText value="{!filterFields.changeOrderNumber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Project Name-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Project Name:"/>
+                                <apex:inputText value="{!filterFields.projectName}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Description-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Document Description:"/>
+                                <apex:inputText value="{!lstoreStoredDocumenFilter.LStore__Description__c}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Created By-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Created By:"/>
+                                <apex:inputText value="{!filterFields.createdByName}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Project MRC#-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Project MRC #:"/>
+                                <apex:inputText value="{!filterFields.projectNamber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Address-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Address:"/>
+                                <apex:inputText value="{!filterFields.address}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Created-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Created Date:"/>
+                                <apex:inputField value="{!lstoreStoredDocumenFilter.Drawing_Revision_Date__c}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Proposal Status-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel id="proposalStatusOutputPanel" value="Proposal Status:"/>
+                                <apex:selectList id="proposalStatusField" value="{!filterFields.statusProposal}" multiselect="false" size="1">
+                                    <apex:selectOptions value="{!proposalStatusOptions}"/>
+                                </apex:selectList>
+                            </apex:pageBlockSectionItem>
+
+                            <!--Primary Client-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Primary Client:"/>
+                                <apex:inputText value="{!filterFields.primaryClient}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Billing Client-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Billing Client:"/>
+                                <apex:inputText value="{!filterFields.billingClient}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Accounting Client-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Accounting Client:"/>
+                                <apex:inputText value="{!filterFields.accountingClient}" />
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                    </apex:outputPanel>
+
+                    <!--Accounting Documents-->
+                    <apex:outputPanel layout="block" rendered="{!getAccountingDocuments == lstoreStoredDocumenFilter.Artifacts_Category__c}">
+
+                        <apex:pageBlockSection columns="4" collapsible="false" title="Additional Filters">
+                            <!--Project MRC#-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Project MRC #:"/>
+                                <apex:inputText value="{!filterFields.projectNamber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Project Name-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Project Name:"/>
+                                <apex:inputText value="{!filterFields.projectName}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Address-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Address:"/>
+                                <apex:inputText value="{!filterFields.address}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Proposal #-->
+                            <apex:pageBlockSectionItem rendered="{! NOT(isLegacyDocument) }">
+                                <apex:outputLabel value="Proposal #:"/>
+                                <apex:inputText value="{!filterFields.proposalNumber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Empty Section-->
+                            <apex:pageBlockSectionItem rendered="{! isLegacyDocument }">
+                            </apex:pageBlockSectionItem>
+
+                            <!--Created By-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Created By:"/>
+                                <apex:inputText value="{!filterFields.createdByName}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Created-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Created Date:"/>
+                                <apex:inputField value="{!lstoreStoredDocumenFilter.Drawing_Revision_Date__c}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Primary Client-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Primary Client:"/>
+                                <apex:inputText value="{!filterFields.primaryClient}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Billing Client-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Billing Client:"/>
+                                <apex:inputText value="{!filterFields.billingClient}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Accounting Client-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Accounting Client:"/>
+                                <apex:inputText value="{!filterFields.accountingClient}" />
+                            </apex:pageBlockSectionItem>
+
+                        </apex:pageBlockSection>
+
+                    </apex:outputPanel>
+
+                    <!--Other-->
+                    <apex:outputPanel layout="block" rendered="{!getOther == lstoreStoredDocumenFilter.Artifacts_Category__c}" >
+
+                        <apex:pageBlockSection columns="4" collapsible="false" title="Additional Filters">
+                            <!--Document Title-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel id="DrawingsTitleOutputPanel" value="Document Title:"/>
+                                <apex:inputText id="DrawingsTitleField" value="{!lstoreStoredDocumenFilter.Drawings_Title__c}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Description-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Document Description:"/>
+                                <apex:inputText value="{!lstoreStoredDocumenFilter.LStore__Description__c}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Created By-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Created By:"/>
+                                <apex:inputText value="{!filterFields.createdByName}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Project MRC#-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Project MRC #:"/>
+                                <apex:inputText value="{!filterFields.projectNamber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Project Name-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Project Name:"/>
+                                <apex:inputText value="{!filterFields.projectName}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Address-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Address:"/>
+                                <apex:inputText value="{!filterFields.address}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Service #-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Service #:"/>
+                                <apex:inputText value="{!filterFields.serviceItemNumber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Task Item #-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Task Item #:"/>
+                                <apex:inputText value="{!filterFields.taskItemNumber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Proposal #-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Proposal #:"/>
+                                <apex:inputText value="{!filterFields.proposalNumber}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Created-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Created Date:"/>
+                                <apex:inputField value="{!lstoreStoredDocumenFilter.Drawing_Revision_Date__c}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Primary Client-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Primary Client:"/>
+                                <apex:inputText value="{!filterFields.primaryClient}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Billing Client-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Billing Client:"/>
+                                <apex:inputText value="{!filterFields.billingClient}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!--Accounting Client-->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Accounting Client:"/>
+                                <apex:inputText value="{!filterFields.accountingClient}" />
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                    </apex:outputPanel>
+
+                </apex:outputPanel>
+
+            </apex:pageBlock>
+        </apex:outputPanel>
+
+        <apex:pageBlock title="Artifacts:" id="artifactsBlockId">
+            <apex:pageBlockButtons location="both" style="text-align:left;" />
+                        
+            <apex:pageBlockTable value="{!lstoreStoredDocumenResults}" var="item" styleClass="dataTable">
+                <!--Document-->
+                <apex:column >
+                    <apex:facet name="header"> Document </apex:facet>
+                    <apex:commandLink value="{!item.Name}" action="{!openPDF}" target="_blank" oncomplete="window.open('{!downloadPdfUrl}'); return false;">
+                        <apex:param name="selectedId" value="{!item.Id}" />
+                        <apex:param name="relatedId"  value="{!item.LStore__Related_Object_Id__c}" />
+                    </apex:commandLink>
+                </apex:column>
+                
+                <!--Title-->
+                <apex:column >
+                    <apex:facet name="header"> Document Title </apex:facet>
+                    
+                    <apex:outputLink value="/{!item.Id}" target="_blank" rendered="{!item.Form_Item_Copy__r.Form_Name__c==null}">
+                        <apex:outputText value="{!item.Drawings_Title__c}"/>
+                    </apex:outputLink>
+                    
+                    <apex:outputLink value="/{!item.Id}" target="_blank" rendered="{!item.Form_Item_Copy__r.Form_Name__c!=null}">
+                        <apex:outputText value="{!item.Form_Item_Copy__r.Form_Name__c}"/>
+                    </apex:outputLink>
+                </apex:column>
+
+                <!--Folder-->
+                <apex:column rendered="{!getAccountingDocuments != lstoreStoredDocumenFilter.Artifacts_Category__c}">
+                    <apex:facet name="header"> Folder </apex:facet>
+                    <apex:outputText value="{!item.Folder_Name__c}"/>
+                </apex:column>
+
+                <!--Project MRC#-->
+                <apex:column rendered="{!!isLegacyDocument && !isStatementsOfAccountsDocument}">
+                    <apex:facet name="header"> Project MRC# </apex:facet>
+                       
+                    <apex:outputLink value="/{!item.Project__c}" target="_blank">
+                        <apex:outputText value="{!item.Project__r.Name}"/>
+                    </apex:outputLink>
+                </apex:column>
+
+                <!--Legacy Project#-->
+                <apex:column rendered="{!isLegacyDocument}">
+                    <apex:facet name="header"> Legacy Project # </apex:facet>
+                    
+                    <apex:outputLink value="/{!item.Project_Mi7__c}" target="_blank">
+                        <apex:outputText value="{!item.Project_Mi7__r.MRC__c}"/>
+                    </apex:outputLink>
+                </apex:column>
+
+                <!--Legacy Project Name-->
+                <apex:column rendered="{!isLegacyDocument}">
+                    <apex:facet name="header"> Legacy Project Name </apex:facet>
+                     
+                    <apex:outputLink value="/{!item.Project_Mi7__c}" target="_blank">
+                        <apex:outputText value="{!item.Project_Mi7__r.Name}"/>
+                    </apex:outputLink>
+                </apex:column>
+
+                <!--Service #-->
+                <apex:column rendered="{!getAccountingDocuments != lstoreStoredDocumenFilter.Artifacts_Category__c}">
+                    <apex:facet name="header" > Service # </apex:facet>
+                     
+                    <apex:outputLink value="/{!item.Service_Item__c}" target="_blank">
+                        <apex:outputText value="{!item.Service_Item__r.Name}"/>
+                    </apex:outputLink>
+                </apex:column>
+
+                <!--Task Item #-->
+                <apex:column rendered="{!getAccountingDocuments != lstoreStoredDocumenFilter.Artifacts_Category__c}">
+                    <apex:facet name="header"> Task Item # </apex:facet>
+                    
+                    <apex:outputLink value="/{!item.Task_Item__c}" target="_blank">
+                        <apex:outputText value="{!item.Task_Item__r.GUID__c}"/>
+                    </apex:outputLink>
+                </apex:column>
+
+                <!--Proposal #-->
+                <apex:column rendered="{!!isLegacyDocument && !isStatementsOfAccountsDocument}">
+                    <apex:facet name="header"> Proposal # </apex:facet>
+                    
+                    <apex:outputLink value="/{!item.Proposal__c}" target="_blank">
+                        <apex:outputText value="{!item.Proposal__r.Name}"/>
+                    </apex:outputLink>
+                </apex:column>
+
+                <!--Pro-forma Invoice #-->
+                <apex:column rendered="{!getAccountingDocuments == lstoreStoredDocumenFilter.Artifacts_Category__c && !isLegacyDocument && !isDepositInvoiceDocument && !isAccountSummaryRecapReportDocument && !isStatementsOfAccountsDocument}">
+                    <apex:facet name="header" > Pro-forma Invoice # </apex:facet>
+                    
+                    <apex:outputLink value="/{!item.Pro_forma_Invoice__c}" target="_blank">
+                        <apex:outputText value="{!item.Pro_forma_Invoice__r.Name}"/>
+                    </apex:outputLink>
+                </apex:column>
+
+                <!--Deposit Invoice #-->
+                <apex:column rendered="{!getAccountingDocuments == lstoreStoredDocumenFilter.Artifacts_Category__c && isDepositInvoiceDocument}">
+                    <apex:facet name="header"> Deposit Invoice # </apex:facet>
+                    
+                    <apex:outputLink value="/{!item.Deposit_Invoice__c}" target="_blank">
+                        <apex:outputText value="{!item.Deposit_Invoice__r.Deposit_Invoice_Number__c}"/>
+                    </apex:outputLink>
+                </apex:column>
+
+                <!--Legacy Pro-forma Invoice #-->
+                <apex:column rendered="{!isLegacyDocument}">
+                    <apex:facet name="header"> Legacy Pro-forma Invoice # </apex:facet>
+                    
+                    <apex:outputLink value="/{!item.Legacy_Pro_forma_Invoice__c}" target="_blank">
+                        <apex:outputText value="{!item.Legacy_Pro_forma_Invoice__r.Name}"/>
+                    </apex:outputLink>
+                </apex:column>
+
+                <!--Account-->
+                <apex:column rendered="{!filterFields.accountingDocTypeObjectKeyPrefix == 'Account'}">
+                    <apex:facet name="header"> Account </apex:facet>
+                    
+                    <apex:outputLink value="/{!item.Applicant__c}" target="_blank">
+                        <apex:outputText value="{!item.Applicant__r.Name}"/>
+                    </apex:outputLink>
+                </apex:column>
+
+                <!--Created-->
+                <apex:column >
+                    <apex:facet name="header"> Created </apex:facet>
+                        
+                    <apex:outputText value="{0,date,MM/dd/yyyy}"> 
+                        <apex:param value="{!item.CreatedDate}" /> 
+                    </apex:outputText>
+
+                </apex:column>   
+
+                <!--Total Billed Amount-->
+                <apex:column rendered="{!isProformaInvoiceDocumentType}">
+                    <apex:facet name="header"> Total Billed Amount </apex:facet>
+                        
+                    <apex:outputText value="{!item.Pro_forma_Invoice__r.Total_Billed_Amount__c}" />
+
+                </apex:column>   
+
+
+                <!--Amount Due:-->
+                <apex:column rendered="{!isProformaInvoiceDocumentType}">
+                    <apex:facet name="header"> Amount Due </apex:facet>
+                        
+                    <apex:outputText value="{!item.Pro_forma_Invoice__r.Amount_Due__c}" />
+
+                </apex:column>   
+
+
+             </apex:pageBlockTable>
+
+             <script type="text/javascript" language="javascript">
+                 // DataTables Plugin
+                 var oTable = $('table.dataTable').dataTable({
+                     sPaginationType: "full_numbers",
+                     iDisplayLength: 25,
+                    
+                 });
+             </script>
+        </apex:pageBlock>        
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+        <script>
+            numberRecordBlock();
+            if(
+                '{!lstoreStoredDocumenFilter.Drawings_Title__c}' == '' &&
+                '{!lstoreStoredDocumenFilter.Drawing_Number__c}' == '' &&
+                '{!lstoreStoredDocumenFilter.LStore__Keywords__c}' == '' &&
+                '{!filterFields.author}' == '' &&
+                '{!filterFields.purcaseOrder}' == '' &&
+                '{!lstoreStoredDocumenFilter.Worktype__c}' == ''
+            ) {
+                $('img[id$=artifacts]').click();
+            }
+        </script>
+        
+  </apex:form>
+  
+</apex:page>

@@ -1,0 +1,47 @@
+<apex:page standardController="Proposal__c" extensions="DocusignStatusController">
+    <div class="apexp">
+        <div class="individualPalette">
+            <div class="Custom43Block">
+                <div class="bPageBlock brandSecondaryBrd apexDefaultPageBlock secondaryPalette">
+                    <div class="pbBody">
+                        <table class="list" border="0" cellspacing="0" cellpadding="0" style="">
+                          <tbody>
+                            <tr class="headerRow">
+                              <th scope="col" class="zen-deemphasize" style="display: {!IF(profileName == 'Platform System Admin', 'table-cell', 'none')};">Envelope#</th>
+                              <th scope="col" class="zen-deemphasize">Sender</th>
+                              <th scope="col" class="zen-deemphasize">Receiver</th>
+                              <th scope="col" class="zen-deemphasize">Project Name</th>
+                              <th scope="col" class="zen-deemphasize">Project Address</th>
+                              <th scope="col" class="zen-deemphasize">Status</th>
+                              <th scope="col" class="numericalColumn zen-deemphasize">Hours Sent to Sign</th>
+                              <th scope="col" class="zen-deemphasize">Sent</th>
+                            </tr>
+                            <apex:repeat value="{!statuses}" var="status">
+                                <tr class="dataRow even first" onblur="if (window.hiOff){hiOff(this);}" onfocus="if (window.hiOn){hiOn(this);}" onmouseout="if (window.hiOff){hiOff(this);}" onmouseover="if (window.hiOn){hiOn(this);}">
+                                    <th scope="row" class="dataCell" style="display: {!IF(profileName == 'Platform System Admin', 'table-cell', 'none')};">
+                                        <a target="_blank" href="/{!status.Id}">{!status.Name}</a>
+                                    </th>
+                                    <td class="dataCell">{!status.dsfs__Sender__c}</td>
+                                    <td class="dataCell">
+                                        <span style="display: {!IF( (statusIdToReceiverId[status.Id] != null && statusIdToReceiverId[status.Id] != ''), 'inline', 'none')};">
+                                            <a target="_blank" href="/{!statusIdToReceiverId[status.Id]}">{!statusIdToReceiverName[status.Id]}</a>
+                                        </span>
+                                        <span style="display: {!IF(!(statusIdToReceiverId[status.Id] != null && statusIdToReceiverId[status.Id] != ''), 'inline', 'none')};">
+                                            {!statusIdToReceiverName[status.Id]}
+                                        </span>
+                                    </td>
+                                    <td class="dataCell">{!proposal.Project_Name__c}</td>
+                                    <td class="dataCell">{!proposal.Address_Building_AKA__c}</td>
+                                    <td class="dataCell">{!status.dsfs__Envelope_Status__c}</td>
+                                    <td class="dataCell numericalColumn">{!status.dsfs__Hrs_Sent_to_Sign__c}</td>
+                                    <td class="dataCell"><apex:outputField value="{!status.dsfs__Sent_Date_Time__c}"/></td>
+                                </tr>
+                            </apex:repeat>
+                          </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</apex:page>

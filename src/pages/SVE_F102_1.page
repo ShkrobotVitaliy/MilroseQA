@@ -1,0 +1,126 @@
+<apex:page standardController="Form_Meta_Data_Object_1__c"  extensions="CommonFormController" >
+<head>
+<script src="/soap/ajax/25.0/connection.js"></script>
+<script src="/soap/ajax/25.0/apex.js"></script>
+</head>
+
+
+<img src="/img/loading32.gif" id="SkyeditorLoagingImage" style="display:none;"/>
+
+<table border="0" cellpadding="0" cellspacing="0" style="width:100%;" ><tr><td>
+<apex:outputPanel rendered="{! NOT(hidePageBody)}" id="pagePanel" styleClass="base" layout="block">
+<apex:outputPanel style="position:relative;" >
+</apex:outputPanel><apex:form id="sve_form1"   styleClass="sve_form1"   >
+<apex:outputPanel layout="block"   style="position:relative;width:800px;height:1000px;" >
+<img   src="{!URLFOR($Resource.F102_1)}"   style="width:800px;height:1000px;left:0px;top:0px;position:absolute;" /><apex:commandButton action="{!cancelPage}"   id="Component4"   immediate="false"   value="Cancel"   style="left:220px;top:10px;position:absolute;width:66px;" >
+</apex:commandButton><apex:commandButton action="{!savePage}"   id="Component5"   immediate="false"   value="Save"   style="left:330px;top:10px;position:absolute;width:66px;" >
+</apex:commandButton><apex:commandButton action="{!updateDocAndDdp}"   id="Component6"   immediate="false"   value="Generate PDF"   style="left:450px;top:10px;position:absolute;width:95px;" >
+</apex:commandButton><apex:outputPanel styleclass="fieldwrapper " style="left:12px;top:57px;width:110px;color:#000000;font-size:8pt;font-weight:Normal;position:absolute;display:block;" >
+<apex:outputField id="Component31"     value="{!record.Building_Project_No__c}" />
+</apex:outputPanel>
+<apex:outputPanel styleclass="fieldwrapper " style="left:127px;top:57px;width:110px;color:#000000;font-size:8pt;font-weight:Normal;position:absolute;display:block;" >
+<apex:outputField id="Component30"     value="{!record.User_Alias__c}" />
+</apex:outputPanel>
+<apex:outputPanel styleclass="fieldwrapper " style="left:637px;top:160px;position:absolute;" >
+<apex:inputField id="Component3"   style="width:107px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Building_MRC__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:467px;top:202px;position:absolute;" >
+<apex:inputField id="Component8"   style="width:45px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Building_Borough__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:616px;top:202px;position:absolute;" >
+<apex:inputField id="Component9"   style="width:124px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Building_Bin__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:149px;top:203px;position:absolute;" >
+<apex:inputField id="Component7"   style="width:248px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Building_Address__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:88px;top:250px;position:absolute;" >
+<apex:inputField id="Component32"   style="width:37px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Building_Legal_Height__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:297px;top:250px;position:absolute;" >
+<apex:inputField id="Component34"   style="width:61px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Building_Num_of_Stories__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:494px;top:250px;position:absolute;" >
+<apex:inputField id="Component12"   style="width:79px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Input_Field_DM11__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:700px;top:250px;position:absolute;" >
+<apex:inputField id="Component33"   style="width:47px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Building_Construction_Class__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:177px;top:297px;position:absolute;" >
+<apex:inputField id="Component14"   style="width:150px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Input_Field_DM13__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:455px;top:297px;position:absolute;" >
+<apex:inputField id="Component15"   style="width:287px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Input_Field_DM14__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:274px;top:342px;position:absolute;" >
+<apex:inputField id="Component16"   style="width:465px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Input_Field_DM15__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:453px;top:389px;position:absolute;" >
+<apex:inputField id="Component17"   style="width:283px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Input_Field_DM16__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:42px;top:439px;position:absolute;" >
+<apex:inputField id="Component18"   style="width:703px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Input_Field_DM17__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:275px;top:485px;position:absolute;" >
+<apex:inputField id="Component24"   style="width:458px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Signator_2_Full_Name__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:103px;top:533px;position:absolute;" >
+<apex:inputField id="Component25"   style="width:632px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Signator_2_Business_Address__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:117px;top:580px;position:absolute;" >
+<apex:inputField id="Component26"   style="width:181px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Signator_2_Business_Phone__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:359px;top:580px;position:absolute;" >
+<apex:inputField id="Component27"   style="width:235px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Signator_2_Email__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:637px;top:580px;position:absolute;" >
+<apex:inputField id="Component28"   style="width:107px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Signator_2_Business_Fax__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:585px;top:627px;position:absolute;" >
+<apex:inputField id="Component29"   style="width:151px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Input_Field_DM18__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:241px;top:628px;position:absolute;" >
+<apex:inputField id="Component19"   style="width:181px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Signator_1_Full_Name__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:101px;top:675px;position:absolute;" >
+<apex:inputField id="Component20"   style="width:635px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Signator_1_Business_Address__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:631px;top:721px;position:absolute;" >
+<apex:inputField id="Component23"   style="width:107px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Signator_1_Business_Fax__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:116px;top:722px;position:absolute;" >
+<apex:inputField id="Component21"   style="width:172px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Signator_1_Business_Phone__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:352px;top:722px;position:absolute;" >
+<apex:inputField id="Component22"   style="width:232px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Signator_1_Email__c}">
+</apex:inputField>
+</apex:outputPanel>
+ </apex:outputPanel></apex:form><script type="text/javascript">
+function aggregateCalc_all(triggerId) {
+}
+</script>
+</apex:outputPanel>
+</td></tr></table>
+</apex:page>

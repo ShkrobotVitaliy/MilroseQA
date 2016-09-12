@@ -1,0 +1,253 @@
+<apex:page standardController="Task_Item__c" extensions="TaskItemExtension" sidebar="false" showHeader="false" showChat="false">
+    <script src="{!$Resource.jquery_tablednd_js}" />
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}"/>
+    <script src="{!URLFOR($Resource.jquery_vfFloatingHeaders)}" />
+
+    <apex:form >
+        <apex:actionStatus id="allPanelsOverlay" onstart="$('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);" onstop="$('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });"/>
+
+        <apex:actionFunction name="reRenderTable"                               status="allPanelsOverlay" reRender="checkTableDiv, msgError" />
+        <apex:actionFunction name="updateCheck"     action="{!updateCheck}"     status="allPanelsOverlay" reRender="checkTableDiv, msgError, onChangeEvent"/>
+        <apex:actionFunction name="addNewCheck"     action="{!addNewCheck}"     status="allPanelsOverlay" reRender="checkTableDiv, msgError, onChangeEvent"/>
+        <apex:actionFunction name="workTypePanel"                               status="allPanelsOverlay" reRender="calculatorFeePanel, msgError"/>
+        <apex:actionFunction name="calculateSumFee" action="{!calcualteSumFee}" status="allPanelsOverlay" reRender="calculatorFeePanel, msgError"/>
+
+        <div style="height: 600px; overflow:auto;">
+            <apex:pageMessages id="msgError" escape="false"/>
+
+            <div class="AllInfoPanelHolder" style="position: relative; overflow: auto; -webkit-overflow-scrolling: touch;">
+                <div class="overlay" id="AllPannelOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"/>
+                <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+                    <div style="text-align: center;">
+                        <img src="{!$Resource.loading_bar}" />
+                        <p style="color: #000; margin-bottom: 0px; font-size: 24px;">Please wait</p>
+                    </div>
+                </div>
+
+                <!-- Begin Checks Table -->
+                <apex:outputPanel layout="block" id="checkTableDiv" styleClass="tableContainer">
+                    <div style="min-height: 130px; max-height: 300px; overflow: auto;">
+                        <table class="BlogForce9Table generalTableStyle" style="width: 100%;">
+                            <thead class="rich-table-thead" border="solid 1px black">
+                                <tr class="headerRow">
+                                    <th class="headerRow" style="width: 200px;">Payee</th>
+                                    <th class="headerRow">Description</th>
+                                    <th class="headerRow">Check<br/>Amount</th>
+                                    <th class="headerRow">Date Requested</th>
+                                    <th class="headerRow">Date Received</th>
+                                    <th class="headerRow">Check#</th>
+                                    <th class="headerRow">Request Notes</th>
+                                    <th class="headerRow" style="width: 99px;">
+                                        <span class="helpTooltipTop" style="top: 2em; right: 55px;">Use this calculator to derive filing fees based on estimated costs obtained in the RFI process for Alt1 and Alt2 filings. The calculator will only work for services where RFI costs have been recorded.</span>
+                                        <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltipTop').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltipTop').hide();"/>
+                                    </th>
+                                    <th class="headerRow">Delete</th>
+                                </tr>
+                            </thead>
+
+                            <apex:repeat value="{!checksRequest}" var="check">
+                                 <tr>
+                                     <td class="data dragHandle onChangeClass" style="vertical-align: middle; padding-left: 7px;">
+                                         <div class="requiredBlockWrapper"> <div class="requiredBlockMarker" style="left: -5px; top: 0px;"></div></div>
+                                         <apex:selectList value="{!check.Account__c}" size="1" rendered="{! ISBLANK(check.Date_Received__c) && ISBLANK(check.Check_Number__c) && ISBLANK(check.Date_Check_Returned__c) && ISBLANK(TRIM(check.Reasone__c)) && !isInactiveService}" style="float: left; width: 100%;">
+                                            <apex:selectOptions value="{!idToAccount}" />
+                                        </apex:selectList>
+                                         <apex:outputLink target="_blank" value="/{!check.Account__c}" rendered="{! !ISBLANK(check.Date_Received__c) || !ISBLANK(check.Check_Number__c) || !ISBLANK(check.Date_Check_Returned__c) || !ISBLANK(TRIM(check.Reasone__c)) || isInactiveService}" style="float: left; width: 100%; top: 2px;">{!check.Account__r.Name}</apex:outputLink>
+                                     </td>
+
+                                     <td class="data dragHandle onChangeClass" style="vertical-align: middle; padding-left: 7px;">
+                                        <apex:inputText value="{!check.Description__c}" style="float: left; width: 100%; box-sizing: border-box;" disabled="{!isInactiveService}">
+                                            <div class="requiredBlockWrapper"> <div class="requiredBlockMarker" style="left: -5px; top: 0px;"></div></div>
+                                        </apex:inputText>
+                                     </td>
+
+                                     <td class="data dragHandle onChangeClass" style="vertical-align: middle; padding-left: 7px;">
+                                         <apex:inputField value="{!check.Check_Amount__c}" style="float: left; width: 100%; box-sizing: border-box;" rendered="{!AND(ISBLANK(check.Date_Received__c), ISBLANK(check.Check_Number__c), !isInactiveService)}">
+                                             <div class="requiredBlockWrapper"> <div class="requiredBlockMarker" style="left: -5px; top: 0px;"></div></div>
+                                         </apex:inputField>
+                                         <apex:outputField value="{!check.Check_Amount__c}" style="float: left;" rendered="{!OR(NOT(ISBLANK(check.Date_Received__c)), NOT(ISBLANK(check.Check_Number__c)), isInactiveService)}"/>
+                                     </td>
+
+                                     <td class="data dragHandle onChangeClass" style="vertical-align: middle;">
+                                         <apex:outputField value="{!check.Date_Requested__c}" />
+                                     </td>
+
+                                     <td class="data dragHandle onChangeClass" style="vertical-align: middle;">
+                                         <apex:outputField value="{!check.Date_Received__c}" />
+                                     </td>
+
+                                     <td class="data dragHandle onChangeClass" style="vertical-align: middle;">
+                                         <apex:outputText value="{!check.Check_Number__c}" />
+                                     </td>
+
+                                     <td class="data dragHandle onChangeClass" style="vertical-align: middle;">
+                                         <apex:inputText value="{!check.Notes__c}" disabled="{!isInactiveService}" style="width: 100%; box-sizing: border-box;"/>
+                                     </td>
+
+                                     <td class="data dragHandle onChangeClass" style="vertical-align: middle;">
+                                         <apex:outputPanel layout="block">
+                                             <apex:commandButton value="Fee Calculator" action="{!displayFeeCalculator}" reRender="msgError, calculatorFeePanel" styleClass="milroseBtnStyle disableButtons" status="allPanelsOverlay" disabled="{! OR(!ISBLANK(check.Date_Received__c), !ISBLANK(check.Check_Number__c), ISBLANK(check.Id), isInactiveService) }">
+                                                 <apex:param name="checkIdForCalculateFee" value="{!check.Id}" assignTo="{!checkIdForCalculateFee}"/>
+                                             </apex:commandButton>
+                                         </apex:outputPanel>
+                                     </td>
+
+                                     <td class="data dragHandle" style="vertical-align: middle;">
+                                         <apex:outPutpanel >
+                                             <apex:commandLink action="{!removeCheck}" reRender="checkTableDiv, msgError" rendered="{! ISBLANK(check.Date_Received__c) && ISBLANK(check.Check_Number__c) && ISBLANK(check.Date_Check_Returned__c) && ISBLANK(TRIM(check.Reasone__c))} && !isInactiveService" status="allPanelsOverlay">
+                                                 <img src="/img/func_icons/remove12.gif" alt="delete" title="delete" class="deleteItemImage" onmouseover="this.src='/img/func_icons/remove12_on.gif'" onmouseout="this.src='/img/func_icons/remove12.gif'"/>
+                                                 <apex:param name="checkIdToRemove" value="{!check.Id}" assignTo="{!checkIdToRemove}"/>
+                                             </apex:commandLink>
+                                         </apex:outPutpanel>
+                                     </td>
+                                 </tr>
+                            </apex:repeat>
+                        </table>
+                    </div>
+                    <script type="text/javascript">$('.tableContainer .dateFormat').hide(); $('.tableContainer span.dateInput input').attr('size', '16');</script>
+
+                </apex:outputPanel>
+                <!-- End Checks Table -->
+
+                <!-- Begin Button Section -->
+                <apex:outPutpanel layout="block" style="text-align: right;">
+                    <apex:commandButton value="Add New"      action="{!addNewCheck}" reRender="checkTableDiv, msgError, onChangeEvent" oncomplete="$('.saveChangeButton').removeAttr('disabled').removeClass('btnDisabled').addClass('btn');"       styleClass="milroseBtnStyle disableButtons"                  status="allPanelsOverlay" disabled="{!isInactiveService}"/>
+                    <apex:commandButton value="Save Changes" action="{!updateCheck}" reRender="checkTableDiv, msgError, onChangeEvent" oncomplete="$('.saveChangeButton').attr('disabled', 'disabled').addClass('btnDisabled').removeClass('btn');" styleClass="milroseBtnStyle disableButtons saveChangeButton" status="allPanelsOverlay" disabled="{!isInactiveService}"/>
+                </apex:outPutpanel>
+                <!-- End Button Section -->
+
+                <!-- Begin Alteration Fee Calculator -->
+                <br />
+                <apex:outputPanel id="calculatorFeePanel">
+                    <apex:outputPanel layout="block" styleClass="tableContainer" rendered="{!showWorkTypePanel}">
+                        <div style="min-height: 130px; max-height: 250px; overflow: auto;">
+                            <table class="generalTableStyle" style="width: 50%;">
+                                <thead class="rich-table-thead" border="solid 1px black">
+                                    <tr class="headerRow">
+                                        <th class="headerRow" style="width: 30%;">Work Type      </th>
+                                        <th class="headerRow" style="width: 30%;">Estimated Cost </th>
+                                        <th class="headerRow" style="width: 30%;">Filing Fee     </th>
+                                    </tr>
+                                </thead>
+
+                                <apex:repeat value="{!rfiWorkTypes }" var="item">
+                                    <tr class="headerRow">
+                                        <td class="data dragHandle"> {!item.Name}                                                                                                                 </td>
+                                        <td class="data dragHandle"> <apex:inputField value="{!item.Estimated_Cost__c}" style="width: 98%;"/>                                                     </td>
+                                        <td class="data dragHandle" style="text-align: left;"> <apex:inputField value="{!item.Filing_Fee__c}" onchange="calculateSumFee();" style="width: 98%;"/> </td>
+                                    </tr>
+                                </apex:repeat>
+
+                                <tr class="headerRow">
+                                    <th class="headerRow" style="text-align: right; padding-right: 10px;" colspan="2"> Total Fee </th>
+                                    <th class="headerRow" style="text-align: left;  padding-left:  10px;"> ${!totalFee}           </th>
+                                </tr>
+
+                                <tr>
+                                    <td colspan="3">
+                                        <apex:outPutpanel layout="block" style="text-align: right;">
+                                            <apex:commandButton value="Cancel"        action="{!hideFeeCalculator}"                            styleClass="milroseBtnStyle" status="allPanelsOverlay" reRender="msgError, calculatorFeePanel, onChangeEvent" />
+                                            <apex:commandButton value="Calculate Fee" onclick="$('#confirmationPopup').show(); return false;"  styleClass="milroseBtnStyle" status="allPanelsOverlay"/>
+                                            <apex:commandButton value="Apply"         action="{!applyFeeCalculator}"                           styleClass="milroseBtnStyle" status="allPanelsOverlay" reRender="msgError, calculatorFeePanel, checkTableDiv, onChangeEvent" onclick="$('.saveChangeButton').removeAttr('disabled').removeClass('btnDisabled').addClass('btn');"/>
+                                        </apex:outPutpanel>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+                <!-- End Alteration Fee Calculator -->
+
+                <!-- Begin Popups -->
+                 <div id="confirmationPopup" style="display: none;">
+                    <div style="z-index:40; opacity:0.7; filter:alpha(opacity=70); position:absolute; top:0px; left:0px; width:100%; height:100%; background-color: #8AC;"/>
+                    <div style="z-index:41; position:absolute; top:0px; left:0px; width:100%; height:100%; background-color: transparent;">
+                        <div style="width:400px; height: 100px; position: fixed; left:25%; top:20%; border:1px solid #888; background-color:#F0F8FF; box-shadow:5px 5px 25px #115577;">
+                            <div style="text-align: center; padding: 10px;">
+                                <div style="cursor: default; width:100%; font-weight:bold; text-align:center;">Calculating fees will replace any values that were previously entered. Do you want to continue?</div>
+
+                                <span>
+                                    <apex:commandButton value="Cancel" onclick="$('#confirmationPopup').hide(); return false;" styleClass="milroseBtnStyle" style="width: 15%; margin: 0px !important; margin-top: 3px !important;"/>
+                                </span>
+                                <apex:commandButton value="Calculate" onclick="$('#confirmationPopup').hide();" action="{!calculatorFee}" styleClass="milroseBtnStyle" reRender="msgError, calculatorFeePanel" style="width: 40%; margin: 0px !important; margin-top: 3px !important;" status="allPanelsOverlay"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Popups -->
+            </div>
+        </div>
+
+        <apex:inputField value="{!Task_Item__c.Status__c}"                                     rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Project_Profile__r.Email_Distribution__c}"      rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Project_Profile__r.Name}"                       rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Project_Profile__c}"                            rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.X3rd_Party_Authority_ID__c}"                    rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Project_Profile__r.Billing_Company_Name__c}"    rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Project_Profile__r.Billing_Company_Contact__c}" rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Service_Item__r.Phase__c}"                      rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Project_Profile__r.Building__c }"               rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Service_Item__c}"                               rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Service_Item__r.Subtype__c}"                    rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Service_Item__r.Status__c}"                     rendered="false"/>
+
+        <apex:outputPanel id="onChangeEvent">
+             <script>
+                $(".onChangeClass").change(function() {
+                    $('.saveChangeButton').removeAttr('disabled').removeClass('btnDisabled').addClass('btn');
+
+                });
+            </script>
+        </apex:outputPanel>
+
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+
+    </apex:form>
+
+    <script>
+        var stateSaveButton = false;
+
+        $(document).ready(function() {
+            $('.saveChangeButton').attr('disabled', 'disabled').addClass('btnDisabled').removeClass('btn');
+             $('.dateFormat').hide();
+
+        });
+
+        function checkAll(cb, cbid) {
+            var inputElem = document.getElementsByTagName("input");
+
+            for (var i = 0; i < inputElem.length; i++) {
+                if(inputElem[i].id.indexOf(cbid)!= -1) {
+                    inputElem[i].checked = cb.checked;
+                }
+            }
+        }
+
+        function changedStateInternalRequestButton(id, state) {
+            document.getElementById(id).style.display = state;
+
+            if ('inline-block' == state) {
+                //Remember Save Button State
+                stateSaveButton = $('.saveChangeButton').hasClass('btn') ? true : false ;
+
+                $('.disableButtons').attr('disabled', 'disabled').addClass('btnDisabled').removeClass('btn');
+
+            } else {
+                $('.disableButtons').removeAttr('disabled').removeClass('btnDisabled').addClass('btn');
+
+                //Set Save Button State
+                if (stateSaveButton) {
+                    $('.saveChangeButton').removeAttr('disabled').removeClass('btnDisabled').addClass('btn');
+
+                } else {
+                    $('.saveChangeButton').attr('disabled', 'disabled').addClass('btnDisabled').removeClass('btn');
+
+                }
+
+            }
+
+        }
+    </script>
+
+</apex:page>

@@ -1,0 +1,22 @@
+<apex:page standardController="Pro_forma_Invoice__c" recordSetVar="proFormaInvoiceList" extensions="MassSendInvoiceContExt">
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}" />
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    
+    <apex:form >
+        <apex:pageMessages id="msgs"/>
+        <apex:actionFunction action="{!autoRun}" name="autoRun" rerender="msgs">
+            <apex:param name="deliveryOption" value="" assignTo="{!deliveryOption}"/>
+        </apex:actionFunction>
+        
+        <apex:commandButton value="Back"     action="{!back}"        styleClass="milroseBtnStyle"/>
+        <apex:commandButton value="Download" action="{!downloadPdf}" styleClass="milroseBtnStyle" reRender="msgs" style="display: none;" id="downloadId"/>
+    </apex:form>
+    
+    <script type="text/javascript">
+        $(document).ready(function () {
+            autoRun('Attach');
+            $('input[id*=downloadId]').slideUp(500).delay(1000).fadeIn(600);
+            
+        });
+    </script>
+</apex:page>

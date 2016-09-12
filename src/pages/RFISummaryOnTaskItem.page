@@ -1,0 +1,98 @@
+<apex:page standardController="Task_Item__c" extensions="RFISummaryTaskItem">
+    <script src="{!$Resource.jquery_tablednd_js}" />
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}" />
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}" />
+    <script src="{!URLFOR($Resource.jquery_vfFloatingHeaders)}" />
+    
+    <style>
+        .tableContainer {
+            width: 100%; 
+            margin: 0px; 
+            overflow: auto;
+        }            
+        .floatingStyle { 
+            position:relative;
+            background:#F2F3F3;
+        }
+    </style>
+    
+    <style type="text/css" height="100">
+        body {
+            margin: 0px !important;
+        }
+        .addedAmendedServive {
+            color: green; 
+            font-weight:bold;
+        }
+        .removedAmendedServive {
+            color:red; 
+            font-weight:bold;
+        }
+        .removedAmendedServiveTR {
+            background-color: #FEE;
+        }
+        .addedAmendedServiveTR {
+            background-color: #EFE;
+        }
+    </style>
+    <apex:form >
+        <apex:actionStatus id="allPanelsOverlay" onstart="$('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);" onstop="$('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });"/>
+               
+        <div style="height:780px; overflow:auto;">
+            <apex:pageMessages id="msgError"/>
+            
+            <!-- Loading -->
+            <div class="AllInfoPanelHolder" style="position: relative; overflow: auto; -webkit-overflow-scrolling: touch;">
+                <div class="overlay" id="AllPannelOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"/>
+                <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+                    <div style="text-align: center;">
+                        <img src="{!$Resource.loading_bar}" />
+                        <p style="color: #000; margin-bottom: 0px; font-size: 24px;">Please wait</p>
+                    </div>
+                </div>
+            </div>
+            
+            <apex:outputPanel layout="block" style="max-height: 300px;" id="rfiTableDiv" styleClass="tableContainer">
+                    <table Id="RFIsScopeListTable" class="BlogForce9Table generalTableStyle">
+                         
+                        <thead class="rich-table-thead" border="solid 1px black">
+                             <tr class="headerRow">
+                                <th class="headerRow floatingStyle"><apex:outputText value="RFI Section"/>          </th>
+                                <th class="headerRow floatingStyle"><apex:outputText value="Status"/>               </th>
+                                <th class="headerRow floatingStyle"><apex:outputText value="Last RFI Sent"/>        </th>
+                                <th class="headerRow floatingStyle"><apex:outputText value="Last RFI Received"/>    </th>
+                            </tr>
+                        </thead>
+                        
+                        <apex:repeat value="{!RFIScopes}" var="rfi">
+                             <tr>
+                                <td class="name dragHandle"><apex:outputText value="{!rfi.RFI_Section__c}" />                                                                                                                      </td>
+                                <td class="name dragHandle"><apex:outputText value="{!rfi.App_Status__c}" rendered="{!isApp}" /> <apex:outputText value="{!rfi.Sign_Off_Status__c}" rendered="{!isSignOff}" />                     </td>
+                                <td class="name dragHandle"><apex:outputField value="{!rfi.Last_RFI_Sent__c}"     rendered="{!isApp}" /> <apex:outputField value="{!rfi.Last_SignOff_RFI_Sent__c}"     rendered="{!isSignOff}" />  </td>
+                                <td class="name dragHandle"><apex:outputField value="{!rfi.Last_RFI_Received__c}" rendered="{!isApp}" /> <apex:outputField value="{!rfi.Last_SignOff_RFI_Received__c}" rendered="{!isSignOff}" />  </td>
+                             </tr>
+                       </apex:repeat>
+                       
+                   </table>
+               </apex:outputPanel>
+            
+        </div>
+
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+
+         <apex:inputField value="{!Task_Item__c.Project_Profile__c}" rendered="false"/>
+         <apex:inputField value="{!Task_Item__c.Service_Item__c}" rendered="false"/>
+         <apex:inputField value="{!Task_Item__c.Service_Item__r.Project_Level_RFI__c}" rendered="false"/>
+         <apex:inputField value="{!Task_Item__c.Service_Item__r.Service_Level_RFI__c}" rendered="false"/>
+         <apex:inputField value="{!Task_Item__c.Service_Item__r.Category__c}" rendered="false"/>
+         <apex:inputField value="{!Task_Item__c.Service_Item__r.Type__c}" rendered="false"/> 
+    </apex:form>
+    
+    <script>
+        $(document).ready(function() {
+            $('.BlogForce9Table').vfFloatingHeaders();
+        
+        });
+    </script>
+    
+</apex:page>

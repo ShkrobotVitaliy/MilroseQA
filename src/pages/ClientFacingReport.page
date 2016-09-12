@@ -1,0 +1,56 @@
+<apex:page showChat="false" standardcontroller="Project_Profile__c" extensions="ClientFacingReportController" title="Project Status Reports" >
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+
+    <apex:form >
+        <apex:actionStatus id="allPanelsOverlay" onstart="$('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);" onstop="$('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });"/>
+
+        <div class="overlay" id="AllPannelOverlay" style="opacity: .2; filter:alpha(opacity=20);"/>
+        <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+            <div style="text-align: center;">
+                <img src="{!$Resource.loading_bar}"/>
+                <p style="color: #000; margin-bottom: 0; font-size: 24px;">Please wait</p>
+            </div>
+        </div>
+
+        <apex:pageMessages id="msgError" />
+        <apex:pageBlock title="Client Facing Report" >
+            <apex:pageBlockButtons location="bottom" style="text-align: right;" >
+                <apex:commandButton value="Generate Report" action="{!searchAction}" styleClass="milroseBtnStyle" status="allPanelsOverlay" />
+                <apex:commandButton value="Return to Project Level/Cancel" action="{!returnToProjectLevel}" styleClass="milroseBtnStyle" status="allPanelsOverlay"/>
+            </apex:pageBlockButtons>
+
+            <apex:pageBlockSection title="Single Project:" collapsible="false" columns="1">
+                <apex:inputField required="false" value="{!baseProposal.Project_Profile__c}" label="Project Profile"/>
+                <apex:outputPanel >
+                    <apex:selectRadio value="{!selectedSingleProject}">
+                        <apex:selectOptions value="{!radioItems}"/>
+                    </apex:selectRadio>
+                </apex:outputPanel>
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection title="Multiple Projects:" collapsible="false" columns="2"> <!-- MRS 6865 -->
+				<apex:inputText label="Multiple Projects" required="false" value="{!multiplePrtojects}" title="Separate project numbers with a comma."/>
+                <apex:inputField required="false" value="{!baseProposal.Billing_Company_Name__c}" label="Billing Client Company"/>
+				
+				<apex:inputField required="false" value="{!baseProposal.Project_Team__c}" label="Project Team"/>
+                <apex:inputField required="false" value="{!baseProposal.Primary_Company_Name__c}" label="Primary Client Company"/>
+                
+				<apex:inputField required="false" value="{!baseProposal.Address__c}" label="Address"/>
+                <apex:inputField required="false" value="{!baseProposal.Accounting_Contact_Company__c}" label="Accounting Contact Company"/>
+                <apex:outputPanel >
+                    <apex:selectRadio value="{!selectedMultipleProject}">
+                        <apex:selectOptions value="{!radioItems}"/>
+                    </apex:selectRadio>
+                </apex:outputPanel>
+            </apex:pageBlockSection>
+
+        </apex:pageBlock>
+
+        <apex:outputPanel rendered="{!isExcelRendered}">
+            <apex:iframe src="/apex/CFR?p1=_{!baseProposal.Project_Profile__c}&p2=_{!baseProposal.Address__c}&p3=_{!baseProposal.Primary_Company_Name__c}&p4=_{!baseProposal.Billing_Company_Name__c}&p5=_{!baseProposal.Accounting_Contact_Company__c}&p6={!IF(baseProposal.Project_Profile__c == null, selectedMultipleProject, selectedSingleProject)}&p7=_{!baseProposal.Project_Team__c}&p8=_{!multiplePrtojects}" id="theIframe"/>                        
+        </apex:outputPanel>
+
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+    </apex:form>
+</apex:page>

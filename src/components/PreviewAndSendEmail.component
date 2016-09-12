@@ -1,0 +1,428 @@
+<apex:component controller="PreviewAndSendEmailController" allowDML="true">
+    <style>
+        .searchTemplateTable td {
+            border: 0;
+        }
+    </style>
+    <!-- ---------------------------------------- Begin Component Parameters --------------------------------------------------- -->
+    <apex:attribute name="parentDDPRecordId"               description="Id of Parent Record for DDP"                  type="String"             required="true"  assignTo="{!parentRecordId}"/>
+    <apex:attribute name="DDPRecordName"                   description="DDP Name"                                     type="String"             required="true"  assignTo="{!DDPName}"/>
+    <apex:attribute name="emailTemplate"                   description="Email Template Name"                          type="String"             required="true"  assignTo="{!emailTemplateName}"/>
+    <apex:attribute name="draftTemplate"                   description="Draft Email Template Name"                    type="String"             required="false" assignTo="{!draftTemplateName}"/>
+    <apex:attribute name="sendAddressTo"                   description="String {Name} {Email} to show in TO: field"   type="String"             required="true"  assignTo="{!sendTo}" />
+    <apex:attribute name="sendAddressToFullName"           description="String {FullName} To Show in Email TO: field" type="String"             required="false" assignTo="{!sendToFullName}" />
+    <apex:attribute name="sendAddressFrom"                 description="String {Name}|{Email} to show in FROM: field" type="String"             required="false" assignTo="{!sendFrom}"/>
+    <apex:attribute name="emailTypeRecord"                 description="Email type."                                  type="String"             required="false" assignTo="{!emailType}"/>
+    <apex:attribute name="taskItemRecord"                  description="Task Item Record"                             type="Task_Item__c"       required="false" assignTo="{!taskItem}"/>
+    <apex:attribute name="attachIds"                       description="List of attachmrnts Id."                      type="String[]"           required="false" assignTo="{!attachmentIds}"/>
+    <apex:attribute name="projectProfileRecord"            description="Project record."                              type="Project_Profile__c" required="true"  assignTo="{!project}"/>
+    <apex:attribute name="additionalSubjectItem"           description="Additional body."                             type="String"             required="false" assignTo="{!additionalSubject}"/>
+    <apex:attribute name="additionalBodyItem"              description="Additional subject."                          type="String"             required="false" assignTo="{!additionalBody}"/>
+    <apex:attribute name="linkForRFIItem"                  description="Link fo RFI."                                 type="String"             required="false" assignTo="{!linkForRFI}"/>
+    <apex:attribute name="showReminderSection"             description="Show/hide Reminder section."                  type="Boolean"            required="false" assignTo="{!showReminders}"   default="false" />
+    <apex:attribute name="showAttachmentsSection"          description="Show/hide Attachment section."                type="Boolean"            required="false" default="true" />
+    <apex:attribute name="showTemplateSelection"           description="Show/hide Template Selection Section."        type="Boolean"            required="false" default="true" />
+    <apex:attribute name="selectRecipient"                 description="Opportunity to select recipient."             type="Boolean"            required="false" default="false" />
+    <apex:attribute name="defaultBody"                     description="If true - starts with default body."          type="Boolean"            required="false" assignTo="{!emptyBody}" default="false"/>
+    <apex:attribute name="linkToCloseButton"               description="Url link when click Close button."            type="String"             required="false" assignTo="{!linkToClose}"/>
+    <apex:attribute name="contactId"                       description="Contact Id for DDP record as To: Contact"     type="Contact"            required="false" assignTo="{!toContact}"/>
+    <apex:attribute name="allowSendForClosed"              description="Allow sending for Closed Projects"            type="Boolean"            required="false" assignTo="{!allowSendForClosedProject}"/>
+    <apex:attribute name="sendEmailEntityLevel"            description="Sending email on the entity level"            type="Boolean"            required="false" assignTo="{!isEntityLevel}"/>
+    <apex:attribute name="orderedListFormsScanAndSend"     description="Ordered Form list for Scan And Send"          type="String"             required="false" assignTo="{!orderedFormsScanAndSend}"/>
+    <apex:attribute name="sentEmailBodyReturn"             description="Returns sent email body"                      type="String[]"           required="false" assignTo="{!sentEmailBody}"/>
+    <!-- ---------------------------------------- End Component Parameters --------------------------------------------------- -->
+
+    <apex:actionFunction name="updateEmailContent" action="{!updateEmailContent}" oncomplete="if( $('.errorM3[role=alert] span').length == 0 ) { if ('true' == '{!validDatetiemReminderFollowUp}') { callSendDDPEmail(); } }" reRender="msgError" />
+    <apex:actionFunction name="sendDDPEmail" action="{!sendDDPEmail}" oncomplete="callUpdateRecordToSendEmail('{!followUpAndReminder.Recipient_Reminder_DateTime__c}', '{!emailTemplateDraftId}');" reRender="subjectId, msgError" />
+
+    <apex:actionFunction name="setReminder" action="{!setReminderDate}" reRender="msgError, followUpAndReminderPanel" status="allPanelsOverlay" />
+    <apex:actionFunction name="setFollowUp" action="{!setFollowUpDate}" reRender="msgError, followUpAndReminderPanel" status="allPanelsOverlay" />
+    <apex:actionFunction name="updateDate"  action="{!updateDate}"      reRender="msgError, followUpAndReminderPanel" status="allPanelsOverlay" />
+
+    <apex:pageMessages id="msgError"/>
+
+    <apex:outputPanel id="emailPreviewPanel">
+        <div id="emailTemplateEditor" style="display: {!IF(allowSendingEmail, 'block', 'none')}">
+            <table class="generalTableStyle">
+                <tr>
+                    <td>
+                        <apex:outputPanel id="emailRecipients">
+                            <table style="width: 100%;">
+                                <tr style="display: {!IF(OR(!showTemplateSelection, isEmailTemplateSet), 'table-row', 'none')};">
+                                    <td rowspan="3" style="width: 7%;">
+                                        <apex:commandButton id="sendButtonId" value="Send" tabIndex="2" onclick="updateEmailContent(); return false;" styleClass="milroseBtnStyle" style="height: 65px; width: 65px;"/>
+                                    </td>
+                                    <td style="padding-left: 3px; width: 10%;">
+                                        <apex:outputLabel value="From:" styleClass="labelTextInline"/>
+                                    </td>
+                                    <td style="padding-left: 3px;">
+                                        <apex:outputLabel value="{!loggedUserName}" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-left: 3px; width: 10%;">
+                                        <apex:outputLabel value="To:" styleClass="labelTextInline" rendered="{! !selectRecipient}"/>
+                                        <apex:commandButton value="To:" style="width: 95%;" styleClass="milroseBtnStyle" onclick="$('#popupAddToEmail').show(); return false;" rendered="{!selectRecipient}"/>
+                                    </td>
+                                    <td>
+                                        <apex:outputLabel value="{!sendTo}"        rendered="{! !selectRecipient}"/>
+                                        <apex:outputLabel value="{!sendToAddress}" rendered="{!selectRecipient}"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-left: 3px; width: 10%;">
+                                        <apex:commandButton value="CC:" style="width: 95%;" styleClass="milroseBtnStyle" onclick="$('#popupAddCCToEmail').show(); return false;"/>
+                                    </td>
+                                    <td style="vertical-align: middle;">
+                                        <div><apex:outputLabel value="{!emailsToCC}"/></div>
+                                    </td>
+                                </tr>
+
+                                <tr style="display: {!IF(AND(showTemplateSelection, !isEmailTemplateSet), 'table-row', 'none')};">
+                                    <td colspan="3">
+                                        <apex:outputPanel layout="block" style="width:800px;" rendered="{!showTemplateSelection}">
+                                            <apex:outputPanel layout="block">
+                                                <table style="width:100%" cellpadding="0" cellspacing="0" class="searchTemplateTable">
+                                                    <tr>
+                                                        <td rowspan="2" style="width: 7%; border: 0; vertical-align: top;">
+                                                            <apex:outputLabel value="Email Template:" styleClass="labelTextInline"/>
+                                                        </td>
+                                                        <td style="padding-left: 50px; border: 0;" >
+                                                            <apex:outputPanel layout="block" styleClass="outputPanelFilter">
+                                                                <apex:outputLabel value="Region:" style="display: block;"/>
+                                                                <apex:selectList value="{!regionId}" size="1" styleClass="selestListRegion">
+                                                                    <apex:selectOptions value="{!regionOptions}" />
+                                                                </apex:selectList>
+                                                            </apex:outputPanel>
+                                                        </td>
+                                                        <td style="padding-left: 50px; border: 0;">
+                                                            <apex:outputPanel layout="block" styleClass="outputPanelFilter">
+                                                                <apex:outputLabel value="Municipality:" style="display: block;"/>
+                                                                <apex:inputText value="{!municipalityFilter}" styleClass="selestListRegion"/>
+                                                            </apex:outputPanel>
+                                                        </td>
+                                                        <td style="padding-left: 50px; border: 0;">
+                                                            <apex:outputPanel layout="block" styleClass="outputPanelFilter">
+                                                                <apex:outputLabel value="MRC #:" style="display: block;"/>
+                                                                <apex:inputText disabled="true" value="{!project.Name}" styleClass="selestListRegion"/>
+                                                            </apex:outputPanel>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding-left: 50px; border: 0;">
+                                                            <apex:outputPanel layout="block" styleClass="outputPanelFilter">
+                                                                <apex:outputLabel value="Form Ref.#:" style="display: block;"/>
+                                                                <apex:inputText value="{!refNumberFilter}" styleClass="selestListRegion"/>
+                                                            </apex:outputPanel>
+                                                        </td>
+                                                        <td style="padding-left: 50px; border: 0;">
+                                                            <apex:outputPanel layout="block" styleClass="outputPanelFilter">
+                                                                <apex:outputLabel value="Name:" style="display: block;"/>
+                                                                <apex:inputText value="{!fullNameFilter}" styleClass="selestListRegion"/>
+                                                            </apex:outputPanel>
+                                                        </td>
+                                                        <td style="padding-left: 50px; border: 0;">
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding-left: 50px; border: 0; text-align: right;" colspan="4">
+                                                            <apex:commandButton action="{!skipEmailSelection}" value="Skip Search" styleClass="milroseBtnStyle" status="allPanelsOverlay"/>
+                                                            <apex:commandButton action="{!searchAction}" id="searchButtonId"     value="Search"      styleClass="milroseBtnStyle" reRender="msgError, resultPanel"                  status="allPanelsOverlay"/>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding-left: 50px; border: 0;" colspan="4">
+                                                            <apex:outputPanel layout="block" id="resultPanel">
+                                                                <apex:outputPanel layout="block" style="height: 170px; overflow: auto; width:100%; margin:0; border: 1px solid #AED4E4;">
+                                                                    <table style="width: 100%;">
+                                                                        <thead class="rich-table-thead" border="solid 1px black">
+                                                                            <tr class="nodrop nodrag">
+                                                                                <th class="headerRow">Search Results (click to select)</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            <apex:repeat value="{!formTemplatesList}" var="item">
+                                                                                <tr>
+                                                                                    <td>
+                                                                                        <apex:commandLink action="{!setEmailTemplate}" value="{!item.Form_Name__c}" >
+                                                                                            <apex:param name="recordToFindTemplate" value="{!item.Id}" assignTo="{!emailTemplateRecordId}"/>
+                                                                                        </apex:commandLink>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </apex:repeat>
+                                                                        </tbody>
+                                                                    </table>
+                                                                </apex:outputPanel>
+                                                            </apex:outputPanel>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </apex:outputPanel>
+                                        </apex:outPutpanel>
+                                    </td>
+                                </tr>
+                            </table>
+                        </apex:outputPanel>
+
+                        <apex:outputPanel rendered="{!OR(!showTemplateSelection, isEmailTemplateSet)}">
+                            <table style="width: 100%;">
+                                <tr>
+                                    <td style="vertical-align: middle; padding-left: 3px; width: 7%;">
+                                        <apex:outputLabel value="Subject: "  styleClass="labelTextInline"/>
+                                    </td>
+                                    <td style="width: 85%;">
+                                        <apex:outputPanel id="subjectId">
+                                            <apex:inputText value="{!subject}" styleClass="inputFieldStd" style="width: 99%;"/>
+                                        </apex:outputPanel>
+                                    </td>
+                                    <td>
+                                        <apex:commandButton id="attachmentButtonId" value="Attachment(s)" styleClass="milroseBtnStyle" onclick="attachDocument(); return false;" rendered="{!showAttachmentsSection}"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </apex:outputPanel>
+
+                        <apex:outputPanel id="followUpAndReminderPanel" rendered="{!AND(showReminders, OR(isEmailTemplateSet, !showTemplateSelection))}">
+                            <table style="width: 100%;">
+                                <tr>
+                                    <td style="vertical-align: middle; padding-left: 3px; width: 50%;">
+                                        <apex:inputCheckbox value="{!followUpAndReminder.Recipient_Reminder__c}" onchange="setReminder(); return false;"/>
+                                        <apex:outputLabel value="Recipient Reminder: " styleClass="labelTextInline"/>
+                                        <apex:inputField value="{!followUpAndReminder.Recipient_Reminder_DateTime__c}" onchange="updateDate(); return false;"/>
+                                    </td>
+                                    <td style="width: 50%;">
+                                        <apex:inputCheckbox value="{!followUpAndReminder.Follow_Up_Alert__c}" onchange="setFollowUp(); return false;"/>
+                                        <apex:outputLabel value="Follow-up Alert: " styleClass="labelTextInline"/>
+                                        <apex:inputField value="{!followUpAndReminder.Follow_Up_Alert_DateTime__c}" onchange="updateDate(); return false;"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </apex:outputPanel>
+
+                        <!-- ------------------------------------------ Begin Attachments ------------------------------------------ -->
+                        <apex:actionFunction name="attachDocuments"       action="{!attach}"          status="allPanelsOverlay" reRender="msgError, documentsPanel, attachedFilesPannel" />
+                        <apex:actionFunction name="reRenderDocumentPanel" action="{!displayDocument}" status="allPanelsOverlay" reRender="msgError, documentsPanel" oncomplete="$('#selectAllAttachmentsCheckboxHolder input').attr('checked', false);"/>
+
+                        <apex:outputPanel id="attachedFilesPannel">
+                            <apex:outputPanel rendered="{!showAttachment}" layout="block" style="padding-right: 20px;">
+                                <img src="{!$Resource.Attachment}" style="vertical-align: middle;"/>
+                                <apex:repeat value="{!sorteredFileWrapperList}" var="doc">
+                                    <apex:outputLink target="_blank" value="/{!doc.document.Id}">{!doc.document.LStore__File_Name__c} ({!doc.document.LStore__File_Size_Calc__c});</apex:outputLink>&nbsp;
+                                </apex:repeat>
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+
+                        <div id="attachmentPanelId" style="display: none;">
+                            <apex:outputPanel id="documentsPanel">
+                                <div style="overflow: auto; max-height: 150px;">
+                                    <table style="width: 100%;" class="generalTableStyle">
+                                        <th id="selectAllAttachmentsCheckboxHolder"> <apex:inputCheckbox onclick="if(this.checked){checkAll('attachDocumentCheckboxHolder');}"/> </th>
+                                        <th style="width: 85%;"><apex:outputLabel value="Document(s)" styleClass="labelText"/></th>
+                                        <th>
+                                            <apex:outputPanel layout="block">
+                                               <apex:outputLabel value="Related To: " styleClass="labelText"/>
+                                               <apex:selectList value="{!documentRelatedTo}" size="1" onchange="reRenderDocumentPanel();">
+                                                   <apex:selectOptions value="{!itemsRelatedToAttachments}" />
+                                               </apex:selectList>
+                                            </apex:outputPanel>
+                                        </th>
+
+                                        <apex:repeat value="{!documents}" var="doc">
+                                            <tr style="display: {!IF(CONTAINS(doc.relatedTo, documentRelatedTo), 'table-row', 'none')}">
+                                                <td style="text-align: center;" class="attachDocumentCheckboxHolder"><apex:inputCheckbox value="{!doc.isSelect}" id="checkedone" /></td>
+                                                <td colspan="2"><apex:outputLabel value="{!doc.document.LStore__File_Name__c}" /></td>
+                                            </tr>
+                                        </apex:repeat>
+
+                                    </table>
+                                </div>
+                            </apex:outputPanel>
+
+                            <div style="float: right;">
+                                <apex:outputPanel >
+                                    <apex:commandButton value="Close"  styleClass="milroseBtnStyle" onclick="closeAttachDocument(); return false;"/>
+                                    <apex:commandButton value="Attach" styleClass="milroseBtnStyle" onclick="closeAttachDocument(); attachDocuments(); return false;" status="allPanelsOverlay" />
+                                </apex:outputPanel>
+                            </div>
+                        </div>
+                        <!-- ------------------------------------------ End Attachments ------------------------------------------ -->
+
+                        <!-- ---------------------------------- Begin Popup Add Roster to CC ---------------------------------- -->
+                        <apex:actionFunction name="addEmailToCC" action="{!addEmailToCC}" rerender="msgError, emailRecipients" status="allPanelsOverlay" oncomplete="updateRecordCC('{!emailsForRecordFieldCC}');"/>
+                        <apex:actionFunction name="addEmailTo"   action="{!addEmailTo}"   rerender="msgError, emailRecipients" status="allPanelsOverlay" oncomplete="updateRecordTO('{!rosterEmailAddress}');" />
+
+                        <apex:outputPanel layout="block">
+                            <div id="popupAddToEmail" style="display: none;">
+                                <div style="z-index:40; opacity:0.7; filter:alpha(opacity=70); position:absolute; top:0; left:0; width:100%; height:100%; background-color: #8AC;"/>
+                                <div style="z-index:41; position:absolute; top:0; left:0; width:100%; height:100%; background-color: transparent;">
+                                    <div style="width:500px; position:relative; left:25%; top:20%; border:1px solid #888; background-color:#F0F8FF; box-shadow:5px 5px 25px #115577;">
+                                        <div style="text-align: center; padding: 10px;">
+                                            <span><b>Add Contact(s) to:</b></span>
+
+                                            <br/><br/>
+                                            <div style="overflow: auto; max-height: 150px;">
+                                                <table style="width: 100%;" class="generalTableStyle">
+                                                    <th><apex:inputCheckbox onclick="if(this.checked){checkAll('recipientsCheckboxHolder');}"/></th>
+                                                    <th><apex:outputLabel value="Name" /></th>
+                                                    <th><apex:outputLabel value="Role" /></th>
+                                                    <th><apex:outputLabel value="DND" /></th>
+                                                    <th><apex:outputLabel value="Email" /></th>
+
+                                                    <apex:repeat value="{!nameToRosterForSelection}" var="currentItem">
+                                                        <tr>
+                                                            <td class="recipientsCheckboxHolder"><apex:inputCheckbox value="{!nameToRosterForSelection[currentItem].isSelect}" id="checkCC" /></td>
+                                                            <td><apex:outputLabel value="{!nameToRosterForSelection[currentItem].name}" /></td>
+                                                            <td><apex:outputLabel value="{!nameToRosterForSelection[currentItem].role}" /></td>
+                                                            <td><apex:outputField value="{!nameToRosterForSelection[currentItem].contact.DND__c}" /></td>
+                                                            <td><apex:outputLabel value="{!nameToRosterForSelection[currentItem].email}" /></td>
+                                                        </tr>
+                                                    </apex:repeat>
+                                                </table>
+                                            </div>
+                                            <br/><br/>
+
+                                            <span>
+                                                <apex:commandButton value="Add To" onclick="$('#popupAddToEmail').hide(); addEmailTo(); return false;" styleClass="milroseBtnStyle"/>
+                                            </span>
+                                            <apex:commandButton value="Cancel" onclick="$('#popupAddToEmail').hide(); return false;" styleClass="milroseBtnStyle" style="display: inline-block;" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="popupAddCCToEmail" style="display: none;">
+                                <div style="z-index:40; opacity:0.7; filter:alpha(opacity=70); position:absolute; top:0; left:0; width:100%; height:100%; background-color: #8AC;"/>
+                                <div style="z-index:41; position:absolute; top:0; left:0; width:100%; height:100%; background-color: transparent;">
+                                    <div style="width:500px; position:relative; left:25%; top:20%; border:1px solid #888; background-color:#F0F8FF; box-shadow:5px 5px 25px #115577;">
+                                        <div style="text-align: center; padding: 10px;">
+                                            <span><b>Add Contact(s) to CC:</b></span>
+
+                                            <br/><br/>
+                                            <div style="overflow: auto; max-height: 150px;">
+                                                <table style="width: 100%;" class="generalTableStyle">
+                                                    <th><apex:inputCheckbox onclick="if(this.checked){checkAll('recipientsCheckboxHolder');}"/></th>
+                                                    <th><apex:outputLabel value="Name" /></th>
+                                                    <th><apex:outputLabel value="Role" /></th>
+                                                    <th><apex:outputLabel value="DND" /></th>
+                                                    <th><apex:outputLabel value="Email" /></th>
+
+                                                    <apex:repeat value="{!nameToRosterMap}" var="currentItem">
+                                                        <tr>
+                                                            <td class="recipientsCheckboxHolder"><apex:inputCheckbox value="{!nameToRosterMap[currentItem].isSelect}" id="checkCC" /></td>
+                                                            <td><apex:outputLabel value="{!nameToRosterMap[currentItem].name}" /></td>
+                                                            <td><apex:outputLabel value="{!nameToRosterMap[currentItem].role}" /></td>
+                                                            <td>
+                                                                <apex:outputField rendered="{!(nameToRosterMap[currentItem].contact != null &&  nameToRosterMap[currentItem].contact.DND__c)}" value="{!nameToRosterMap[currentItem].contact.DND__c}"/>
+                                                                <apex:outputLabel rendered="{!(nameToRosterMap[currentItem].contact == null || !nameToRosterMap[currentItem].contact.DND__c)}" value=""/>
+                                                            </td>
+                                                            <td><apex:outputLabel value="{!nameToRosterMap[currentItem].email}" /></td>
+                                                        </tr>
+                                                    </apex:repeat>
+                                                </table>
+                                            </div>
+                                            <br/><br/>
+
+                                            <span>
+                                                <apex:commandButton value="Add to CC" onclick="$('#popupAddCCToEmail').hide(); addEmailToCC(); return false;" styleClass="milroseBtnStyle"/>
+                                            </span>
+                                            <apex:commandButton value="Cancel" onclick="$('#popupAddCCToEmail').hide(); return false;" styleClass="milroseBtnStyle" style="display: inline-block;" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </apex:outputPanel>
+                        <!-- ---------------------------------- End Popup Add Roster to CC ---------------------------------- -->
+
+                        <apex:outputPanel layout="block" rendered="{!OR(!showTemplateSelection, isEmailTemplateSet)}">
+                            <apex:outputLabel value="Edit Template: " styleClass="labelText" style="font-size: 14px;"/>
+                            <apex:inputTextarea id="editTemplate" value="{!innerTemplateBody}" richText="true" cols="100" rows="15" />
+                        </apex:outputPanel>
+
+                        <apex:outputPanel layout="block" rendered="{! !selectRecipient}">
+                            <apex:commandButton value="Close" onclick="window.top.location='{!LinkToClose}'; return false;" styleClass="milroseBtnStyle" rendered="{!showRedirect }"/>
+                            <apex:commandButton value="Close" onclick="window.top.location.reload();         return false;" styleClass="milroseBtnStyle" rendered="{! !showRedirect }"/>
+                        </apex:outputPanel>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+
+        <div id="emailTemplateEditorNotAllow" style="display: {!IF(allowSendingEmail, 'none', 'block')}">
+            <apex:outputPanel layout="block" rendered="{! !selectRecipient}">
+                <apex:commandButton value="Close" onclick="window.top.location='{!LinkToClose}'; return false;" styleClass="milroseBtnStyle" rendered="{!showRedirect }"/>
+                <apex:commandButton value="Close" onclick="window.top.location.reload();         return false;" styleClass="milroseBtnStyle" rendered="{! !showRedirect }"/>
+            </apex:outputPanel>
+        </div>
+    </apex:outputPanel>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            document.onkeypress = stopRKey;
+        });
+
+        function stopRKey(evt) {
+            var evt = (evt) ? evt : ((event) ? event : null);
+            var node = (evt.target) ? evt.target : ((evt.srcElement) ? evt.srcElement : null);
+
+            if( ( evt.keyCode == 13 ) &&
+                ( node.type == "text" || node.tagName == "INPUT" || node.tagName == "SELECT" || node.tagName == "OPTION" ) ) {
+                var myButton = document.getElementById("{!$Component.searchButtonId}");
+                myButton.click();
+                return false;
+            }
+        }
+
+        function checkAll( checkboxHolderClass ) {
+            $('.' + checkboxHolderClass + ' input').filter(':visible').attr('checked', true);
+
+        }
+
+        function attachDocument() {
+            $("#attachmentPanelId").show();
+            $("#attachmentButtonId").attr('disabled', 'disabled').addClass('btnDisabled').removeClass('btn');
+
+        }
+
+        function closeAttachDocument() {
+            $('#selectAllAttachmentsCheckboxHolder input').attr('checked', false);
+            $("#attachmentPanelId").hide();
+            $("#attachmentButtonId").removeAttr("disabled").addClass('btn').removeClass('btnDisabled');
+
+        }
+
+        function updateRecordCC(emailCC) {
+            //Call action function of component container
+            if (typeof(containerUpdateParentRecordCC) === 'function'){
+                containerUpdateParentRecordCC(emailCC);
+
+            }
+
+        }
+
+        function callSendDDPEmail() {
+            showOverlay();
+            sendDDPEmail();
+
+        }
+
+        function callUpdateRecordToSendEmail(reminder, emailTemplateId) {
+            //Call action function of component container
+            if (typeof(containerPerformAfterSaveAction) === 'function'){
+                containerPerformAfterSaveAction(reminder, emailTemplateId);
+
+            }
+            $('#emailTemplateEditor').hide();
+            hideOverlay();
+
+        }
+
+        function updateRecordTO(emailTO) {
+            //Call action function of component container
+            if (typeof(containerUpdateParentRecordTO) === 'function'){
+                containerUpdateParentRecordTO(emailTO);
+
+            }
+        }
+    </script>
+</apex:component>

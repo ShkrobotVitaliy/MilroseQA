@@ -1,0 +1,49 @@
+<apex:page standardController="Service_Item__c" extensions="ServiceItemGeneratedFormsExtension" showChat="false" action="{!getStoreDocuments}">
+    <script src="{!$Resource.jquery_tablednd_js}"></script>
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}"/>
+    <script src="{!$Resource.jquery_tablednd_js}"></script>
+    
+    <apex:form >
+    
+        <!-- Generated Forms table-->
+        <apex:outputPanel layout="block" rendered="{!lStoreDocumentsForDisplay.size > 0}">
+            <apex:pageBlock >
+                <div id="queuedFiles" style="max-height: 200px; overflow-y: scroll;">
+                    <apex:pageBlockTable id="queuedFiles" styleClass="data" value="{!lStoreDocumentsForDisplay}" var="file">
+                        <apex:column >
+                            <apex:facet name="header">Name</apex:facet>
+                            <apex:commandLink value="{!file.LStore__File_Name__c}" action="{!openPDF}" oncomplete="window.top.location='{!downloadPdfUrl}'; return false;">
+                                <apex:param name="selectedFormItemId" value="{!file.Id}" assignTo="{!selectedFormItemId}"/>
+                             </apex:commandLink>
+                        </apex:column>
+                        <apex:column >
+                            <apex:facet name="header">Description</apex:facet>
+                            <apex:outputField value="{!file.LStore__Description__c}"/>
+                        </apex:column>
+                        <apex:column style="width: 75px;">
+                            <apex:facet name="header">File Size</apex:facet>
+                            <apex:outputField value="{!file.LStore__File_Size_Calc__c}"/>
+                        </apex:column>
+                        <apex:column style="width: 185px;">
+                            <apex:facet name="header">Created Date</apex:facet>
+                            <apex:outputField value="{!file.CreatedDate}"/>
+                        </apex:column>
+                        <apex:column style="width: 40px;">
+                            <apex:facet name="header">Type</apex:facet>
+                            <apex:outputField value="{!file.LStore__Type_Calc__c}"/>
+                        </apex:column>
+                        <apex:column style="width: 65px;">
+                            <apex:facet name="header">Author</apex:facet>
+                            <apex:outputLink value="/{!file.CreatedById}" target="_blank">
+                                <apex:outputField value="{!file.CreatedBy.Alias}"/>
+                            </apex:outputLink>
+                        </apex:column>
+                    </apex:pageBlockTable>
+                </div>  
+            </apex:pageBlock>
+        </apex:outputPanel>
+        
+    </apex:form>        
+    
+</apex:page>

@@ -1,0 +1,233 @@
+<apex:page controller="ProFormaLegacyBillingItemController" sidebar="false" showChat="false">
+    <apex:stylesheet value="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/css/jquery.dataTables.css')}"/>
+    <script src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.js')}" />
+    <script src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.dataTables.js')}" />
+    <script src="{!URLFOR($Resource.DatetimeUS)}" />
+    <script src="{!URLFOR($Resource.DateUS)}" />
+    <apex:stylesheet value="{!$Resource.HomePage_CSS}"/>  
+    
+    <style>
+        td {
+            vertical-align: middle !important; 
+        }
+        .inputLabelFilter {
+            color: #4A4A56;
+            font-weight: 700;
+            padding: 0 4px 0 10px; 
+        }
+        .btn, .btnDisabled {
+            border: 1px solid #3887A8 !important; 
+            background: #F4F6F9 !important; 
+            border-radius: 0 !important; 
+            -moz-border-radius: 0 !important; 
+            -webkit-border-radius: 0 !important;
+            padding-right: 8px !important;
+            padding-left: 8px !important;
+        }
+        .btnDisabled { 
+            border: 1px solid #c4c4c4 !important; 
+        }
+        .btn:hover { 
+            background: #69B3D6 !important;
+            color: #fff !important;
+        } 
+        .pbBody {
+            padding-bottom: 7px !important;
+        }
+        td, th {
+            word-break: normal !important;
+        }
+    </style>
+    
+    <apex:form >
+        <apex:actionStatus id="allPanelsOverlay" onstart="$('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);" onstop="$('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });"/>
+        <div class="AllInfoPanelHolder" style="position: relative; overflow: auto; -webkit-overflow-scrolling: touch;">
+            <div class="overlay" id="AllPannelOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"/>
+            <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+                <div style="text-align: center;">
+                    <img src="{!$Resource.loading_bar}" />
+                    <p style="color: #000; margin-bottom: 0px; font-size: 24px;">Please wait</p>
+                </div>
+            </div>
+        
+            <apex:pageMessages id="msgError"/>
+            
+            <!-- ------------------------------------- Begin Filter Section ----------------------------------------------------------------------- -->
+            <apex:outputLabel value="Filters" styleClass="labelText" style="font-size: 16px; padding-left: 8px; color: #3887A8;"/>
+            <apex:outputPanel > 
+                <table style="width: 100%;">
+                    <tr>
+                        <td>
+                            <apex:panelGrid columns="2">
+                                <apex:outputText value="Billing Client:" styleClass="labelTextInline"/>
+                                <apex:inputText value="{!billingClientCompanyFilter}" style="margin-left: 5px;"/>
+                                                    
+                                <apex:outputText value="Accounting Contact Company:" styleClass="labelTextInline"/>
+                                <apex:inputText value="{!accountingContactCompanyFilter}" style="margin-left: 5px;"/>
+                            </apex:panelGrid>
+                        </td>
+                        <td>
+                            <apex:panelGrid columns="2">
+                                <apex:outputText value="MRC#:" styleClass="labelTextInline"/>
+                                <apex:inputText value="{!mrcFilter}" style="margin-left: 5px;"/>
+                            
+                                <apex:outputText value="Project Address:" styleClass="labelTextInline"/>
+                                <apex:inputText value="{!projectAddressFilter}" style="margin-left: 5px;"/>
+                            </apex:panelGrid>
+                        </td>
+                        <td>
+                            <apex:panelGrid columns="2">
+                                <apex:outputText value="Not Billable:" styleClass="labelTextInline"/>
+                                <apex:inputCheckbox value="{!notBilliableFilter}" style="margin-left: 5px;"/>
+                            </apex:panelGrid>
+                        </td>
+                    </tr>
+                </table>
+            </apex:outputPanel>
+            
+            <apex:outputPanel layout="block" style="text-align: center;">
+                <apex:commandButton value="Search" action="{!search}" styleClass="milroseBtnStyle" />
+            </apex:outputPanel>
+            <!-- -------------------------------------- End Filter Section ----------------------------------------------------------------------- -->
+    
+            <!-- -------------------------------------- Begin Legacy Billing Items Section ----------------------------------------------------------------------- -->
+            <apex:outputLabel value="Legacy Billing Items:" styleClass="labelText" style="font-size: 16px; padding-left: 8px; color: #3887A8;"/>
+            <Apex:actionFunction name="generateInvoices" action="{!generateInvoices}"/>
+            <apex:pageBlock >
+                <apex:pageBlockButtons location="both" style="text-align:left;">
+                    <apex:commandButton value="Generate Invoices"                                         
+                                        styleClass="milroseBtnStyle" 
+                                        disabled="{!availableGenerateInvoice}"
+                                        onclick="generate(); $(this).attr('disabled', 'disabled').addClass('btnDisabled').removeClass('btn'); return false;" />
+                    <apex:commandButton value="Save Changes"      action="{!saveChanges}"      styleClass="milroseBtnStyle" rendered="{!isVisibleSaveButton}" />
+                </apex:pageBlockButtons>
+
+                <apex:pageBlockTable value="{!legacyBillingItems}" var="item" styleClass="dataTable" style="min-width: 2100px;">
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:inputCheckbox onclick="checkAll(this, 'checkedone')"/>
+                        </apex:facet>
+                        <apex:inputCheckbox value="{!item.selected}" id="checkedone" />
+                    </apex:column>
+                    <apex:column headerValue="Legacy Billing Items Name">
+                        <apex:outputLink target="_blank" value="/{!item.lbi.Id}"> {!item.lbi.Name}</apex:outputLink>
+                    </apex:column>
+                    <apex:column headerValue="Not Billable" >
+                        <apex:outputField value="{!item.lbi.Not_Billable__c}">
+                            <apex:inlineEditSupport event="ondblclick" resetFunction="resetInlineEdit"/>
+                        </apex:outputField>
+                    </apex:column>
+                    <apex:column headerValue="Type">
+                        <apex:outputField value="{!item.lbi.Type__c}">
+                            <apex:inlineEditSupport event="ondblclick" resetFunction="resetInlineEdit" />
+                        </apex:outputField>
+                    </apex:column>
+                    <apex:column headerValue="Invoice Line Description" >
+                        <apex:outputField value="{!item.lbi.Invoice_Line_Description__c}">
+                            <apex:inlineEditSupport event="ondblclick" resetFunction="resetInlineEdit" />
+                        </apex:outputField>
+                    </apex:column>
+                    <apex:column headerValue="Detail Description">
+                        <apex:outputField value="{!item.lbi.Detail_Description__c}">
+                            <apex:inlineEditSupport event="ondblclick" resetFunction="resetInlineEdit"/>
+                        </apex:outputField>
+                    </apex:column>
+                    <apex:column headerValue="MRC#" value="{!item.lbi.MRC__c}" /> <!-- ReadOnly -->
+                    <apex:column headerValue="Municipal Agency ID#">
+                        <apex:outputField value="{!item.lbi.Municipal_Agency_ID__c}">
+                            <apex:inlineEditSupport event="ondblclick" resetFunction="resetInlineEdit"/>
+                        </apex:outputField>
+                    </apex:column>
+                    <apex:column headerValue="Quantity">
+                        <apex:outputField value="{!item.lbi.Quantity__c}">
+                            <apex:inlineEditSupport event="ondblclick" resetFunction="resetInlineEdit"/>
+                        </apex:outputField>
+                    </apex:column>
+                    <apex:column headerValue="Price">
+                        <apex:outputField value="{!item.lbi.Price__c}">
+                            <apex:inlineEditSupport event="ondblclick" resetFunction="resetInlineEdit"/>
+                        </apex:outputField>
+                    </apex:column>
+                    <apex:column headerValue="Tax Code 1">
+                        <apex:outputField value="{!item.lbi.Tax_Code_1__c}">
+                            <apex:inlineEditSupport event="ondblclick" resetFunction="resetInlineEdit"/>
+                        </apex:outputField>
+                    </apex:column>
+                    <apex:column headerValue="Sales Tax Amount 1">
+                        <apex:outputField value="{!item.lbi.Sales_Tax_Amount_1__c}">
+                            <apex:inlineEditSupport event="ondblclick" resetFunction="resetInlineEdit"/>
+                        </apex:outputField>
+                    </apex:column>
+                    <apex:column headerValue="Tax Code 2">
+                        <apex:outputField value="{!item.lbi.Tax_Code_2__c}">
+                            <apex:inlineEditSupport event="ondblclick" resetFunction="resetInlineEdit"/>
+                        </apex:outputField>
+                    </apex:column>
+                    <apex:column headerValue="Sales Tax Amount 2">
+                        <apex:outputField value="{!item.lbi.Sales_Tax_Amount_2__c}">
+                            <apex:inlineEditSupport event="ondblclick" resetFunction="resetInlineEdit"/>
+                        </apex:outputField>
+                    </apex:column>
+                    <apex:column headerValue="Date Added ">
+                        <apex:outputField value="{!item.lbi.Date_Added__c}">
+                            <apex:inlineEditSupport event="ondblclick" resetFunction="resetInlineEdit"/>
+                        </apex:outputField>
+                    </apex:column>
+                    <apex:column headerValue="Client PO#">
+                        <apex:outputField value="{!item.lbi.Client_PO__c}">
+                            <apex:inlineEditSupport event="ondblclick" resetFunction="resetInlineEdit" changedStyleClass="inlineEditWrite">
+                                                      
+                            </apex:inlineEditSupport>
+                        </apex:outputField>
+                    </apex:column>
+                    <apex:column headerValue="Created Date">
+                        <apex:outputField value="{!item.lbi.CreatedDate}" />
+                    </apex:column>
+                </apex:pageBlockTable>
+                
+                <script type="text/javascript" language="javascript">
+                    // DataTables Plugin
+                    var oTable = $('table.dataTable').dataTable({
+                        aLengthMenu: [[10, 25, 50, 100, 200], [10, 25, 50, 100, 200]],
+                        sPaginationType: "full_numbers",
+                        iDisplayLength: 200,
+                        bAutoWidth: false,
+                        aoColumnDefs: [ { sSortDataType: "date-us", sType: "date-us", aTargets: [13] },
+                                        { sSortDataType: "datetime-us", sType: "datetime-us", aTargets: [16] },
+                                        { bSortable: false, aTargets: [0] } ],
+                                        
+                        aoColumns: [ { sWidth: "1%" },{ sWidth: "7%" },{ sWidth: "7%" },{ sWidth: "6%" }, { sWidth: "6%" },
+                                     { sWidth: "12%" },{ sWidth: "7%" },{ sWidth: "5%" },{ sWidth: "5%" },{ sWidth: "5%" },
+                                     { sWidth: "7%" },{ sWidth: "5%" },{ sWidth: "5%" },{ sWidth: "5%" },{ sWidth: "5%" },
+                                     { sWidth: "6%" },{ sWidth: "6%" }]
+       
+                    });
+                
+                    oTable.fnSort( [ [4,'desc'] ]);
+                </script>
+                
+            </apex:pageBlock>
+        <!-- -------------------------------------- End Legacy Billing Items Section ----------------------------------------------------------------------- -->
+        
+        </div>
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+    </apex:form>
+    
+    <script>
+        function checkAll(cb, cbid) {
+            var inputElem = document.getElementsByTagName("input");
+
+            for(var i = 0; i < inputElem.length; i++) {
+                if(-1 != inputElem[i].id.indexOf(cbid)) {
+                    inputElem[i].checked = cb.checked;
+                
+                }
+            }
+        }
+        
+        function generate() {
+            generateInvoices();
+            
+        }
+    </script>
+</apex:page>

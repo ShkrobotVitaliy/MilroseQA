@@ -1,0 +1,102 @@
+<apex:component >
+  <apex:attribute name="scanRequestRecord" description="Scan Request record." type="Scan_Request__c" required="true" />
+  <apex:attribute name="workTypes"         description=""                     type="selectOption[]"  required="true"/>
+  
+  <h1>Drawings</h1>
+  
+  <apex:pageBlock >    
+        <apex:pageBlockSection columns="2">
+            <!--Title-->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Drawing Title:"/>
+                <apex:outputPanel layout="block">
+                    <apex:outputPanel layout="block" styleClass="requiredBlockWrapper" rendered="true"><div class="requiredBlockMarker"></div></apex:outputPanel>
+                    <apex:inputText value="{!scanRequestRecord.Artifact_Name__c}" />
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+    
+            <!--Description-->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Drawing Description:"/>
+                <apex:outputPanel layout="block">
+                    <apex:inputField value="{!scanRequestRecord.Description__c}" />
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>  
+    
+            <!--Drawing Number-->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Drawing #:"/>
+                <apex:outputPanel layout="block">
+                    <apex:inputText value="{!scanRequestRecord.Number__c}" />
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+    
+            <!--Drawing Revision Date-->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Drawing Revision Date:"/>
+                <apex:outputPanel layout="block">
+                    <apex:inputField value="{!scanRequestRecord.Revision_Date__c}" onchange="parseDate(this);"/>
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+    
+            <!--Drawing Author-->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Drawing Author:"/>
+                <apex:outputPanel layout="block">
+                    <apex:inputField value="{!scanRequestRecord.Account__c}" />
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>  
+    
+            <!--Work Type-->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Work Type:"/>
+                
+                <apex:outputPanel layout="block">
+                    <apex:selectList value="{!scanRequestRecord.Work_Type__c}" multiselect="false" size="1">
+                        <apex:selectOptions value="{!workTypes}"/>
+                    </apex:selectList>
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem> 
+    
+            <!--Municipal Description ID-->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Municipal Description ID:"/>
+                <apex:outputPanel layout="block">
+                    <apex:inputField value="{!scanRequestRecord.Municipal_Description_ID__c}" />
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+    
+            <!--Municipal Agency Id-->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Municipal Agency Id:"/>
+                <apex:outputPanel layout="block">
+                    <apex:inputField value="{!scanRequestRecord.Municipal_Agency_Id__c}" />
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+    
+            <!--Tenant-->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Tenant:"/>
+                <apex:outputPanel layout="block">
+                    <apex:inputField value="{!scanRequestRecord.Tenant__c}" />
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+    
+            <!--Key Words-->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Keywords:"/>
+                <apex:outputPanel layout="block">
+                   <apex:inputField value="{!scanRequestRecord.Keywords__c}" />
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+    
+            <!--Comments-->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Comments:"/>
+                <apex:outputPanel layout="block">
+                    <apex:inputField value="{!scanRequestRecord.Comments__c}" />
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+</apex:component>

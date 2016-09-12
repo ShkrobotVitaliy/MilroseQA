@@ -1,0 +1,80 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="2">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: 50%;">Application Permit Response</th>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Contractor Signing &amp; DOB Registration/Tracking #</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Contractor_Signing_DOB_Reg_App__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Primary Contact/Project Manager</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Primary_Contact_Project_Manager_App__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Construction Start Date</td>
+                <td class="secondColumn"><apex:inputField value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Construction_Start_Date_App__c}" styleClass="dataPicker"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Construction End Date</td>
+                <td class="secondColumn"><apex:inputField value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Construction_End_Date_App__c}" styleClass="dataPicker"/></td>
+            </tr>
+            <tr>
+                <td class="sectionTitle"><span class="mainRequestHeader">Work will be performed After-Hours/Weekends</span><br/><i>If yes, please provide the work schedule for a <b>AHV</b> proposal</i></td>
+                <td class="secondColumn"></td>
+            </tr>
+            <tr>
+                <td class="titleDescription mainRequestHeader">AHV Work Schedule Details</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Contractor  Signing/Sealing &amp; License #</td>
+                <td class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.AHV_Contractor_Signing_Sealing_App__c}" /></td>
+            </tr>
+            <tr>
+                <td>Description Of Work</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.AHV_Description_Of_Work_App__c}" /></td>
+            </tr>
+            <tr>
+                <td>Dates Desired</td>
+                <td class="secondColumn"><apex:inputField value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.AHV_Dates_Desired_App__c}" styleClass="dataPicker"/></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Billing client </span>- If different from the billing client on the existing contract</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Billing_Client_App__c}" /></td>
+            </tr>
+            <tr>
+                <td class="sectionTitle"><span class="mainRequestHeader">Sidewalk Work will be performed </span><br></br><i>If yes, please provide the work schedule  for a <b>DOT</b> proposal</i></td>
+                <td class="secondColumn"></td>
+            </tr>
+            <tr class="dotSectionRow">
+                <td class="titleDescription mainRequestHeader">DOT Work Schedule Details</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Contractor Signing/Sealing &amp; License #</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.DOT_Contractor_Signing_Sealing_App__c}" /></td>
+            </tr>
+            <tr>
+                <td>Description Of Work</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.DOT_Description_Of_Work_App__c}" /></td>
+            </tr>
+            <tr>
+                <td>Duration for permit</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Duration_For_Permit_App__c}" styleClass="dataPicker"/></td>
+            </tr>
+            <tr>
+                <td>What street is being affected by this permit, if not the street of the house address</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Street_To_Be_Affected_App__c}" /></td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

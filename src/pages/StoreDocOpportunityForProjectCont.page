@@ -1,0 +1,11 @@
+<apex:page standardController="Project_Profile__c" extensions="StoreDocOpportunityForProjectCont" showChat="false">
+    <apex:form >
+        <apex:outputPanel layout="block">
+                <apex:outputPanel >
+                    <apex:iframe scrolling="true" height="230" src="{!iFrameDocumentPageReference}"/> <!-- MRS 7303 -->
+                </apex:outputPanel>
+        </apex:outputPanel>                
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+            <apex:inputField value="{!Project_Profile__c.Proposal__c}" rendered="false" />
+    </apex:form>
+</apex:page>

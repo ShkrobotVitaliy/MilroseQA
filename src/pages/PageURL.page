@@ -1,0 +1,3 @@
+<apex:page >
+ string BaseURL = ApexPages.currentPage().getHeaders().get('Host');pageReference cView = new ApexPages.StandardController(c).view();string fullURL = BaseURL + cView.getUrl();
+</apex:page>

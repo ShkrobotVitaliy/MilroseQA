@@ -1,0 +1,52 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="false" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="2" style="text-align: left;">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: 50%;">Application Permit Response</th>
+            </tr>
+            <tr>
+                <td>
+                    <span class="mainRequestHeader">Tenant Contact Information</span><br></br>
+                    <i>Representative will sign the <a href="{!PW3Hyperlink}" target="blank">PW3</a> verifying costs</i>
+                </td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Tenant_Contact_Information_App__c}" /></td>
+            </tr>
+            <tr>
+                <td>
+                    <span class="mainRequestHeader">3rd Party Inspector Contact Information</span>
+                    <p class="mainRequestHeader">-OR-</p>
+                    <apex:inputCheckbox value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Request_Inspection_Services__c}" onclick="if($(this).is(':checked')){$('.thirdPartyInspector').attr('disabled', 'true');}else{$('.thirdPartyInspector').removeAttr('disabled');}"/>
+                    <i>Request for Milrose to provide an inspection services proposal.</i>
+                </td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.X3rd_Party_Inspector_Contact_Info__c}" styleClass="thirdPartyInspector"/></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Asbestos Investigator Company and Contact Information</span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Asbestos_Investigator_Info__c}" /></td>
+            </tr>
+            <tr>
+                <td>
+                    <span class="mainRequestHeader">Site Contact for Asbestos investigation</span><br></br>
+                    (Access to the site/site inspection, will be coordinated with this person).
+                </td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Site_Contact_for_Asbestos__c}" /></td>
+            </tr>
+            <tr>
+                <td>
+                    <span class="mainRequestHeader">Provide FDNY Base Building Letter of Approval</span><br></br>
+                    <span>(please attach document by responding to RFI Email)</span>
+                 </td>
+                <td class="secondColumn">
+                    <apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Upload_Document_Comments__c}" />
+                </td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

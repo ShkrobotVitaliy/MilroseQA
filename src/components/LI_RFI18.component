@@ -1,0 +1,59 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:variable var="displayColumn" value="{!IF(OR(projectView), 'table-cell', 'none')}"/>
+    <apex:variable var="display2Column" value="{!IF(OR(projectView, AND(!projectView, show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="display3Column" value="{!IF(OR(projectView, AND(!projectView, !show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="colspanValue" value="{!IF(projectView, 2, 1)}"/>
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="{!IF(projectView, 3, 2)}">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width:{!IF(projectView, '33', '50')}%; display:{!display2Column}">Application Permit Response</th>
+                <th style="width:{!IF(projectView, '33', '50')}%; display:{!display3Column}">Application Sign Off Response</th>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Design Signing/Sealing &amp; License #</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Design_Signing_Sealing_License_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Design_Signing_Sealing_License_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Project Manager:</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Project_Manager_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Project_Manager_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Description of work to be completed:</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Description_Of_Work_To_Be_Completed_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Description_Of_Work_To_Be_Completed_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Length of curb cut (including splays):</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Length_Of_Curb_Cut_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Length_Of_Curb_Cut_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Street Name of Nearest Corner and Distance from Nearest Corner:</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Street_Name_Of_Nearest_Corner_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Street_Name_Of_Nearest_Corner_Off__c}" /></td>
+            </tr>      
+            <tr>
+                <td class="mainRequestHeader">list required Inspections:</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.List_Required_Inspections_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.List_Required_Inspections_Off__c}" /></td>
+            </tr>                                                                       
+            <tr>
+                <td style="display:{!display3Column}" class="mainRequestHeader">Engineers Affidavit
+                    <p>Final Survey</p>
+                    <p>Final BPP Construction Photos</p>
+                </td>
+                <td style="display:{!displayColumn}" class="secondColumn permission-massage"><apex:outputText value="{!notRequiredPermission}"/></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Final_Survey_Off__c}" /></td>
+            </tr>-->
+        </table>
+    </apex:outputPanel>
+</apex:component>

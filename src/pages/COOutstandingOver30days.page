@@ -1,0 +1,12 @@
+<apex:page showHeader="false" sidebar="false">
+<style type="text/css">
+    .Mylinks{
+        font-size: 16px;
+    }
+</style> 
+    <apex:pageBlock >
+        <apex:outputLink value="/00Oq0000000SReu?isdtp=nv" target="_blank" styleClass="Mylinks" id="theLink1">Detail View</apex:outputLink>
+        <apex:iframe src="/00Oq0000000SReu?isdtp=nv" height="620px" width="100%" scrolling="true"/>
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+    </apex:pageBlock>
+</apex:page>

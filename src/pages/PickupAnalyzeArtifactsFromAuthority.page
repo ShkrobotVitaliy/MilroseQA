@@ -1,0 +1,85 @@
+<apex:page standardController="Task_Item__c" extensions="PickupAnalyzeArtifactsFromAuthorityCon" showChat="false" sidebar="false" showHeader="false" action="{!addRequaredTIF}">
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}" />
+    <script src="{!$Resource.jquery_tablednd_js}" />
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}" />
+    <script src="{!URLFOR($Resource.jquery_vfFloatingHeaders)}" />
+
+    <apex:form >
+        <apex:actionStatus id="displayAllPanelsOverlay" onstart="$('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);" onstop="$('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });"/>
+        
+        <div class="overlay" id="AllPannelOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"/>
+        <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+            <div style="text-align: center;">
+                <img src="{!$Resource.loading_bar}" />
+                <p style="color: #000; margin-bottom: 0; font-size: 24px;">Please wait</p>
+             </div>
+        </div>
+            
+        <apex:actionFunction name="deleteRecordAction" action="{!deleteRecordAction}" reRender="pageMessages, taskItemFunctionality" status="displayAllPanelsOverlay">
+            <apex:param name="rowIdToDelete" value="" assignTo="{!tifRecordId}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="refreshTable" reRender="pageMessages, taskItemFunctionality" status="displayAllPanelsOverlay"/>
+        
+        <apex:pageBlock id="taskItemFunctionality">
+            <apex:pageMessages id="pageMessages"/>
+            <div style="height: 175px; overflow-y:scroll; width: 100%; margin:0px;" >
+                <table id="formTable" class="generalTableStyle" style="text-align: center;">
+                    <thead>
+                        <tr>
+                            <th style="display:table-cell; width: 10%;">Disapproved Date</th>
+                            <th style="display:table-cell; width: 26%;">Comments</th>
+                            <th style="display:table-cell; width: 12%;">Appointment Date/Time</th>
+                            <th style="display:table-cell; width: 25%;">Examiner</th>
+                            <th style="display:table-cell; width: 25%;">Additional Notes</th>
+                            <th style="display:table-cell; width: 2%;">Del</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:repeat value="{!taskItemFunctionalityList}" var="dataItem">
+                            <tr>
+                                <td>
+                                    <apex:outputPanel rendered="{!!dataItem.Is_Saved__c && taskItem.Status__c != 'Approved' && taskItem.Service_Item__r.Status__c != 'Inactive'}" layout="block" style="position: relative;">
+                                        <div class="requiredBlockWrapper" style="display: inline-block; position: absolute; top: 0px;"><div class="requiredBlockMarker" style="left: -1px; top: 0px;"></div></div>
+                                        <apex:inputField value="{!dataItem.Disapproved_Date__c}" style="margin-left: 3px; position: relative;" onchange="updateFieldValuesOnChange('{!dataItem.Id}')" />
+                                    </apex:outputPanel>
+                                    <apex:outputField value="{!dataItem.Disapproved_Date__c}" rendered="{!dataItem.Is_Saved__c || taskItem.Status__c == 'Approved' || taskItem.Service_Item__r.Status__c == 'Inactive'}" />
+                                </td>
+                                <td>
+                                    <apex:outputPanel rendered="{!!dataItem.Is_Saved__c && taskItem.Status__c != 'Approved' && taskItem.Service_Item__r.Status__c != 'Inactive'}" layout="block" style="position: relative;">
+                                        <div class="requiredBlockWrapper" style="display: inline-block; position: absolute; top: 0px;"><div class="requiredBlockMarker" style="left: -1px; top: 0px;"></div></div>
+                                        <apex:inputField value="{!dataItem.Comments__c}" style="width: 95%;margin-left:3px;" />
+                                    </apex:outputPanel>
+                                    <apex:outputField value="{!dataItem.Comments__c}" style="width: 95%;text-align: left;" rendered="{!dataItem.Is_Saved__c || taskItem.Status__c == 'Approved' || taskItem.Service_Item__r.Status__c == 'Inactive'}" />
+                                </td>
+                                <td>
+                                    <apex:inputField value="{!dataItem.Appointment_Date_Time__c}" rendered="{!taskItem.Status__c != 'Approved' && taskItem.Service_Item__r.Status__c != 'Inactive'}" />
+                                    <apex:outputField value="{!dataItem.Appointment_Date_Time__c}" rendered="{!taskItem.Status__c == 'Approved' || taskItem.Service_Item__r.Status__c == 'Inactive'}" />
+                                </td>
+                                <td>
+                                    <apex:inputField value="{!dataItem.Examiner__c}" style="width: 95%;" rendered="{!taskItem.Status__c != 'Approved' && taskItem.Service_Item__r.Status__c != 'Inactive'}" />
+                                    <apex:outputField value="{!dataItem.Examiner__c}" style="width: 95%; text-align: left;" rendered="{!taskItem.Status__c == 'Approved' || taskItem.Service_Item__r.Status__c == 'Inactive'}" />
+                                </td>
+                                <td>
+                                    <apex:inputField value="{!dataItem.Additional_Notes__c}" style="width: 95%;" rendered="{!taskItem.Status__c != 'Approved' && taskItem.Service_Item__r.Status__c != 'Inactive'}" />
+                                    <apex:outputField value="{!dataItem.Additional_Notes__c}" style="width: 95%;" rendered="{!taskItem.Status__c == 'Approved' || taskItem.Service_Item__r.Status__c == 'Inactive'}" />
+                                </td>
+                                <td>
+                                    <apex:commandLink onclick="deleteRecordAction('{!dataItem.Id}'); return false;" rendered="{!!dataItem.Is_Saved__c && taskItem.Status__c != 'Approved' && taskItem.Service_Item__r.Status__c != 'Inactive'}" >
+                                        <img src="/img/func_icons/remove12_on.gif" alt="delete" title="Delete" class="deleteItemImage" onmouseover="this.src='/img/func_icons/remove12_on.gif'" onmouseout="this.src='/img/func_icons/remove12_on.gif'"/>
+                                    </apex:commandLink>
+                                </td>
+                            </tr>
+                        </apex:repeat>
+                    </tbody>
+                </table>
+
+                <apex:pageBlockButtons location="bottom" style="text-align: center;" rendered="{!taskItem.Service_Item__r.Status__c != 'Inactive'}">
+                    <apex:commandButton styleClass="btn milroseBtnStyle" action="{!saveTasktemFunctionality}" value="Save" reRender="taskItemFunctionality, pageMessages" disabled="{!taskItem.Status__c == 'Approved'}" status="displayAllPanelsOverlay"/>
+                    <apex:commandButton styleClass="btn milroseBtnStyle" action="{!addNewLineAction}" value="Add New Line" reRender="taskItemFunctionality, pageMessages" disabled="{!taskItem.Status__c == 'Approved'}" status="displayAllPanelsOverlay"/>
+                </apex:pageBlockButtons>
+            </div>
+        </apex:pageBlock>
+
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+    </apex:form>
+</apex:page>

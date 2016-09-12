@@ -1,0 +1,4 @@
+<apex:page showHeader="true" tabstyle="Purchase_Order__c">
+<apex:sectionheader title="Purchase Order" subtitle="Home"></apex:sectionheader>
+    <apex:ListViews type="Purchase_Order__c" />
+</apex:page>

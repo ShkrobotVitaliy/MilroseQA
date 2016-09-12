@@ -1,0 +1,143 @@
+<apex:page standardController="Project_Profile__c" extensions="ManageOutboundEmailController" action="{!clearEmailAddress}">
+    <script src="{!$Resource.jquery_tablednd_js}" />
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}" />
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}" />
+    <script src="{!URLFOR($Resource.jquery_vfFloatingHeaders)}" />
+    
+    <style>
+        .tableContainer {
+            width: 100%; 
+            margin: 0px; 
+            overflow: auto;
+        }            
+        .floatingStyle { 
+            position:relative;
+            background:#F2F3F3;
+        }
+        body {
+            margin: 0px !important;
+        }
+        .addedAmendedServive {
+            color: green; 
+            font-weight:bold;
+        }
+        .removedAmendedServive {
+            color:red; 
+            font-weight:bold;
+        }
+        .removedAmendedServiveTR {
+            background-color: #FEE;
+        }
+        .addedAmendedServiveTR {
+            background-color: #EFE;
+        }
+    </style>
+    
+    <apex:form style="overflow: auto; max-height: 600px; min-height: 300px">
+        <apex:actionStatus id="allPanelsOverlay" onstart="$('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);" onstop="$('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });"/>
+            
+        <div>
+            <apex:pageMessages id="msgError"/>
+            
+            <!-- ------------------- Begin Callback From Email Component-------------------------- -->
+            <apex:actionFunction name="containerUpdateParentRecordCC" action="{!updateCCEmailsAddressForDrawLoop}" reRender="msgError, vendorRequestPanelId" status="allPanelsOverlay">
+                <apex:param name="emailCC" value="" assignTo="{!emailsAddressForDrawLoop}"/>
+            </apex:actionFunction>
+            
+            <apex:actionFunction name="containerPerformAfterSaveAction" action="{!updateAfterSend}" oncomplete="hideOverlay();" reRender="msgError">
+                <apex:param name="reminderDatetime" value="" assignTo="{!reminderDatetime}" />
+                <apex:param name="usedEmailTemplateId" value="" assignTo="{!usedEmailTemplateId}" />
+            </apex:actionFunction>
+            <!-- ------------------- End Callback From Email Component -------------------------- --> 
+                     
+            <!-- Loading -->
+            <div class="AllInfoPanelHolder" style="position: relative; overflow: auto; -webkit-overflow-scrolling: touch; min-height: 400px;">
+                <div class="overlay" id="AllPannelOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"/>
+                <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+                    <div style="text-align: center;">
+                        <img src="{!$Resource.loading_bar}" />
+                        <p style="color: #000; margin-bottom: 0px; font-size: 24px;">Please wait</p>
+                    </div>
+                </div>
+                
+                <table class="BlogForce9Table generalTableStyle">
+                    <th class="headerRow"> <apex:outputLabel value="RFI Scope(s): "                   styleClass="labelText"/> </th>
+                    <th class="headerRow"> <apex:outputLabel value="Review Email Template Editing: "  styleClass="labelText"/> </th>
+                    <tr>
+                        <!-- Begin Left Panel-->
+                        <td style="width: 40%;">
+                            <apex:repeat value="{!RosterIdToScopes}" var="rosterId">
+                                <table class="BlogForce9Table generalTableStyle" style="margin-bottom: 0px;">
+                                    <th class="headerRow"> <apex:outputLabel value="Direct Recipient:"  styleClass="labelText"/> </th>
+                                    <th class="headerRow"> <apex:outputLabel value="Combined sections:" styleClass="labelText"/> </th>
+                        
+                                    <tr>
+                                        <td style="width: 50%; text-align: left; vertical-align: middle;">
+                                            <div>
+                                                <apex:outputLabel value="Name: "  styleClass="labelText" />
+                                                <apex:outputText value="{!RosterIdToRoster[rosterId].Name__c}" />
+                                            </div>
+                                        </td>
+                                        <td style="width: 50%;">
+                                            <div style="min-height: 10px; max-height: 100px; overflow: auto;">
+                                                <apex:dataList value="{!RosterIdToScopes[rosterId]}" var="rfi">
+                                                    <apex:outputText value="{!rfi.RFI_Section__c}"/>
+                                                </apex:dataList>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                                
+                                <!-- Review Email Button -->
+                                <apex:outputPanel layout="block" style="float: right;">
+                                    <apex:commandButton action="{!showReviewEmail}" value="Review Email" disabled="{! IF(rosterId == null, true, false)}" styleClass="milroseBtnStyle" status="allPanelsOverlay" reRender="msgError" oncomplete="onCompleteReview();">
+                                        <apex:param name="sendToName" value="{!RosterIdToRoster[rosterId].Name__c}" assignTo="{!sendToName}"/>
+                                        <apex:param name="sendToFullName" value="{!RosterIdToRoster[rosterId].Name_Full__c}" assignTo="{!sendToFullName}"/>
+                                        <apex:param name="sendToId" value="{!rosterId}" assignTo="{!sendToId}"/>
+                                    </apex:commandButton>
+                                </apex:outputPanel>
+                                
+                                <br /><br /><br />
+                            </apex:repeat>   
+                        </td>
+                        <!-- End Left Panel-->
+                        
+                        <!-- ----------------------------------- Begin Email Component ----------------------------------- -->                        
+                        <td style="width: 60%;">              
+                            <apex:outputPanel id="emailTemplatePanel" layout="block" rendered="{!reviewEmail}">
+                                <c:PreviewAndSendEmail defaultBody="true" parentDDPRecordId="{!projectId}" DDPRecordName="{!drawloopName}" emailTemplate="{!emailTemplateName}" 
+                                                        draftTemplate="{!draftTemplateName}" sendAddressTo="{!sendToName}" sendAddressToFullName="{!sendToFullName}" attachIds="{!parentDocumentIds}" projectProfileRecord="{!project}" 
+                                                        showReminderSection="true" emailTypeRecord="{!rfiEmailType}" linkForRFIItem="{!linkToSite}" additionalSubjectItem="{!additionalSubject}" 
+                                                        showTemplateSelection="false" linkToCloseButton="{!linkToCloseTemplate}" contactId="{!contactRecipient}"/>
+                            </apex:outputPanel>
+                        </td>
+                       <!-- ----------------------------------- End Email Component ----------------------------------- -->
+                    </tr>
+                </table>
+              
+                <apex:outputPanel layout="block" style="float: right;">
+                    <apex:commandButton value="Back To Project" action="{!backToProject}" styleClass="milroseBtnStyle" reRender="msgError" status="allPanelsOverlay"/>
+                </apex:outputPanel>
+
+                <apex:actionFunction name="onCompleteReview" action="{!onCompleteReview}" />
+            </div>
+        </div>
+    </apex:form>
+    <script type="text/javascript">
+        function showOverlay() {
+            $('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);
+        
+        }
+        
+        function hideOverlay() {
+            $('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });
+        
+        }
+        
+        $('input[id*=sendButtonId]').click(function() {
+            $('input').attr("disabled", true);
+            $('input').addClass('btnDisabled');
+        
+        });
+    </script>
+</apex:page>

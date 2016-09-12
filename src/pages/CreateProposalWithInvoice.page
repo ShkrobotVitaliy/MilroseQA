@@ -1,0 +1,8 @@
+<apex:page standardController="Proposal__c" extensions="CreateProposalWithInvoiceController" action="{!autorun}">
+    <apex:form >
+        Generating Proposal Document...
+        <apex:pageMessages id="msgs"/>
+        <apex:commandButton value="Go Back to Proposal" action="{!goBack}"/>
+        <apex:inputField value="{!Proposal__c.Primary_Company_Contact__c}" rendered="false"/>
+    </apex:form>
+</apex:page>

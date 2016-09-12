@@ -1,0 +1,420 @@
+<apex:page standardController="Project_Profile__c" extensions="RFIScopeExtension" showChat="false" showHeader="false" sidebar="false">
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}" />
+    <style>
+        .tableContainer {
+            width: 100%;
+            margin: 0;
+            overflow: auto;
+        }
+        .floatingStyle {
+            position: relative;
+            background: #F2F3F3;
+        }
+        body {
+            margin: 0 !important;
+        }
+        .addedAmendedServive {
+            color: green;
+            font-weight: 700;
+        }
+        .removedAmendedServive {
+            color: red;
+            font-weight: 700;
+        }
+        .removedAmendedServiveTR {
+            background-color: #FEE;
+        }
+        .addedAmendedServiveTR {
+            background-color: #EFE;
+        }
+        .expander {
+            margin: 0px 0px 0px 4px;
+            width: 9px;
+            height: 9px;
+        }
+        .expandImage {
+            background-image: url('/img/setup_plus.gif');
+        }
+        .contractImage {
+            background-image: url('/img/setup_minus.gif');
+        }
+    </style>
+    <script src="{!$Resource.jquery_tablednd_js}" />
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}" />
+    <script src="{!URLFOR($Resource.jquery_vfFloatingHeaders)}" />
+    <script>function setFocusOnLoad() {}</script>
+    <apex:form >
+        <apex:actionStatus id="allPanelsOverlay" onstart="$('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);" onstop="$('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });"/>
+
+        <div style="min-height: 200px; max-height: 780px; overflow:auto;">
+            <apex:pageMessages id="msgError"/>
+
+            <!-- Loading -->
+            <div class="AllInfoPanelHolder" style="position: relative; overflow: auto; -webkit-overflow-scrolling: touch;">
+                <div class="overlay" id="AllPannelOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"/>
+                <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+                    <div style="text-align: center;">
+                        <img src="{!$Resource.loading_bar}" />
+                        <p style="color: #000; margin-bottom: 0; font-size: 24px;">Please wait</p>
+                    </div>
+                </div>
+                <br/><br/>
+
+                <!-- Begin Add New RFI Scope -->
+                <apex:commandButton value="Add RFI Section" styleClass="milroseBtnStyle" onclick="addNewRFI(); return false;" id="addRfiSectionId"/>
+
+                <table Id="newRfiSectionTable" class="generalTableStyle" style="width: 500px; display: none;">
+                    <th class="headerRow" style="width:250px;"><apex:outputLabel value="Rfi scopes" styleClass="labelText"/></th>
+                    <th class="headerRow" style="width:250px;"><apex:outputLabel value="Service Group Number" styleClass="labelText"/></th>
+                    <tr>
+                        <td class="data dragHandle" style="width: 250px;">
+                            <apex:selectList value="{!selectedRegionRfi}" size="1" styleClass="inputFieldExt">
+                                <apex:selectOptions value="{!ListRfiRegionScopes}"/>
+                            </apex:selectList>
+                        </td>
+                        <td class="data dragHandle" style="width: 250px;">
+                            <apex:selectList value="{!selectedServiceGroupNumber}" size="1" styleClass="inputFieldExt">
+                                <apex:selectOptions value="{!ListServiceItemGroupNumbers}" />
+                            </apex:selectList>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="data dragHandle" style="width:250px;"></td>
+                        <td class="data dragHandle" style="width:250px;">
+                            <apex:outputPanel style="align: right;">
+                                <apex:commandButton value="Close" styleClass="milroseBtnStyle" onclick="closeNewRFI(); return false;"/>
+                                <apex:commandButton value="Save" styleClass="milroseBtnStyle" action="{!addRfiScopes}"/>
+                            </apex:outputPanel>
+                        </td>
+                    </tr>
+                </table> <!-- End Add New RFI Scope -->
+
+                <!-- Begin Publish RFI Scope -->
+                <apex:actionFunction name="reRenderPublishSubmit" status="allPanelsOverlay" rerender="submitButtonId"/>
+
+                <apex:commandButton value="Publish Pending RFIs" styleClass="milroseBtnStyle" onclick="displaySubmitDiv(); return false;" id="publishingRFIScopeId"/>
+                <div id="publishMenuDivId" style="display: none;">
+                    <apex:selectRadio border="1" legendText="Please select one option: " value="{!publishType}" onchange="reRenderPublishSubmit(); $('.publishPendingButton').attr('disabled', 'disabled').addClass('btnDisabled').removeClass('btn'); return false;">
+                        <apex:selectOptions value="{!getSubmitedType}" />
+                    </apex:selectRadio>
+
+                    <apex:commandButton value="Close" styleClass="milroseBtnStyle" onclick="closePublish(); return false;"/>
+                    <apex:commandButton id="submitButtonId" value="Apply" styleClass="milroseBtnStyle publishPendingButton" onclick="window.top.location='/apex/ManageOutboundEmail?projectId={!projectId}&type={!publishType}'; return false;" reRender="msgError" status="allPanelsOverlay" />
+                </div>
+                <!-- Begin Publish RFI Scope -->
+
+                <apex:actionFunction name="reRenderRepeatPanel" status="allPanelsOverlay" reRender="msgError, emailPanelId" />
+
+                <apex:actionFunction name="loadRFIScope" action="{!selectRFIScope}" status="allPanelsOverlay" reRender="msgError, rfiDetailTableDiv" oncomplete="showScopeOnComplete('{!currentRFIScope}'); return false;">
+                    <apex:param name="currentRFIScopeParam" value="" assignTo="{!currentRFIScope}"/>
+                </apex:actionFunction>
+
+                <apex:outputPanel layout="block" style="max-height: 600px;" id="rfiDetailTableDiv" styleClass="tableContainer">
+                    <div id="accordion">
+                        <apex:repeat value="{!orderRFIScopes}" var="rfi" id="repeatRFIScope">
+                            <div id="{!rfi.Id}">
+                                <!-- Begin Header -->
+                                <div style="display: block; border: 1px solid #3887A8;" onclick="if( document.getElementById('{!rfi.Id}content').innerHTML != '' && '{!rfi.Id}' == '{!currentRFIScope}' ) { document.getElementById('{!rfi.Id}content').innerHTML = ''; $(this).find( '.expander' ).removeClass('contractImage').addClass('expandImage'); return false; } else { } loadRFIScope('{!rfi.Id}');" onmouseover="$(this).css('background-color', '#EFE');" onmouseout="$(this).css('background-color', 'white');">
+                                    <div class="expander expandImage" style="display: inline-block;"></div>
+                                    <apex:outputLabel value="{!rfi.RFI_Section__c}" styleClass="labelText" style="font-size: 16px; padding-left: 8px; color: #3887A8;"/>
+                                    <apex:outputLabel value=" - Service Group: {!rfi.Group_Number__c}" rendered="{! !ISBLANK(rfi.Group_Number__c)}" styleClass="labelText" style="font-size: 16px; color: #3887A8;"/>
+                                </div>
+                                <!-- End Header -->
+                                <div id="{!rfi.Id}content"></div>
+                            </div>
+                        </apex:repeat>
+                    </div>
+
+                    <div id="contentScopeDivId">
+                        <apex:outputPanel rendered="{! !ISBLANK(currentRFIScope)}">
+                            <table class="generalTableStyle">
+                                <tr>
+                                    <td>
+                                        <table Id="RFIsScopeDetailListTable" class="BlogForce9Table generalTableStyle">
+                                            <tr>
+                                                <td class="data dragHandle" style="text-align: left; vertical-align: middle; width: 50%;">
+                                                   <apex:outputPanel id="emailPanelId" layout="block">
+                                                        <div style="display: inline-block;">
+                                                            <apex:outputLabel value="Send to Contact: " styleClass="labelText" style="padding-left: 10px;"/>
+                                                            <apex:selectList value="{!RFIScope.Project_Roster__c}" size="1" onchange=" reRenderRepeatPanel();">
+                                                                <apex:selectOptions value="{!rosterIdToContact}" />
+                                                            </apex:selectList>
+                                                        </div>
+                                                        <div style="display: inline-block;">
+                                                            <apex:outputLabel value="Email: " styleClass="labelText" style="padding-left: 10px;"/>
+                                                            <apex:outputText value="{! IF(ISBLANK(RFIScope.Project_Roster__c), 'None', rosterIdToEmail[ RFIScope.Project_Roster__c]) }"/>
+                                                        </div>
+                                                    </apex:outputPanel>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <table Id="RFIsScopeTrachingDetailListTable" class="generalTableStyle">
+                                            <tr>
+                                                <th class="headerRow" style="width:50%;">
+                                                    <apex:outputLabel value="Application" styleClass="labelText"/>
+                                                    <span style="float: right;">
+                                                        <apex:inputCheckbox disabled="true" selected="{!RFIScope.Is_Application_N_A__c}" />
+                                                        <apex:outputLabel value="N/A" styleClass="labelText"/>
+                                                    </span>
+                                                </th>
+                                                <th class="headerRow" style="width:50%;">
+                                                    <apex:outputLabel value="Sign-Off" styleClass="labelText" />
+
+                                                    <span style="float: right;">
+                                                        <apex:inputCheckbox disabled="true" selected="{!RFIScope.Is_Sigh_Off_N_A__c}" />
+                                                        <apex:outputLabel value="N/A" styleClass="labelText" />
+                                                    </span>
+                                                </th>
+                                            </tr>
+
+                                            <tr>
+                                                <th style="text-align: left;">
+                                                    <div>
+                                                        <apex:outputText value="Service: " styleClass="labelText" style="color: #3887A8;" rendered="{! !ISBLANK(RFIScope.Application_Service_Item__c)}" />
+                                                        <apex:outputLink target="_parent" value="/{!RFIScope.Application_Service_Item__c}" style="color: #3887A8;" rendered="{! !ISBLANK(RFIScope.Application_Service_Item__c)}">{!RFIScope.Application_Service_Item__r.Name}</apex:outputLink>
+                                                        <apex:outputText value=" - {!RFIScope.Application_Service_Item__r.Service_Name_Full__c}" style="color: #3887A8;" rendered="{! !ISBLANK(RFIScope.Application_Service_Item__c)}" />
+                                                   </div>
+
+                                                   <div>
+                                                       <apex:outputText value="Service: " styleClass="labelText" style="color: #3887A8;" rendered=" {! !ISBLANK(RFIScope.Application_Work_Permit_Service_Item__c)}" />
+                                                       <apex:outputLink target="_parent" value="/{!RFIScope.Application_Work_Permit_Service_Item__c}" style="color: #3887A8;" rendered="{! !ISBLANK(RFIScope.Application_Work_Permit_Service_Item__c)}">{!RFIScope.Application_Work_Permit_Service_Item__r.Name}</apex:outputLink>
+                                                       <apex:outputText value=" - {!RFIScope.Application_Work_Permit_Service_Item__r.Service_Name_Full__c}" style="color: #3887A8;" rendered="{! !ISBLANK(RFIScope.Application_Work_Permit_Service_Item__c)}" />
+                                                   </div>
+                                               </th>
+                                               <th style="text-align: left;">
+                                                   <div>
+                                                       <apex:outputText value="Service: " styleClass="labelText" style="color: #3887A8;" rendered="{! !ISBLANK(RFIScope.Sign_Off_Service_Item__c)}" />
+                                                       <apex:outputLink target="_parent" value="/{!RFIScope.Sign_Off_Service_Item__c}" style="color: #3887A8;" rendered="{! !ISBLANK(RFIScope.Sign_Off_Service_Item__c)}">{!RFIScope.Sign_Off_Service_Item__r.Name}</apex:outputLink>
+                                                       <apex:outputText value=" - {!RFIScope.Sign_Off_Service_Item__r.Service_Name_Full__c}" style="color:#3887A8;" rendered="{! !ISBLANK(RFIScope.Sign_Off_Service_Item__c)}" />
+                                                   </div>
+
+                                                   <div>
+                                                       <apex:outputText value="Service: " styleClass="labelText" style="color: #3887A8;" rendered="{! !ISBLANK(RFIScope.Sign_Off_Second_Service_Item__c)}" />
+                                                       <apex:outputLink target="_parent" value="/{!RFIScope.Sign_Off_Second_Service_Item__c}" style="color: #3887A8;" rendered="{! !ISBLANK(RFIScope.Sign_Off_Second_Service_Item__c)}">{!RFIScope.Sign_Off_Second_Service_Item__r.Name}</apex:outputLink>
+                                                       <apex:outputText value=" - {!RFIScope.Sign_Off_Second_Service_Item__r.Service_Name_Full__c}" style="color:#3887A8;" rendered="{! !ISBLANK(RFIScope.Sign_Off_Second_Service_Item__c)}" />
+                                                   </div>
+
+                                                   <div>
+                                                       <apex:outputText value="Service: " styleClass="labelText" style="color: #3887A8;" rendered="{! !ISBLANK(RFIScope.Sign_Off_Third_Service_Item__c)}" />
+                                                       <apex:outputLink target="_parent" value="/{!RFIScope.Sign_Off_Third_Service_Item__c}" style="color: #3887A8;" rendered="{! !ISBLANK(RFIScope.Sign_Off_Third_Service_Item__c)}">{!RFIScope.Sign_Off_Third_Service_Item__r.Name}</apex:outputLink>
+                                                       <apex:outputText value=" - {!RFIScope.Sign_Off_Third_Service_Item__r.Service_Name_Full__c}" style="color:#3887A8;" rendered="{! !ISBLANK(RFIScope.Sign_Off_Third_Service_Item__c)}" />
+                                                   </div>
+                                               </th>
+                                            </tr>
+
+                                            <tr>
+                                               <td style="vertical-align: top;">
+                                                   <div style="overflow: auto; overflow-x: hidden; height: 150px;">
+                                                       <table Id="RFIsScopeTrachingDetailListTable" class="generalTableStyle">
+                                                           <tr>
+                                                               <th class="headerRow" style="width:25%;"><apex:outputLabel value="Sent to" styleClass="labelText"/></th>
+                                                               <th class="headerRow" style="width:25%;"><apex:outputLabel value="Sent" styleClass="labelText"/></th>
+                                                               <th class="headerRow" style="width:25%;"><apex:outputLabel value="Received" styleClass="labelText"/></th>
+                                                               <th class="headerRow" style="width:25%;"><apex:outputLabel value="Via" styleClass="labelText"/></th>
+                                                           </tr>
+
+                                                           <apex:repeat value="{!rfiIdToApplicationSubmitScope}" var="monitor">
+                                                               <tr>
+                                                                    <td><apex:outputLabel value="{!monitor.Sent_to__c}"/></td>
+                                                                    <td><apex:outputField value="{!monitor.Sent__c}"/></td>
+                                                                    <td>
+                                                                        <apex:outputField value="{!monitor.Received__c}" rendered="{! CONTAINS(monitor.Send_Via__c, 'Web')}"/>
+                                                                        <apex:inputField value="{!monitor.Received__c}" onchange="setLastReceivedDate('{!monitor.Id}', 'App');" rendered="{! !CONTAINS(monitor.Send_Via__c, 'Web')}"/>
+                                                                    </td>
+                                                                    <td>
+                                                                        <apex:outputPanel rendered="{!CONTAINS(monitor.Send_Via__c, 'Web')}">
+                                                                            <apex:outputLabel value="{!monitor.Send_Via__c}" />
+                                                                        </apex:outputPanel>
+                                                                        <apex:outputPanel rendered="{! !CONTAINS(monitor.Send_Via__c, 'Web')}">
+                                                                            <apex:selectList value="{!monitor.Send_Via__c}" size="1" styleClass="inputFieldExt">
+                                                                                <apex:selectOptions value="{!getSendViaType}"/>
+                                                                            </apex:selectList>
+                                                                        </apex:outputPanel>
+                                                                    </td>
+                                                                </tr>
+                                                            </apex:repeat>
+                                                        </table>
+                                                    </div>
+                                                </td>
+
+                                                <td style="vertical-align: top;">
+                                                    <div style="overflow: auto; overflow-x: hidden; height: 150px;">
+                                                        <table Id="RFIsScopeTrachingDetailListTable" class="generalTableStyle">
+                                                            <tr>
+                                                                <th class="headerRow" style="width:25%;"><apex:outputLabel value="Sent to" styleClass="labelText"/></th>
+                                                                <th class="headerRow" style="width:25%;"><apex:outputLabel value="Sent" styleClass="labelText"/></th>
+                                                                <th class="headerRow" style="width:25%;"><apex:outputLabel value="Received" styleClass="labelText"/></th>
+                                                                <th class="headerRow" style="width:25%;"><apex:outputLabel value="Via" styleClass="labelText"/></th>
+                                                            </tr>
+
+                                                            <apex:repeat value="{!rfiIdToSignOffSubmitScope}" var="monitor">
+                                                                <tr>
+                                                                    <td><apex:outputLabel value="{!monitor.Sent_to__c}"/></td>
+                                                                    <td><apex:outputField value="{!monitor.Sent__c}"/></td>
+                                                                    <td>
+                                                                        <apex:outputField value="{!monitor.Received__c}" rendered="{! CONTAINS( monitor.Send_Via__c, 'Web')}"/>
+                                                                        <apex:inputField value="{!monitor.Received__c}" onchange="setLastReceivedDate('{!monitor.Id}', 'SignOff');" rendered="{! !CONTAINS(monitor.Send_Via__c, 'Web')}" />
+                                                                    </td>
+                                                                    <td>
+                                                                        <apex:outputPanel rendered="{! CONTAINS(monitor.Send_Via__c, 'Web')}">
+                                                                            <apex:outputLabel value="{!monitor.Send_Via__c}" />
+                                                                        </apex:outputPanel>
+
+                                                                        <apex:outputPanel rendered="{! !CONTAINS(monitor.Send_Via__c, 'Web')}">
+                                                                            <apex:selectList value="{!monitor.Send_Via__c}" size="1" styleClass="inputFieldExt">
+                                                                                <apex:selectOptions value="{!getSendViaType}" />
+                                                                            </apex:selectList>
+                                                                        </apex:outputPanel>
+                                                                    </td>
+                                                                </tr>
+                                                            </apex:repeat>
+                                                        </table>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <!-- Begin Upload -->
+                                        <apex:actionFunction name="isDisableDocumentsCheckbox" rerender="mainUploadPanelId" />
+
+                                        <apex:outputPanel id="mainUploadPanelId" >
+                                            <apex:outputText value="Upload: " styleClass="labelText" />
+                                            <!-- Begin Documents -->
+                                            <apex:outputPanel layout="block" id="documentsOutputPanel">
+                                                <apex:inputCheckbox onclick="manageDocumentsUpload('Additional Documents');" value="{!RFIScope.Documents__c}" styleClass="additionalDocuments" id="Provided_Documents__c" />
+                                                <apex:outputLabel value="{!$ObjectType.RFI_Scope__c.fields.Documents__c.Label}" styleClass="checkboxLabelText" for="Provided_Documents__c"/>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="block" id="documentsUploadManager">
+                                                <apex:outputPanel layout="block" rendered="{!RFIScope.Documents__c}">
+                                                    <apex:iframe scrolling="true" height="300" src="{!iFrameDocuments}" />
+                                                </apex:outputPanel>
+                                            </apex:outputPanel>
+                                            <!-- End Documents -->
+                                            <!-- Begin Drawings -->
+                                            <apex:outputPanel layout="block" id="drawingsOutputPanel">
+                                                <apex:inputCheckbox onclick="manageDocumentsUpload('Drawings');" value="{!RFIScope.Drawings__c}" styleClass="drawings" id="Provided_Drawings__c"/>
+                                                <apex:outputLabel value="{!$ObjectType.RFI_Scope__c.fields.Drawings__c.Label}" styleClass="checkboxLabelText" for="Provided_Drawings__c"/>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="block" id="drawingsUploadManager">
+                                                <apex:outputPanel layout="block" rendered="{!RFIScope.Drawings__c}">
+                                                    <apex:iframe scrolling="true" height="300" src="{!iFrameDrawings }"/>
+                                                </apex:outputPanel>
+                                            </apex:outputPanel>
+                                            <!-- End Drawings -->
+                                        </apex:outputPanel> <!-- End Upload -->
+
+                                        <br/>
+                                        <!-- Begin Notes -->
+                                        <apex:outputPanel layout="block" id="notePanelId">
+                                            <apex:outputText value="Notes: " styleClass="labelText" />
+                                            <div style="min-height: 0; max-height: 100px; background-color: #EEE; overflow: auto; position: relative; margin: 10px;">
+                                                <apex:outputText value="{!rfiIdToNotes}" escape="false" />
+                                            </div>
+                                            <div style="padding: 10px; box-sizing: border-box;">
+                                                <apex:inputtextarea Id="noteInputText" value="{!RFIScope.Notes__c}" style="height: 50px;" />
+                                            </div>
+                                        </apex:outputPanel> <!-- End Notes -->
+
+                                        <div style="clear: both;"></div>
+                                        <!-- Table created from component -->
+                                        <apex:outputPanel layout="block" id="componentPanelId" style="width:100%; min-height:0;">
+                                            <c:RFIScopeTemplatesContainer scopeName="{!RFIScope.Name}" recordId="{!RFIScope.Id}" projectView="true"/>
+                                        </apex:outputPanel>
+
+                                        <!-- Buttons Sections -->
+                                        <apex:outputPanel id="buttonDetailPageLayout" layout="block">
+                                            <div style="display:inline-block; float:right;">
+                                                <apex:commandButton value="Copy to Sign Off"       action="{!CopyToSignOff}"   status="allPanelsOverlay" styleClass="milroseBtnStyle" reRender="msgError, componentPanelId"  disabled="{! OR(RFIScope.Is_Application_N_A__c, RFIScope.Is_Sigh_Off_N_A__c)}" />
+                                                <apex:commandButton value="Save"                   action="{!updateRfiScopes}" status="allPanelsOverlay" styleClass="milroseBtnStyle" reRender="msgError, messageForSubmit"  oncomplete="clearNote(); onCompleteNoteAdded();"/>
+                                                <apex:commandButton value="Submit Application RFI" action="{!submitApp}"       status="allPanelsOverlay" styleClass="milroseBtnStyle" reRender="msgError, messageForSubmit, buttonDetailPageLayout, componentPanelId" disabled="{! RFIScope.Is_Application_N_A__c }" oncomplete="clearNote(); onCompleteNoteAdded();"/>
+                                                <apex:commandButton value="Submit Sign-Off RFI"    action="{!submitSignOff}"   status="allPanelsOverlay" styleClass="milroseBtnStyle" reRender="msgError, messageForSubmit, buttonDetailPageLayout, componentPanelId" disabled="{! RFIScope.Is_Sigh_Off_N_A__c }" oncomplete="clearNote(); onCompleteNoteAdded();"/>
+                                            </div>
+                                        </apex:outputPanel>
+                                    </td>
+                                </tr>
+                            </table>
+                        </apex:outputPanel>
+                    </div>
+
+                </apex:outputPanel>
+
+                <apex:actionFunction name="reRerenderOnCompleteSetDate" status="allPanelsOverlay" reRender="msgError, recipientReminderId, followUpAlertId" />
+
+                <apex:actionFunction name="setLastReceivedDate" action="{!setLastReceived}" status="allPanelsOverlay" reRender="">
+                    <apex:param name="monitorItemId" value="" assignTo="{!monitorItemId}"/>
+                    <apex:param name="typeSubmit" value="" assignTo="{!typeSubmit}"/>
+                </apex:actionFunction>
+
+                <apex:actionFunction name="manageDocumentsUpload" action="{!manageFileUpload}" status="allPanelsOverlay" reRender="msgError, documentsUploadManager, drawingsUploadManager" oncomplete="onCompleteAttachDocument();">
+                    <apex:param name="documentsFolder" value="" assignTo="{!storageFolderName}"/>
+                </apex:actionFunction>
+                <apex:actionFunction name="onCompleteAttachDocument" status="allPanelsOverlay" reRender="documentsUploadManager, drawingsUploadManager, mainUploadPanelId" />
+                <apex:actionFunction name="onCompleteNoteAdded" status="allPanelsOverlay" reRender="notePanelId"/>
+            </div> <!-- End Loading -->
+        </div>
+
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+
+        <apex:inputField value="{!Project_Profile__c.Building__r.Municipality__r.Region__r.Id}" rendered="false"/>
+        <apex:inputField value="{!Project_Profile__c.Building__r.Municipality__r.Region__r.Name}" rendered="false"/>
+    </apex:form>
+    <script>
+        $(document).ready(function() {
+            DatePicker.prototype.position = function() {
+                var datePicker = $('div.datePicker');
+                var scrolledSectionTop = $('div:has(.AllInfoPanelHolder)').scrollTop();
+                var scrolledSectionLeft = $('div:has(.AllInfoPanelHolder)').scrollLeft();
+                var elementLeft = $(this.myElement).position().left;
+                var elementTop = $(this.myElement).position().top;
+                var elementHeight = $(this.myElement).outerHeight();
+                var datePickerHeight = datePicker.outerHeight();
+                var topHeaderHeight = $('#AppBodyHeader').outerHeight();
+                var maxTop = $(window).height() - topHeaderHeight - datePickerHeight - 15;
+                var datePickerTop = elementTop + elementHeight - scrolledSectionTop + 5;
+                var datePickerLeft = elementLeft + scrolledSectionLeft;
+                if( datePickerTop > maxTop ) datePickerTop = elementTop - datePickerHeight - scrolledSectionTop - 3;
+                $('div.datePicker').css('top', datePickerTop);
+                $('div.datePicker').css('left', datePickerLeft);
+            }
+
+            $('.publishPendingButton').attr('disabled', 'disabled').addClass('btnDisabled').removeClass('btn');
+            $('.dateFormat').hide();
+        });
+
+        function addNewRFI() {
+            $("input[id*=addRfiSectionId]").hide();
+            document.getElementById('newRfiSectionTable').style.display = ('none' == document.getElementById('newRfiSectionTable').style.display) ? 'table' : 'none';
+        }
+
+        function closeNewRFI() {
+            $("input[id*=addRfiSectionId]").show();
+            document.getElementById('newRfiSectionTable').style.display = ('none' == document.getElementById('newRfiSectionTable').style.display) ? 'table' : 'none';
+        }
+
+        function displaySubmitDiv() {
+            $("input[id*=publishingRFIScopeId]").hide();
+            document.getElementById('publishMenuDivId').style.display = ('none' == document.getElementById('publishMenuDivId').style.display) ? 'table' : 'none';
+        }
+
+        function closePublish() {
+            $("input[id*=publishingRFIScopeId]").show();
+            document.getElementById('publishMenuDivId').style.display = ('none' == document.getElementById('publishMenuDivId').style.display) ? 'table' : 'none';
+        }
+
+        function clearNote() {
+            $("textarea[id*=noteInputText]").val('');
+        }
+
+        function showScopeOnComplete(rfiId) {
+            document.getElementById(rfiId+'content').innerHTML = document.getElementById('contentScopeDivId').innerHTML;
+            document.getElementById('contentScopeDivId').innerHTML = '';
+            $('#' + rfiId).find('.expander').removeClass('expandImage').addClass('contractImage');
+            $('textarea').attr("maxlength", "1000");
+            // Hide Calendar on scroll
+            $('.tableContainer').scroll(function() {
+                $('#datePicker').hide();
+            });
+        }
+    </script>
+</apex:page>

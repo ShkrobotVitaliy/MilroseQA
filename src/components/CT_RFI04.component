@@ -1,0 +1,96 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:variable var="displayColumn" value="{!IF(AND(projectView), 'table-cell', 'none')}"/>
+    <apex:variable var="display2Column" value="{!IF(OR(projectView, AND(!projectView, show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="display3Column" value="{!IF(OR(projectView, AND(!projectView, !show2column)), 'table-cell', 'none')}"/>
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="{!IF(projectView, 3, 2)}">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width:{!IF(projectView, '33', '50')}%; display:{!display2Column}">Application Permit Response</th>
+                <th style="width:{!IF(projectView, '33', '50')}%; display:{!display3Column}">Application Sign Off Response</th>
+            </tr>
+            <apex:repeat value="{!rfiScopeRecord.RFI_Work_Types__r}" var="workType">
+                <tr>
+                    <td>{!workType.Name}</td>
+                    <td style="display:{!display2Column}" class="secondColumn"><span class="mainRequestHeader col-content">Estimated Cost:</span><apex:inputField value="{!workType.Estimated_Cost__c}"/></td>
+                    <td style="display:{!display3Column}" class="secondColumn"><span class="mainRequestHeader col-content">Actual Cost:</span><apex:inputField value="{!workType.Actual_Costs__c}"/></td>
+                </tr>
+            </apex:repeat>
+            <tr>
+                <td style="display:{!display2Column}" class="mainRequestHeader">Municipal Filing Fees</td>
+                <td style="display:{!display2Column}" class="secondColumn">
+                    <p class="mainRequestHeader col-content">Checks must be made out to &nbsp; <apex:inputText value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Checks_Must_Be_Made_Out_To_App__c}"/></p>
+                    <p class="mainRequestHeader col-content">Initial Fee: &nbsp; <apex:inputText value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Initial_Fee_App__c}"/></p>
+                    <p class="mainRequestHeader col-content">Balance to be determined, fee to follow.</p>
+                </td>
+                <td style="display:{!displayColumn}; background: #D9D9D9;" class="secondColumn permission-massage"><apex:outputText value="{!notRequiredPermissionSignOff}"/></td>
+            </tr>
+            <tr>
+                <td style="display:{!display2Column}" class="sectionTitle"><span class="mainRequestHeader">Work will be performed After-Hours/Weekends</span><br/><i>If yes, please provide the work schedule for a <b>AHV</b> proposal</i></td>
+                <td style="display:{!display2Column}" class="secondColumn"></td>
+                <td style="display:{!displayColumn}; background: #D9D9D9;" class="secondColumn permission-massage"><apex:outputText value="{!notRequiredPermissionSignOff}"/></td>
+            </tr>
+            <tr>
+                <td style="display:{!display2Column}" class="titleDescription mainRequestHeader">AHV Work Schedule Details</td>
+                <td style="display:{!display2Column}" class="secondColumn"></td>
+                <td style="display:{!displayColumn}; background: #D9D9D9;" class="secondColumn"></td>
+            </tr>
+            <tr>
+                <td style="display:{!display2Column}">Contractor Signing/Sealing &amp; License #</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.AHV_Contractor_Signing_Sealing_App__c}" /></td>
+                <td style="display:{!displayColumn}; background: #D9D9D9;"></td>
+            </tr>
+            <tr>
+                <td style="display:{!display2Column}">Description Of Work</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.AHV_Description_Of_Work_App__c}" /></td>
+                <td style="display:{!displayColumn}; background: #D9D9D9;"></td>
+            </tr>
+            <tr>
+                <td style="display:{!display2Column}">Dates Desired</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputField value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.AHV_Dates_Desired_App__c}" styleClass="dataPicker" /></td>
+                <td style="display:{!displayColumn}; background: #D9D9D9;"></td>
+            </tr>
+            <tr>
+                <td style="display:{!display2Column}"><span class="mainRequestHeader">Billing client</span> - If different from the billing client on the existing contract</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.AHV_Billing_Client_App__c}" /></td>
+                <td style="display:{!displayColumn}; background: #D9D9D9;"></td>
+            </tr>
+            <tr>
+                <td style="display:{!display2Column}" class="sectionTitle"><span class="mainRequestHeader">Sidewalk Work will be performed</span><br/><i>If yes, please provide the work schedule  for a <b>DOT</b> proposal</i></td>
+                <td style="display:{!display2Column}" class="secondColumn"></td>
+                <td style="display:{!displayColumn}; background: #D9D9D9;" class="secondColumn permission-massage"><apex:outputText value="{!notRequiredPermissionSignOff}"/></td>
+            </tr>
+            <tr>
+                <td style="display:{!display2Column}" class="titleDescription mainRequestHeader">DOT Work Schedule Details</td>
+                <td style="display:{!display2Column}"></td>
+                <td style="display:{!displayColumn}; background: #D9D9D9;" class="secondColumn"></td>
+            </tr>
+            <tr>
+                <td style="display:{!display2Column}">Contractor Signing/Sealing</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.DOT_Contractor_Signing_Sealing_App__c}" /></td>
+                <td style="display:{!displayColumn}; background: #D9D9D9;"></td>
+            </tr>
+            <tr>
+                <td style="display:{!display2Column}">Description Of Work</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.DOT_Description_Of_Work_App__c}" /></td>
+                <td style="display:{!displayColumn}; background: #D9D9D9;"></td>
+            </tr>
+            <tr>
+                <td style="display:{!display2Column}">Duration for permit</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.DOT_Duration_For_Permit_App__c}" styleClass="dataPicker"/></td>
+                <td style="display:{!displayColumn}; background: #D9D9D9;"></td>
+            </tr>
+            <tr>
+                <td style="display:{!display2Column}">What street is being affected by this permit, if not the street of the house address</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.DOT_Street_To_Be_Affected_App__c}" /></td>
+                <td style="display:{!displayColumn}; background: #D9D9D9;"></td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

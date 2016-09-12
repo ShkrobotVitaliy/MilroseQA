@@ -1,0 +1,10 @@
+<apex:page standardcontroller="Service_Template__c" extensions="CloneServiceTemplateExtention" action="{!cloneServiceTemplate}">
+	<apex:form >
+		<apex:pageBlock >
+			<apex:pageMessages id="pageMessages" />
+			<apex:pageBlockButtons location="bottom" style="text-align: left;">
+			<apex:commandButton value="Back To Service Template" action="{!backAction}" />
+			</apex:pageBlockButtons>
+		</apex:pageBlock>
+	</apex:form>	
+</apex:page>

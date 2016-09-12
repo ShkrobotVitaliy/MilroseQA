@@ -1,0 +1,22 @@
+<apex:page standardController="Legacy_Pro_forma_Invoice__c" extensions="MassSendLegacyInvoiceExtensions" recordSetVar="legacyInvoices ">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    
+    <apex:form >
+        
+        <apex:pageMessages id="msgs"/>
+        <apex:actionFunction name="autoRun" rerender="" action="{!autorun}" reRender="msgs">
+            <apex:param name="ddpNameParam " value="" assignTo="{!ddpNameParam}" />
+            <apex:param name="actionParam"   value="" assignTo="{!actionParam}" />
+        </apex:actionFunction>
+        
+        <apex:commandButton value="Back" action="{!back}" styleClass="milroseBtnStyle" />
+    </apex:form>
+    
+    <script type="text/javascript">
+        $(document).ready(function () {
+            autoRun('Create & Send Legacy Invoice', 'Email');
+        
+        });
+    </script>
+</apex:page>

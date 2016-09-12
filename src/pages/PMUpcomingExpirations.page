@@ -1,0 +1,158 @@
+<apex:page controller="ProjectManagerHomePageController" sidebar="false" showHeader="false">
+    <apex:stylesheet value="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/css/jquery.dataTables.css')}"/>
+    <apex:stylesheet value="{!$Resource.HomePage_CSS}"/>    
+    <style> 
+        .sorting {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_both.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_asc {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_asc.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_desc {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_desc.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_asc_disabled {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_asc_disabled.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_desc_disabled {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_desc_disabled.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+    </style>
+
+<script src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.js')}"></script>
+<script src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.dataTables.js')}"></script>
+<script src="{!URLFOR($Resource.DateUS)}"></script>
+<script src="{!URLFOR($Resource.AltString)}"></script>
+
+    <apex:form id="form">
+    <apex:pageMessages id="msgs"></apex:pageMessages>
+    <apex:pageBlock id="pgblock" rendered="{!$UserRole.Name != 'AHV Department Manager' && $UserRole.Name != 'DOT Department Manager'}">
+        <apex:pageBlockSection columns="1">
+          <apex:outputPanel styleClass="tableContainer" layout="block">
+            <apex:pageBlockTable value="{!upcomingExpirationsList}" var="item" styleClass="dataTable">
+                
+                <apex:column headerValue="Service Name" >
+                    <apex:outputLink value="/{!item.Id}" target="_blank">{!item.Service_Name_Full__c}</apex:outputLink>
+                </apex:column>
+                <apex:column headerValue="Proposal"> 
+                    <apex:outputLink value="/{!item.Proposal__c}" target="_blank">{!item.Proposal__r.Name}</apex:outputLink>
+                </apex:column>
+                <apex:column headerValue="MRC #" >
+                    <apex:outputLink value="/{!item.Project_Profile__c}" target="_blank">{!item.Project_Profile__r.Name}</apex:outputLink>
+                </apex:column>
+                <apex:column headerValue="Street Address">
+                    <apex:outputLink value="/{!item.Project_Profile__r.Building__c}" target="_blank">{!item.Project_Profile__r.Building__r.Name}</apex:outputLink>
+                </apex:column> 
+                <apex:column headerValue="Floor" value="{!item.Proposal__r.Floor_s__c}" />
+                <apex:column >
+                    <apex:facet name="header">
+                        Municipal<br/>Agency ID #
+                    </apex:facet>
+                    <apex:outputField value="{!item.Municipal_Agency_ID__c}"/>
+                </apex:column>
+                <apex:column headerValue="Primary Client">
+                    <apex:outputLink value="/{!item.Proposal__r.Primary_Company_Name__c}" target="_blank">{!item.Proposal__r.Primary_Company_Name__r.Name}</apex:outputLink>
+                </apex:column> 
+                <apex:column headerValue="Expiration Date" value="{!item.Expiration_Date__c}" />
+            </apex:pageBlockTable>
+          </apex:outputpanel>
+
+<script type="text/javascript" language="javascript">
+    var j$ = jQuery.noConflict();
+    var oTable = j$('table.dataTable').dataTable({
+        sPaginationType: "full_numbers",
+        bAutoWidth: false,
+        bLengthChange: false,
+        bScrollCollapse: false,
+        aoColumnDefs: [ 
+            { "sSortDataType": "date-us", sType: "date-us", aTargets: [7] }
+        ],
+        "aoColumns": [{ "sWidth": "12%" }, { "sWidth": "19%" }, { "sWidth": "12%" }, { "sWidth": "13%" }, { "sWidth": "12%" },
+            { "sWidth": "12%" }, { "sWidth": "10%" }, { "sWidth": "10%" } ],
+        sScrollY: (jQuery(window).height() - 155)
+    });
+    oTable.fnSort( [ [7,'asc'] ]);
+
+    jQuery(window).resize(function () {
+        jQuery('.dataTables_scrollHeadInner').width(100 + '%');
+        jQuery('.dataTable').width(100 + '%');
+        if (jQuery('.dataTables_scrollBody>.dataTable').height() > 360 ) {
+            jQuery('.dataTables_scrollHeadInner').width(jQuery('.dataTables_scrollHeadInner').width() - 17 + 'px');
+        };
+    }); 
+    
+</script>  
+
+    </apex:pageBlockSection>
+    </apex:pageBlock>
+    <apex:pageBlock id="pgblock1" rendered="{!$UserRole.Name = 'AHV Department Manager' || $UserRole.Name = 'DOT Department Manager'}">
+        <apex:pageBlockSection columns="1">
+            <apex:outputPanel styleClass="tableContainer" layout="block">
+                <apex:pageBlockTable value="{!upcomingExpirationsList}" var="item" styleClass="dataTable">
+                    
+                    <apex:column headerValue="Service Name" >
+                        <apex:outputLink value="/{!item.Id}" target="_blank">{!item.Service_Name_Full__c}</apex:outputLink>
+                    </apex:column>
+                    <apex:column headerValue="Proposal"> 
+                        <apex:outputLink value="/{!item.Proposal__c}" target="_blank">{!item.Proposal__r.Name}</apex:outputLink>
+                    </apex:column>
+                    <apex:column headerValue="MRC #" >
+                        <apex:outputLink value="/{!item.Project_Profile__c}" target="_blank">{!item.Project_Profile__r.Name}</apex:outputLink>
+                    </apex:column>
+                    <apex:column headerValue="Street Address">
+                        <apex:outputLink value="/{!item.Project_Profile__r.Building__c}" target="_blank">{!item.Project_Profile__r.Building__r.Name}</apex:outputLink>
+                    </apex:column> 
+                    <apex:column headerValue="Floor" value="{!item.Proposal__r.Floor_s__c}" />
+
+                    <apex:column headerValue="Municipal Agency ID #" value="{!item.Municipal_Agency_ID__c}" />
+
+                    <apex:column headerValue="Primary Client">
+                        <apex:outputLink value="/{!item.Proposal__r.Primary_Company_Name__c}" target="_blank">{!item.Proposal__r.Primary_Company_Name__r.Name}</apex:outputLink>
+                    </apex:column> 
+                    <apex:column headerValue="Expiration Date" value="{!item.Expiration_Date__c}" />
+                    <apex:column headerValue="Renewal required" value="{!item.Renewal_Required__c}" />
+                    <apex:column headerValue="Comments" value="{!item.Comment__c}" />
+                </apex:pageBlockTable>
+            </apex:outputpanel>
+
+<script type="text/javascript" language="javascript">
+    var j$ = jQuery.noConflict();
+    var oTable = j$('table.dataTable').dataTable({
+        sPaginationType: "full_numbers",
+        bAutoWidth: false,
+        bLengthChange: false,
+        bScrollCollapse: false,
+        aoColumnDefs: [ 
+            { "sSortDataType": "date-us", sType: "date-us", aTargets: [7] },
+            { "sType": "alt-string", aTargets: [8] }
+        ],
+        "aoColumns": [{ "sWidth": "23%" }, { "sWidth": "9%" }, { "sWidth": "10%" }, { "sWidth": "9%" },
+            { "sWidth": "9%" }, { "sWidth": "9%" }, { "sWidth": "9%" }, { "sWidth": "9%" }, { "sWidth": "6%" }, { "sWidth": "7%" } ],
+        sScrollY: (jQuery(window).height() - 155)
+    });
+    oTable.fnSort( [ [7,'asc'] ]);
+
+    jQuery(window).resize(function () {
+        jQuery('.dataTables_scrollHeadInner').width(100 + '%');
+        jQuery('.dataTable').width(100 + '%');
+        if (jQuery('.dataTables_scrollBody>.dataTable').height() > 360 ) {
+            jQuery('.dataTables_scrollHeadInner').width(jQuery('.dataTables_scrollHeadInner').width() - 17 + 'px');
+        };
+    }); 
+
+    
+</script>  
+
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+    <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+    </apex:form>
+
+
+    
+</apex:page>

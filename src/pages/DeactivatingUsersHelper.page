@@ -1,0 +1,40 @@
+<apex:page controller="DeactivatingUsersHelperController" standardStylesheets="true" contenttype="application/vnd.ms-excel#createdXLS.xls" cache="true" readOnly="true">
+{!xmlheader}
+
+	<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+			xmlns:o="urn:schemas-microsoft-com:office:office"
+			xmlns:x="urn:schemas-microsoft-com:office:excel"
+			xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+			xmlns:html="http://www.w3.org/TR/REC-html40">
+
+<Styles>
+	<Style ss:ID="s1">
+		<Alignment/>
+		<Borders/>
+		<Font ss:Bold="1"/>
+	</Style>
+</Styles>
+
+		<apex:repeat value="{!workSheets}" var="workSheet">
+			<Worksheet ss:Name="{!workSheet.workSheetName}">
+				<Table x:FullColumns="1" x:FullRows="1">
+					<apex:repeat value="{!workSheet.outPutFields}" var="col">
+						<Column ss:Width="120"/>
+					</apex:repeat>
+					<Row ss:StyleID="s1">
+						<apex:repeat value="{!workSheet.outPutFields}" var="field">
+							<Cell><Data ss:Type="String">{!field}</Data></Cell>
+						</apex:repeat>
+					</Row>
+					<apex:repeat value="{!workSheet.sObjects}" var="obj">
+						<Row>
+							<apex:repeat value="{!workSheet.outPutFields}" var="field">
+								<Cell><Data ss:Type="String">{!obj[field]}</Data></Cell>
+							</apex:repeat>
+						</Row>
+					</apex:repeat>
+				</Table>
+			</Worksheet>
+		</apex:repeat>
+	</Workbook>
+</apex:page>

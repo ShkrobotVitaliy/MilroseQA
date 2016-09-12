@@ -1,0 +1,3 @@
+<apex:page >
+<apex:enhancedList type="Pro_forma_Invoice__c" height="400" customizable="true"/>
+</apex:page>

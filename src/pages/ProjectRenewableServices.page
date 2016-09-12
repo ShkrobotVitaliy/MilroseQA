@@ -1,0 +1,45 @@
+<apex:page standardController="Project_Profile__c" extensions="ProjectRenewableServicesController">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    <script>
+        function redirect(val) {
+            window.open('/'+val, '_blank');
+        }
+    </script>
+    <style type="text/css">
+        body {
+            margin: 0px !important;
+        }
+    </style>
+    
+    <div style="max-height: 200px; overflow: auto;">
+        <table Id="RFIsScopeListTable" class="generalTableStyle" style="width:100%; padding: 0px; margin: 0px; border-collapse: collapse;">
+            <tr class="nodrop nodrag">
+                <apex:repeat value="{!municipalIdRow}" var="municipalRowItem">
+                    <th style="text-align: left;">{!municipalRowItem}</th>
+                </apex:repeat>
+            </tr>
+            <tr class="nodrop nodrag">
+                 <apex:repeat value="{!typeRow}" var="typeRowItem">
+                       <th style="text-align: left;">{!typeRowItem}</th>
+                 </apex:repeat>
+            </tr>
+            <tr class="nodrop nodrag">
+                 <apex:repeat value="{!workTypeRow}" var="workTypeRowItem">
+                       <th style="text-align: left;">{!workTypeRowItem}</th>
+                 </apex:repeat>
+            </tr>
+            <apex:repeat value="{!tableRowsMap}" var="historyRow">
+                <tr style="text-align: left;">
+                    <apex:repeat value="{!tableRowsMap[historyRow]}" var="historyRowItem">
+                       <td><apex:outputText value="{!historyRowItem}" escape="false" /></td>
+                     </apex:repeat>
+                </tr>
+            </apex:repeat>
+        </table>
+    </div>
+    <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+    <script>
+        $('#RFIsScopeListTable th:first').css('width', '25px');
+    </script>
+</apex:page>

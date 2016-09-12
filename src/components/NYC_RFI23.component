@@ -1,0 +1,59 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:variable var="display2Column" value="{!IF(OR(projectView, AND(!projectView, show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="display3Column" value="{!IF(OR(projectView, AND(!projectView, !show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="colspanValue" value="{!IF(projectView, 2, 1)}"/>
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="{!IF(projectView, 3, 2)}" style="text-align: left;">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: 50%;" >Application Permit Response</th>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader"><apex:outputText value="Engineer Signing/Sealing & License # :"/></span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Engineer_Signing_and_License_App__c}" /></td>
+            </tr>
+            <tr class="sectionRow">
+                <td colspan="2"><span class="mainRequestHeader" style="text-decoration: underline;">Building Owner of Record Information (Not a representative or Business Manager or Agent):</span></td>
+            </tr>
+            <tr class="sectionRow">
+                <td>Owner name:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Owner_Name_App__c}" /></td>
+            </tr>
+            <tr class="sectionRow">
+                <td>Business name:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Business_Name_App__c}" /></td>
+            </tr>
+            <tr class="sectionRow">
+                <td>Business address:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Business_Address_App__c}" /></td>
+            </tr>
+            <tr class="sectionRow">
+                <td>Business telephone:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Business_Telephone_App__c}" /></td>
+            </tr>
+            <tr class="sectionRow">
+                <td>Fax:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Fax_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Percentage of Building Sprinklered:</span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Percentage_of_Building_Sprinklered_App__c}" /></td>
+            </tr>
+            <tr>
+                <td>
+                    <span class="mainRequestHeader">Synopsis of work completed and implementation plan to complete 100 % sprinklerization:</span>
+                    (Please provide a word document with this information attached to your response)
+                 </td>
+                <td class="secondColumn">
+                    <apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Upload_Document_Comments__c}" />
+                </td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

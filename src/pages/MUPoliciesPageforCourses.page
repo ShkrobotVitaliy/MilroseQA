@@ -1,0 +1,21 @@
+<apex:page standardController="MU_Course__c">
+  <apex:outputText >
+        <br/>
+  Milrose University (MU) classes are provided for Milrose employees seeking to further enhance their knowledge and/or prepare for company opportunities.<br/>
+  <br/> 
+
+These policies have been established to create an effective learning environment and ensure compliance with requirements.<br/>
+<br/> 
+
+As a Milrose employee, it is <h1>your responsibility</h1> to familiarize yourself with these policies and adhere to them.<br/> Because policies are modified from time to time, check the policies section on a regular basis.<br/> 
+<br/>
+
+<h2>POLICIES:</h2>
+<br/>
+<br/> 
+
+•Cancellation requests must be made 24 hours prior to the scheduled training session.<br/> 
+•Plan to arrive to your training session at least five (5) minutes before start time.<br/> 
+•Cell phones are prohibited when training is in session.<br/>
+  </apex:outputText>
+</apex:page>

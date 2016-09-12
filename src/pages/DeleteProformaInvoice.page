@@ -1,0 +1,11 @@
+<apex:page standardcontroller="Pro_forma_Invoice__c" extensions="DeleteProformaInvoiceController"  action="{!validateAndDelete}">
+    <apex:form >
+    <apex:pageMessages id="pageMessages" />
+    <apex:pageBlock rendered="{!NOT(isValid)}">
+        <apex:pageBlockButtons location="bottom" style="text-align: left;">
+            <apex:commandButton value="Back" action="{!goBack}" styleClass="milroseBtnStyle"/>
+        </apex:pageBlockButtons>
+    </apex:pageBlock>
+    <apex:inputField value="{!Pro_forma_Invoice__c.cl_FFA_Invoice_Created__c}" rendered="false"/>
+    </apex:form>
+</apex:page>

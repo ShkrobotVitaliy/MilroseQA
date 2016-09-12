@@ -1,0 +1,253 @@
+<apex:page name="RfiInput" controller="RfiInputController" showChat="false" showHeader="false" sidebar="false" action="{!autorun}" standardStylesheets="true" cache="false">
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}" />
+    <script>function setFocusOnLoad() {}</script>
+    <script type="text/javascript">
+        if (!document.getElementsByClassName) {
+            document.getElementsByClassName=function(cn) {
+                var allT=document.getElementsByTagName('*'), allCN=[], i=0, a;
+                while(a=allT[i++]) {
+                    a.className==cn ? allCN[allCN.length]=a : null;
+                }
+                return allCN;
+            }
+        }
+    </script>
+    <style type="text/css">
+        body {
+            background-color: #265778;
+            font-family: Arial,Helvetica,sans-serif;
+            font-size: 75%;
+            margin: 0;
+            overflow: auto;
+        }
+        textarea {
+            font-family: 'Arial','Helvetica',sans-serif;
+            font-size: 100%;
+        }
+        .menuButton {
+            display: inline-block;
+            margin: 0;
+            color: #FFF;
+            background-color: #18455E;
+            border-bottom: 1px solid white;
+            padding: 7px 15px !important;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 700;
+            width: 240px;
+        }
+        .menuButton:hover {
+            color: #FFF;
+            background-color: #8CA6B7;
+            text-decoration: none;
+        }
+        .menuButtonVisited {
+            background-color: #5892B3;
+            /*cursor: default;*/
+        }
+        .menuButtonVisited:hover {
+            background-color: #38657E;
+        }
+        .menuButtonSubmit {
+            background-color: #990500;
+        }
+        .menuButtonSubmit:hover {
+            background-color: #E5433D;
+        }
+        .headerText {
+            padding: 10px 10px 1px;
+        }
+        .headerText div {
+            padding: 0;
+            padding-bottom: 10px;
+        }
+        .headerText div div {
+            border: 1px solid #AED4E4;
+            background-color: #E0F0F9;
+            padding: 3px 4px;
+        }
+        .headerText div div div {
+            border: 0;
+            background-color: none;
+            padding: 0;
+            display: table;
+            width: 100%;
+            text-align: center;
+        }
+       .headerText div div div div {
+            display: table-cell;
+            text-align: left;
+            font-size: 110%;
+            font-weight: 700;
+            vertical-align: middle;
+        }
+        .message {
+            border: none;
+            background: none;
+        }
+        .message > table {
+            width: 40%;
+            padding: 20px 0 30px 0 !important;
+        }
+        .message .messageCell h4:before {
+            color: #000 !important;
+            font-size: 160%;
+            font-weight: normal;
+            content: "NOTE" !important;
+        }
+        .message .messageCell h4 {
+            color: #FFF !important;
+            padding-bottom: 30px;
+        }
+        .message .msgIcon {
+            display: none;
+        }
+        .message .messageCell {
+            font-size: 120%;
+        }
+    </style>
+    <apex:form style="padding: 1% 5% 5%">
+        <div style="background-color: #FFF;">
+            <!-- Begin Header-->
+            <apex:outputPanel layout="block">
+                <div style="width: 100%;">
+                    <div style="display: table; width: 100%">
+                        <div style="position: relative; display: table-cell;">
+                        	<div style="position: relative;">
+	                            <div style="background-color: white; width: 117px; height: 161px; position: absolute; top: 20px; left: 20px; padding: 5px;">
+	                                <img src="{!$Resource.milrose_logo}" style="position: absolute;"/>
+	                            </div>
+	                            <img src="{!$Resource.stock3}" style="width: 100%; height: 220px;"/>
+                        	</div> 
+                        </div>
+                        
+                        <div style="display: table-cell;">
+                            <img src="{!$Resource.stock2}" style="width: 100%; height: 220px;"/>
+                        </div>
+                        
+                        <div style="display: table-cell;">
+                            <img src="{!$Resource.stock1}" style="width: 100%; height: 220px;"/>
+                        </div>                        
+                    </div>
+                </div>
+            </apex:outputPanel>
+            <!-- End Header-->
+            
+            <apex:pageMessages id="msgs"/>
+            
+            <apex:actionStatus id="overlay" onstart="$('#overlayContent').show().fadeTo('slow', 1.0); $('#transparentOverlay').show().fadeTo('slow', 0.7);" onstop="$('#transparentOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });"/>
+            <div class="overlayHolder" style="position: relative; overflow: auto; -webkit-overflow-scrolling: touch;">
+                <div class="overlay" id="transparentOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"></div>
+                <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 15px 30px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+                    <div style="text-align: center;">
+                        <img src="{!URLFOR($Resource.ProposalWizardResources, 'img/WaitAnimation.gif')}" />
+                        <div style="color: #038; margin-bottom: 0px; font-size: 24px; padding-top: 10px; cursor: default;">Please wait</div>
+                    </div>
+                </div>
+
+                <apex:outputPanel layout="block" id="submitForm">
+                    <apex:outputPanel layout="block" rendered="{!isValid && !isSubmitted}">
+                        <div style="width: 100%;">
+                            <apex:actionFunction name="saveScope" action="{!saveScope}" reRender="msgs, submitForm, submitMessageForm" status="overlay"/>
+                            
+                            <apex:outputPanel layout="block" style="display: table; padding-top: 9px;" rendered="{!!isSubmitted}">
+                                
+                                <!-- Begin Left Menu -->
+                                <div style="display: table-cell; vertical-align: top;">
+                                    <div style="background-color: #FFF;">
+                                        <div class="headerText"><div><div><div><div> Available Scope Forms: </div></div></div></div></div>
+                                        
+                                        <div style="padding: 0 10px 10px;">
+                                            <apex:repeat value="{!orderRFIScopesList}" var="scopeItem">
+                                                <apex:commandLink onclick="$(this).addClass('menuButtonVisited');" action="{!selectRFIScope}" value="{!scopeItem.RFI_Section__c}" styleClass="menuButton{!IF(scopeIdToIsVisited[scopeItem.Id], ' menuButtonVisited', '')}" reRender="msgs, componentPanelId" status="overlay">
+                                                    <apex:param name="selectedRFI" value="{!scopeItem.Id}" assignTo="{!currentRFIScope}" />
+                                                </apex:commandLink>
+                                            </apex:repeat>
+                                            <!-- Submit Button -->
+                                            <apex:commandLink id="submitScopeButton" onclick="saveScope(); return false;" rendered="{!orderRFIScopesList.size > 0}" styleClass="menuButton menuButtonSubmit" style="text-align: center; margin-top: 10px;">Save Scope{!IF(orderRFIScopesList.size > 1, 's', '')}</apex:commandLink>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- End Left Menu -->
+                                
+                                <div style="display: table-cell; width: 100%; padding-right: 10px;">
+                                    <div style="width:100%; vertical-align: top; background-color: #FFF;">
+                                        <!-- Title -->
+                                        <div class="headerText" style="padding: 10px 0px 1px 0px;"><div><div><div><div> Project: {!project.Name} {!project.Project_Name__c} </div></div></div></div></div>
+                                        
+                                        <!-- Component -->
+                                        <apex:outputPanel id="componentPanelId">
+                                            <c:RFIScopeTemplatesContainer scopeName="{!RFIScope.Name}" recordId="{!RFIScope.Id}" projectView="false" show2column="{!isApplication}"/>
+                                        </apex:outputPanel>
+                                        
+                                        <!-- 
+                                        <apex:outputPanel id="componentPanelId">
+    	                                    <apex:repeat value="{!orderRFIScopesList}" var="scopeItem">
+    	                                    	<c:RFIScopeTemplatesContainer scopeName="{!scopeItem.Name}" recordId="{!scopeItem.Id}" projectView="false" show2column="{!isApplication}"/>
+    	                                    </apex:repeat>
+                                        </apex:outputPanel>
+                                        -->
+                                    </div>
+                                </div>
+                                
+                            </apex:outputPanel>
+                        </div>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+            </div>
+            
+            <!-- Begin Submitted message-->
+            <apex:outputPanel layout="block" id="submitMessageForm">
+                <apex:outputPanel layout="block" rendered="{!isValid && isSubmitted}">
+                    <div style="width: 90%; padding: 0 1% 0 1%;">
+                        <div style="padding: 30px 0 30px 15px; text-align: left; background-color: #FFF;">
+                            <span style="font-size: 200%;">
+                                Your information was submitted successfully.<br/>Thank you!<br/><br/>
+                            </span>
+                            
+                            <div style="width: 40%;">
+                                <span style="font-size: 120%;">
+                                    The information that you have just submitted has been stored in our Milrose project management system.
+                                    We strive to eliminate errors and omissions via this RFI process. As a result, you may be contacted again for further information or clarification.
+                                    We appreciate your participation in this process.
+                                </span>                    
+                            </div>
+                            
+                            <br/>
+                            <div style="width: 40%;">
+                                <span style="font-size: 120%;">
+                                    If you have any questions, comments or changes to the information you have just submitted, please contact the Milrose Project Manager directly.
+                                </span>
+                            </div>
+                            
+                            <br/>
+                            <div style="width: 40%;">
+                                <span style="font-size: 120%;">
+                                    Please click <a href="#" onclick="location.reload();">on this link</a> if you want to continue modifying the data you have submitted.
+                                </span>
+                            </div>
+                            <br/><br/><br/><br/>    
+                            <apex:outputLink value="https://www.milrose.com/" target="_blank" style="color: #3887A8;">Visit the Milrose Consultants Website</apex:outputLink> <!-- MRS 7475 -->
+                        </div>
+                    </div>
+                    <br/ >
+                </apex:outputPanel>
+            </apex:outputPanel>
+            <!-- End Submitted message-->
+            
+            <!-- Begin Footer -->            
+            <div>
+                <div style="background-color: rgb(172, 190, 226); height: 30px; padding-left: 30px; padding-top: 10px;">
+                    <apex:outputLabel >Copyright <script>document.write(new Date().getFullYear())</script> Milrose Consultants, Inc.</apex:outputLabel>
+                </div>
+            </div>
+            <!-- End Footer -->
+        </div>
+    </apex:form>
+    <script>
+        $(document).ready(function() {
+            $('.dateFormat').hide();
+            $('textarea').attr("maxlength", "1000");
+        });
+    </script>
+</apex:page>

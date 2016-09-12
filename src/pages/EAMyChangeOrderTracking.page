@@ -1,0 +1,121 @@
+<apex:page controller="ProjectManagerHomePageController" sidebar="false" showHeader="false">
+    
+    <apex:stylesheet value="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/css/jquery.dataTables.css')}"/>
+    <apex:stylesheet value="{!$Resource.HomePage_CSS}"/>
+    <style> 
+        .sorting {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_both.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_asc {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_asc.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_desc {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_desc.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_asc_disabled {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_asc_disabled.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_desc_disabled {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_desc_disabled.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .colorClass {
+            background-color: {!colorPartner};
+        }
+    </style>
+    
+    <apex:form id="form">
+        <apex:pageMessages id="msgs"></apex:pageMessages>
+        <apex:pageBlock id="pgblock">
+        
+            <apex:pageBlockSection columns="1">
+              <apex:outputPanel styleClass="tableContainer" layout="block">  
+                <apex:pageBlockTable value="{!executiveAdminsMyChangeOrders}" var="item" styleClass="dataTable">
+                    <apex:column headerValue="Change Order #" >
+                        <apex:outputField value="{!item.Number__c}"/>
+                    </apex:column>
+                    <apex:column headerValue="Proposal #" >
+                        <apex:outputLink value="/{!item.Proposal__c}" target="_blank">{!item.Proposal__r.Name}</apex:outputLink>
+                    </apex:column>
+                    <apex:column headerValue="Rev. #" value="{!item.Proposal__r.Version__c}" />
+                    <apex:column headerValue="MRC #" >
+                        <apex:outputLink value="/{!item.Project_Profile__c}" target="_blank">{!item.Project_Profile__r.Name}</apex:outputLink>
+                    </apex:column>
+                    <apex:column headerValue="Project Name" value="{!item.Project_Profile__r.Project_Name__c}" />
+                    <apex:column headerValue="Street Address" >
+                        <apex:outputLink value="/{!item.Project_Profile__r.Building__c}" target="_blank">{!item.Project_Profile__r.Building__r.Name}</apex:outputLink>
+                    </apex:column>
+                    <apex:column headerValue="Change Order Status" value="{!item.Status__c}" />
+                    <apex:column headerValue="eSigned" value="{!item.eSigned__c}" />
+                    <apex:column >
+                        <apex:facet name="header">
+                            Change Request<br/>Date
+                        </apex:facet>
+                        <apex:outputField value="{!item.Change_Request_Date__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            Last Change<br/>Date
+                        </apex:facet>
+                        <apex:outputField value="{!item.Last_Change_Date__c}"/>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            Original Awarded<br/>Date
+                        </apex:facet>
+                        <apex:outputField value="{!item.Proposal__r.Proposal_Awarded_Date__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            Last Follow-Up<br/>Date
+                        </apex:facet>
+                        <apex:outputField value="{!item.Last_Follow_Up_Date__c}" />
+                    </apex:column>
+                    <apex:column headerValue="Follow-Up Count" value="{!item.Follow_Ups_Count__c}" />
+                    <apex:column headerValue="Partner" >
+                        <apex:outputLink value="/{!item.Project_Profile__r.Partner__c}" target="_blank">{!item.Project_Profile__r.Partner__r.Name}</apex:outputLink>
+                    </apex:column>
+                    
+                </apex:pageBlockTable>
+              </apex:outputpanel>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+    </apex:form>
+    
+<script src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.js')}"></script>
+<script src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.dataTables.js')}"></script>
+<script src="{!URLFOR($Resource.DateUS)}"></script>
+<script src="{!URLFOR($Resource.NumHtml)}"></script>
+
+<script >
+    var j$ = jQuery.noConflict();
+    var oTable = j$('table.dataTable').dataTable({
+        sPaginationType: "full_numbers",
+        bLengthChange: false,
+        bAutoWidth: false,
+        "aoColumns": [ { "sWidth": "6%" }, { "sWidth": "8%" }, { "sWidth": "5%" }, { "sWidth": "9%" }, { "sWidth": "10%" },{ "sWidth": "13%" }, { "sWidth": "7%" },
+                       { "sWidth": "6%" }, { "sWidth": "6%" }, { "sWidth": "6%" }, { "sWidth": "6%" }, { "sWidth": "6%" }, { "sWidth": "6%" }, { "sWidth": "6%" } ],
+        aoColumnDefs: [ 
+            { "sSortDataType": "date-us", sType: "date-us", aTargets: [8,9,10,11] },
+            { sType: "num-html", aTargets: [12] }
+        ],
+        sScrollY: (jQuery(window).height() - 200)
+    });
+    oTable.fnSort( [ [7,'asc'] ]);
+    
+    var hWidth = 100;
+    jQuery(window).resize(function () {
+        oTable.fnAdjustColumnSizing();    
+        jQuery('.dataTables_scrollHeadInner').width(hWidth + '%');
+        jQuery('.dataTable').width(hWidth + '%');
+        if (jQuery('.dataTables_scrollBody>.dataTable').height() > 450 ) {
+            jQuery('.dataTables_scrollHeadInner').width(jQuery('.dataTables_scrollHeadInner').width() - 17 + 'px');
+        };
+    });
+</script>      
+</apex:page>

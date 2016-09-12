@@ -1,0 +1,9 @@
+<apex:page controller="ProjectManagerHomePageController" sidebar="false" showHeader="false" >
+ 
+    <apex:pageBlock >
+            
+       <apex:iframe src="/00OJ0000000OdFu?isdtp=nv" height="605px" width="100%" scrolling="true" />
+     
+    </apex:pageBlock>
+
+</apex:page>

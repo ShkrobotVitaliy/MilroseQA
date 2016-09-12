@@ -1,0 +1,738 @@
+<apex:page standardcontroller="Proposal__c" extensions="ProposalWizardStep2Controller" id="ProposalWizardPage" showHeader="false" sidebar="false" showChat="false" title="Proposal Wizard">
+  <apex:includeScript value="{!URLFOR($Resource.ProposalWizardResources, 'jquery-162.min.js')}" />
+  
+  <script type="text/javascript">
+    $(document).ready(function () {
+      disableInputsByStatus();
+      window.parent.parent.unblockStep2();
+    });
+
+    function applyStep2( serializedProposal ) {
+      window.parent.parent.showOverlay( true );
+      window.parent.parent.manageDataFromStep2( serializedProposal );
+    }
+
+    function showOverlay() {
+      window.parent.parent.showOverlay();
+    }
+    function hideOverlay() {
+      window.parent.parent.hideOverlay();
+    }
+
+    function disableInputsByStatus() {
+      if( {!disableInputs || viewOnly} ) {
+        $('.mainStyle input').not('.specialDisableJQ').not(':submit').attr('disabled','disabled');
+        $('.mainStyle input:submit').not('.specialDisableJQ').attr('disabled','disabled').removeClass('btn').addClass('btnDisabled');
+        $('.mainStyle select').not('.specialDisableJQ').attr('disabled','disabled');
+        $('.mainStyle textarea').not('.specialDisableJQ').attr('disabled','disabled');
+        $('.mainStyle a').not('.specialDisableJQ').not('.multiSelectPicklistCell a').contents().unwrap();
+        $('.mainStyle span.dateFormat').not('.specialDisableJQ').hide();
+      }
+    }
+  </script>
+
+  <apex:stylesheet value="{!URLFOR($Resource.ProposalWizardResources, 'proposalWizard.css')}"/>
+
+  <style type="text/css">
+    body {
+      background-color: #F8F8F8;
+      overflow: auto;
+    }
+  </style>
+
+  <apex:form >
+    <apex:actionFunction name="isIrValidAction" reRender="irErrorMessage, sowACUnitsPanel, msgs" oncomplete="applyStep2('{!serializedProposal}');" status="overlay"/>
+    <apex:actionFunction name="isIdValidAction" reRender="idErrorMessage, msgs" oncomplete="applyStep2('{!serializedProposal}');" status="overlay"/>
+    <apex:actionFunction name="isErValidAction" reRender="erErrorMessage, msgs" oncomplete="applyStep2('{!serializedProposal}');" status="overlay"/>
+    <apex:actionFunction name="isSpValidAction" reRender="spErrorMessage, msgs" oncomplete="applyStep2('{!serializedProposal}');" status="overlay"/>
+    <apex:actionFunction name="isSmValidAction" reRender="smErrorMessage, msgs" oncomplete="applyStep2('{!serializedProposal}');" status="overlay"/>
+    <apex:actionFunction name="additionalScopeFirstQuestionsAction" action="{!additionalScopeFirstQuestionsAction}" reRender="lastTwelfthQuestion, sowSpaceAlterTypes, msgs" oncomplete="applyStep2('{!serializedProposal}');" status="overlay"/>
+    <apex:actionFunction name="additionalScopeLastQuestionAction" action="{!additionalScopeLastQuestionAction}" reRender="firstElevenQuestions, sowSpaceAlterTypes, msgs" oncomplete="applyStep2('{!serializedProposal}');" status="overlay"/>
+
+    <apex:actionStatus id="overlay" onstart="showOverlay();" onstop="/*hideOverlay();*/"/>
+
+    <div class="overlayHolder" style="position: relative; overflow: auto; -webkit-overflow-scrolling: touch;">
+      <div class="overlay" id="transparentOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"></div>
+      <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 15px 30px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+        <div style="text-align: center;">
+          <img src="{!URLFOR($Resource.ProposalWizardResources, 'img/WaitAnimation.gif')}" />
+          <div style="color: #038; margin-bottom: 0px; font-size: 24px; padding-top: 10px; cursor: default;">Please wait</div>
+        </div>
+      </div>
+
+      <apex:pageMessages id="msgs"/>
+
+      <div class="mainStyle">
+        <div style="display: {!IF(enableStep2Summary, 'block', 'none')};">
+          <apex:pageBlock title="Here's a summary of the reasons why this proposal requires C&Z review:">
+             <apex:outputPanel id="informationTableOutputPanel">
+              <table id="informationTable">
+                <tr>
+                  <th>#</th>
+                  <th>Question or Information</th>
+                </tr>
+                <apex:variable value="{!1}" var="rowNum"/>
+                <apex:repeat value="{!questionList}" var="question" >
+                  <tr>
+                   <td><apex:outputText value="{!rowNum}."/></td>
+                   <td><apex:outputText value="{!question}"/></td>
+                  </tr>
+                  <apex:variable var="rowNum" value="{!rowNum + 1}"/>
+                </apex:repeat>
+              </table>
+            </apex:outputPanel>
+          </apex:pageBlock>
+        </div>
+
+        <apex:outputPanel layout="block" rendered="{!proposal.Is_Draft__c && !enableStep2Summary}">
+          <apex:pageBlock title="The scope of work involves" id="sowScopeOfWorkPanel" rendered="{!proposal.Is_Draft__c}">
+            <table style="width:100%;">
+              <tr>
+                <td>
+                  <apex:outputPanel layout="none" rendered="{!isScopeOfWorkRequired}">
+                    <div class="requiredBlockWrapper"><div class="requiredBlockMarker" style="height: {!IF(sowScopeOfWork != null && sowScopeOfWork.size > 2, '73px', '48px')};"></div></div>
+                  </apex:outputPanel>
+                  <apex:selectRadio id="mainTable" value="{!proposal.sowScopeOfWork__c}" layout="pageDirection" label="" style="min-width: 115px;"> <!-- MRS 7112 -->
+                    <apex:selectOptions value="{!sowScopeOfWork}"/>
+                    <apex:actionSupport event="onchange" reRender="sowTypeOfServices, sowOtherQuestions, sowSpaceAlterTypes, asbestosHolder, sowErrorMessage, msgs" oncomplete="applyStep2('{!serializedProposal}');" status="overlay"/>
+                  </apex:selectRadio>
+                  <apex:outputPanel layout="block" id="asbestosHolder">
+                    <div style="padding-left: 20px; display: {!IF( CONTAINS(proposal.sowScopeOfWork__c, 'Existing Space'), 'block', 'none')};">
+                      <apex:inputCheckbox value="{!proposal.Asbestos__c}" id="Asbestos__c">
+                        <apex:actionSupport event="onchange" rerender="asbestosInvestigationOptions" status="overlay" oncomplete="applyStep2('{!serializedProposal}');"/>
+                      </apex:inputCheckbox>
+                      <apex:outputLabel value="{!$ObjectType.Proposal__c.fields.Asbestos__c.Label}" for="Asbestos__c"/>
+                      <apex:outputPanel layout="block" id="asbestosInvestigationOptions" styleClass="asbestosInvestigationOptionsJQ" style="display: {!IF(!proposal.Asbestos__c, 'block', 'none')};">
+                        <table>
+                          <tr>
+                            <td style="width: 50%;">
+                              <apex:selectRadio value="{!proposal.Asbestos_Investigation_Options__c}" layout="pageDirection" label="" style="min-width: 115px;">
+                                <apex:selectOptions value="{!sowAsbestosInvestigationOptions}"/>
+                                <apex:actionSupport event="onchange" reRender="asbestosContactHolder, msgs" status="overlay" oncomplete="applyStep2('{!serializedProposal}');"/>
+                              </apex:selectRadio>
+                            </td>
+                            <td style="width: 50%; vertical-align: top; padding-top: 3px;">
+                              <apex:outputPanel layout="block" id="asbestosContactHolder" style="display: {!IF(proposal.Asbestos_Investigation_Options__c != 'Not required for this scope', 'block', 'none')};">
+                                <!--apex:outputLabel style="padding-left: 1.9em;" value="Please provide the contact information for the Client's Designation Asbestos Investigator" for="Asbestos_Investigator__c"/-->
+                                <div style="margin-left: 1.65em; display: inline-block;">
+                                  <apex:inputField value="{!proposal.Asbestos_Investigator__c}" id="Asbestos_Investigator__c">
+                                    <apex:actionSupport event="onchange" reRender="msgs" status="overlay" oncomplete="applyStep2('{!serializedProposal}');"/>
+                                  </apex:inputField>
+                                </div>
+                              </apex:outputPanel>
+                            </td>
+                          </tr>
+                        </table>
+                      </apex:outputPanel>
+                    </div>
+                  </apex:outputPanel>
+                </td>
+                <td>
+                  <apex:outputPanel id="sowErrorMessage">
+                    <div class="message infoM3" style="display: {!IF( ISBLANK(proposal.sowScopeOfWork__c) || CONTAINS(proposal.sowScopeOfWork__c, 'New Building') || CONTAINS(proposal.sowScopeOfWork__c, 'HUB Project'), 'block', 'none')}; margin: 4px 4px; 4px 20px;">
+                      <table border="0" cellpadding="0" cellspacing="0" class="messageTable" style="padding:0px;margin:0px;">
+                        <tr valign="top">
+                          <td><img alt="INFO" class="msgIcon" src="/s.gif" title="INFO"/></td>
+                          <td class="messageCell">
+                            <div class="messageText">
+                              <span style="color:#0000cc; display:inline-block; font-weight:bold;">Information:</span>
+                              <ul style="padding-left: 0px; margin: 0px;">
+                                <li style="display: {!IF(ISBLANK(proposal.sowScopeOfWork__c), 'list-item', 'none')};">Please choose an option.</li>
+                                <li style="display: {!IF(!ISBLANK(proposal.sowScopeOfWork__c) && CONTAINS(proposal.sowScopeOfWork__c, 'New Building'), 'list-item', 'none')};">Please define the parameters of a new building in the Proposal Notes section on the right.</li>
+                                <li style="display: {!IF(!ISBLANK(proposal.sowScopeOfWork__c) && CONTAINS(proposal.sowScopeOfWork__c, 'HUB Project'), 'list-item', 'none')};">Please enter the details of the HUB project in the Proposal notes section.</li>
+                              </ul>
+                            </div>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+                  </apex:outputPanel>
+                </td>
+              </tr>
+            </table>
+          </apex:pageBlock>
+
+          <apex:outputPanel id="sowTypeOfServices" styleClass="sowOtherQuestions" rendered="{!proposal.Is_Draft__c}">
+            <div style="display: {!IF( CONTAINS(proposal.sowScopeOfWork__c, 'Existing Space'), 'block', 'none')};">
+              <apex:pageBlock title="Indicate the type of services needed">
+                <table style="width:100%;">
+                  <tr>
+                    <td>
+                      <apex:outputPanel layout="block" style="min-width: 200px;">
+                        <apex:inputField value="{!proposal.sowServicesNeededAPS__c}" id="sowServicesNeededAPS__c">
+                          <apex:actionSupport event="onchange" reRender="sowOtherQuestionsErrorMessage, sowOtherQuestions, sowSpaceAlterTypes, msgs" oncomplete="applyStep2('{!serializedProposal}');" status="overlay"/>
+                        </apex:inputField>
+                        <apex:outputLabel value="{!$ObjectType.Proposal__c.fields.sowServicesNeededAPS__c.Label}" style="padding-left: 0.25em;" for="sowServicesNeededAPS__c"/>
+                      </apex:outputPanel>
+                      <div>
+                        <apex:inputField value="{!proposal.sowServicesNeededOther__c}" id="sowServicesNeededOther__c" label="{!$ObjectType.Proposal__c.fields.sowServicesNeededOther__c.inlineHelpText}">
+                          <apex:actionSupport event="onchange" reRender="sowOtherQuestionsErrorMessage, sowOtherQuestions, msgs" oncomplete="applyStep2('{!serializedProposal}');" status="overlay"/>
+                        </apex:inputField>
+                        <span class="helpButton">
+                          <apex:outputLabel value="{!$ObjectType.Proposal__c.fields.sowServicesNeededOther__c.Label}" for="sowServicesNeededOther__c" title="{!$ObjectType.Proposal__c.fields.sowServicesNeededOther__c.inlineHelpText}"/>
+                          <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltip').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltip').hide();"/>
+                          <span class="helpTooltip" style="top: 1em;">{!$ObjectType.Proposal__c.fields.sowServicesNeededOther__c.inlineHelpText}</span>
+                        </span>
+                      </div>
+                    </td>
+                    <td>
+                      <apex:outputPanel id="sowOtherQuestionsErrorMessage">
+                        <div class="message infoM3" style="display: {!IF(!proposal.sowServicesNeededAPS__c && proposal.sowServicesNeededOther__c, 'block', 'none')}; margin: 4px 4px; 4px 20px;">
+                          <table border="0" cellpadding="0" cellspacing="0" class="messageTable" style="padding:0px;margin:0px;">
+                            <tr valign="top">
+                              <td><img alt="INFO" class="msgIcon" src="/s.gif" title="INFO"/></td>
+                              <td class="messageCell">
+                                <div class="messageText">
+                                   <span style="color:#0000cc; display:inline-block; font-weight:bold;">Information:</span>
+                                   <ul style="padding-left: 0px; margin: 0px;"><li>If you intend to specify only other services, please press 'Submit' and you will move to Step 3.<br/>Otherwise select 'Application-Permit Services' for other options.</li></ul>
+                                </div>
+                              </td>
+                            </tr>
+                          </table>
+                        </div>
+                      </apex:outputPanel>
+                    </td>
+                  </tr>
+                </table>
+              </apex:pageBlock>
+
+              <apex:outputPanel id="sowOtherQuestions" styleClass="sowOtherQuestions">
+                <div style="display: {!IF(proposal.sowServicesNeededAPS__c, 'block', 'none')};">
+                  <apex:pageBlock title="Additional Scope Questions (Check all that apply)">
+                    <apex:pageBlockSection columns="1">
+                      <apex:outputPanel id="firstElevenQuestions">
+                        <apex:outputPanel rendered="{!!proposal.sowNoneOfTheAbove__c}">
+                          <apex:pageBlockSectionItem >
+                            <apex:outputPanel layout="block" style="display: table;">
+                              <apex:inputCheckbox value="{!proposal.sowUseEgressOccupancy__c}" style="display: table-cell;" id="sowUseEgressOccupancy__c" onchange="additionalScopeFirstQuestionsAction();"/>
+                              <apex:outputLabel value="1. Does the scope of work change the use, egress or occupancy of the space?" style="display: table-cell; padding-left: 0.25em;" for="sowUseEgressOccupancy__c"/>
+                            </apex:outputPanel>
+                          </apex:pageBlockSectionItem>
+                          <apex:pageBlockSectionItem >
+                            <apex:outputPanel layout="block" style="display: table;">
+                              <apex:inputCheckbox value="{!proposal.sowMultiplePhases__c}" style="display: table-cell;" id="sowMultiplePhases__c" onchange="additionalScopeFirstQuestionsAction();"/>
+                              <apex:outputLabel value="2. Will the project involve multiple phases of construction?" style="display: table-cell; padding-left: 0.25em;" for="sowMultiplePhases__c"/>
+                            </apex:outputPanel>
+                          </apex:pageBlockSectionItem>
+                          <apex:pageBlockSectionItem >
+                            <apex:outputPanel layout="block" style="display: table;">
+                              <apex:inputCheckbox value="{!proposal.sowOccupandLoadDiffers__c}" title="{!$ObjectType.Proposal__c.fields.sowOccupandLoadDiffers__c.inlineHelpText}" style="display: table-cell;" id="sowOccupandLoadDiffers__c" onchange="additionalScopeFirstQuestionsAction();"/>
+                              <div style="display: table-cell; padding-left: 0.25em;">
+                                <span class="helpButton" style="display: table;">
+                                  <apex:outputLabel value="3. Does the expected occupant load differ from the existing building C of O for the floor(s)?" title="{!$ObjectType.Proposal__c.fields.sowOccupandLoadDiffers__c.inlineHelpText}" for="sowOccupandLoadDiffers__c"/>
+                                  <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltip').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltip').hide();"/>
+                                  <span class="helpTooltip" style="top: 1em;">{!$ObjectType.Proposal__c.fields.sowOccupandLoadDiffers__c.inlineHelpText}</span>
+                                </span>
+                              </div>
+                            </apex:outputPanel>
+                          </apex:pageBlockSectionItem>
+                          <apex:pageBlockSectionItem >
+                            <apex:outputPanel layout="block" style="display: table;">
+                              <apex:inputCheckbox value="{!proposal.sowMeetingConfRooms__c}" style="display: table-cell;" id="sowMeetingConfRooms__c" onchange="additionalScopeFirstQuestionsAction();"/>
+                              <apex:outputLabel value="4. Does the project have single or multiple meeting, conference or event rooms, or an employee cafeteria, where the sum of the number of occupants in all would be 75 or more persons?" style="display: table-cell; padding-left: 0.25em;" for="sowMeetingConfRooms__c"/>
+                            </apex:outputPanel>
+                          </apex:pageBlockSectionItem>
+                          <apex:pageBlockSectionItem >
+                            <apex:outputPanel layout="block" style="display: table;">
+                              <apex:inputCheckbox value="{!proposal.sowTemporarySprinkler__c}" style="display: table-cell;" id="sowTemporarySprinkler__c" onchange="additionalScopeFirstQuestionsAction();"/>
+                              <apex:outputLabel value="5. Will the project involve or require the use of temporary sprinkler protection?" style="display: table-cell; padding-left: 0.25em;" for="sowTemporarySprinkler__c"/>
+                            </apex:outputPanel>
+                          </apex:pageBlockSectionItem>
+                          <apex:pageBlockSectionItem >
+                            <apex:outputPanel layout="block" style="display: table;">
+                              <apex:inputCheckbox value="{!proposal.sowOpenFloorConnections__c}" style="display: table-cell;" id="sowOpenFloorConnections__c" onchange="additionalScopeFirstQuestionsAction();"/>
+                              <apex:outputLabel value="6. Does the project involve open floor connections between two of more floors with or without convenience stair?" style="display: table-cell; padding-left: 0.25em;" for="sowOpenFloorConnections__c"/>
+                            </apex:outputPanel>
+                          </apex:pageBlockSectionItem>
+                          <apex:pageBlockSectionItem >
+                            <apex:outputPanel layout="block" style="display: table;">
+                              <apex:inputCheckbox value="{!proposal.sowSpecialPlaces__c}" title="{!$ObjectType.Proposal__c.fields.sowSpecialPlaces__c.inlineHelpText}" style="display: table-cell;" id="sowSpecialPlaces__c" onchange="additionalScopeFirstQuestionsAction();"/>
+                              <div style="display: table-cell; padding-left: 0.25em;">
+                                <span class="helpButton" style="display: table;">
+                                  <apex:outputLabel value="7. Does the project involve the inclusion of special or atypical amenity spaces?" title="{!$ObjectType.Proposal__c.fields.sowSpecialPlaces__c.inlineHelpText}" style="display: table-cell;" for="sowSpecialPlaces__c"/>
+                                  <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltip').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltip').hide();"/>
+                                  <span class="helpTooltip" style="top: 1em;">{!$ObjectType.Proposal__c.fields.sowSpecialPlaces__c.inlineHelpText}</span>
+                                </span>
+                              </div>
+                            </apex:outputPanel>
+                          </apex:pageBlockSectionItem>
+                          <apex:pageBlockSectionItem >
+                            <apex:outputPanel layout="block" style="display: table;">
+                              <apex:inputCheckbox value="{!proposal.sowTenantsWithGlassDoors__c}" style="display: table-cell;" id="sowTenantsWithGlassDoors__c" onchange="additionalScopeFirstQuestionsAction();"/>
+                              <apex:outputLabel value="8. Does the project involve single or multiple tenants with glass doors in corridors?" style="display: table-cell; padding-left: 0.25em;" for="sowTenantsWithGlassDoors__c"/>
+                            </apex:outputPanel>
+                          </apex:pageBlockSectionItem>
+                          <apex:pageBlockSectionItem >
+                            <apex:outputPanel layout="block" style="display: table;">
+                              <apex:inputCheckbox value="{!proposal.sowExteriorSignage__c}" style="display: table-cell;" id="sowExteriorSignage__c" onchange="additionalScopeFirstQuestionsAction();"/>
+                              <apex:outputLabel value="9. Does the project involve exterior work, such as signage, marquee, antennae, construction equipment, facade, builders permit plan, curb cut?" style="display: table-cell; padding-left: 0.25em;" for="sowExteriorSignage__c"/>
+                            </apex:outputPanel>
+                          </apex:pageBlockSectionItem>
+                          <apex:pageBlockSectionItem >
+                            <apex:outputPanel layout="block" style="display: table;">
+                              <apex:inputCheckbox value="{!proposal.sowFuelStorage__c}" style="display: table-cell;" id="sowFuelStorage__c" onchange="additionalScopeFirstQuestionsAction();"/>
+                              <apex:outputLabel value="10. Does the project involve fuel storage?" style="display: table-cell; padding-left: 0.25em;" for="sowFuelStorage__c"/>
+                            </apex:outputPanel>
+                          </apex:pageBlockSectionItem>
+                          <apex:pageBlockSectionItem >
+                            <apex:outputPanel layout="block" style="display: table;">
+                              <apex:inputCheckbox value="{!proposal.sowExteriorWork__c}" style="display: table-cell;" id="sowExteriorWork__c" onchange="additionalScopeFirstQuestionsAction();"/>
+                              <apex:outputLabel value="11. Does the project involve major exterior work, such as exterior egress modification, site safety, distinctive sidewalk?" style="display: table-cell; padding-left: 0.25em;" for="sowExteriorWork__c"/>
+                            </apex:outputPanel>
+                          </apex:pageBlockSectionItem>
+                        </apex:outputPanel>
+                      </apex:outputPanel>
+                      <apex:outputPanel id="lastTwelfthQuestion">
+                        <apex:pageBlockSectionItem >
+                          <apex:outputPanel layout="block" style="display: table;">
+                            <apex:inputCheckbox value="{!proposal.sowNoneOfTheAbove__c}" style="display: table-cell;" id="sowNoneOfTheAbove__c" onchange="additionalScopeLastQuestionAction();"/>
+                            <apex:outputLabel value="12. None of the above" style="display: table-cell; padding-left: 0.25em;" for="sowNoneOfTheAbove__c"/>
+                          </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                      </apex:outputPanel>
+                    </apex:pageBlockSection>
+                  </apex:pageBlock>
+
+                  <apex:outputPanel id="sowSpaceAlterTypes" styleClass="sowOtherQuestions">
+                    <div style="display: {!IF(proposal.sowNoneOfTheAbove__c, 'block', 'none')};">
+                      <apex:pageBlock title="Indicate how the space will be altered (Check all that apply)">
+                        <table style="width:100%;">
+                          <tr>
+                            <td>
+                              <apex:outputPanel layout="block" style="min-width: 200px;">
+                                <apex:selectCheckboxes value="{!sowSpaceAlterTypeSelected}" layout="pageDirection">
+                                  <apex:selectOptions value="{!sowSpaceAlterType}"/>
+                                  <apex:actionSupport event="onchange" reRender="spaceAlterQuestions, saErrorMessage, msgs" oncomplete="applyStep2('{!serializedProposal}');" status="overlay"/>
+                                </apex:selectCheckboxes>
+                              </apex:outputPanel>
+                            </td>
+                            <td>
+                              <apex:outputPanel id="saErrorMessage">
+                                <div class="message infoM3" style="display: {!IF((CONTAINS(proposal.sowSpaceAlterType__c, 'Interior Renovation') && CONTAINS(proposal.sowSpaceAlterType__c, 'Interior Demolition')) || (CONTAINS(proposal.sowSpaceAlterType__c, 'Single Permit') && proposal.sowSpaceAlterType__c != 'Single Permit'), 'block', 'none')}; margin: 4px 4px; 4px 20px;">
+                                  <table border="0" cellpadding="0" cellspacing="0" class="messageTable" style="padding:0px;margin:0px;">
+                                    <tr valign="top">
+                                      <td><img alt="INFO" class="msgIcon" src="/s.gif" title="INFO"/></td>
+                                      <td class="messageCell">
+                                        <div class="messageText">
+                                           <span style="color:#0000cc; display:inline-block; font-weight:bold;">Information:</span>
+                                           <ul style="padding-left: 0px; margin: 0px;">
+                                             <li style="display: {!IF(CONTAINS(proposal.sowSpaceAlterType__c, 'Interior Renovation') && CONTAINS(proposal.sowSpaceAlterType__c, 'Interior Demolition'), 'list-item', 'none')};">You have selected both Interior Demolition and Interior Renovation filing services. This will result in two (2) separate plan approval services. If you want the work to be done under a single application, please uncheck Interior Demolition. In this case the demolition scope will be captured under Interior Renovation.</li>
+                                             <li style="display: {!IF(CONTAINS(proposal.sowSpaceAlterType__c, 'Single Permit') && proposal.sowSpaceAlterType__c != 'Single Permit', 'list-item', 'none')};">'Single Permit' can only be specified by itself, not in combination with other choices.</li>
+                                           </ul>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  </table>
+                                </div>
+                              </apex:outputPanel>
+                            </td>
+                          </tr>
+                        </table>
+
+                        <apex:outputPanel layout="block" id="spaceAlterQuestions">
+                          <apex:outputPanel layout="block" style="display: {!IF(CONTAINS(proposal.sowSpaceAlterType__c, 'Interior Renovation'), 'block', 'none')}">
+                            <apex:pageBlockSection columns="2" title="Interior Renovation" collapsible="false">
+                              <apex:pageBlockSectionItem >
+                                <apex:outputPanel layout="block" style="color: #000; font-weight: normal; font-size: small; min-width: 340px; text-align: left;">
+                                  <apex:outputPanel layout="block" style="display: table;">
+                                    <apex:inputCheckbox value="{!proposal.sow_ir_aw__c}" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_ir_aw__c.inlineHelpText}" onchange="isIrValidAction();" id="sow_ir_aw__c"/>
+                                    <div style="display: table-cell; padding-left: 0.25em;">
+                                      <span class="helpButton" style="display: table;">
+                                        <apex:outputLabel value="Is Architectural work required?" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_ir_aw__c.inlineHelpText}" for="sow_ir_aw__c"/>
+                                        <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltip').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltip').hide();"/>
+                                        <span class="helpTooltip" style="top: 1em;">{!$ObjectType.Proposal__c.fields.sow_ir_aw__c.inlineHelpText}</span>
+                                      </span>
+                                    </div>
+                                  </apex:outputPanel>
+                                  <apex:outputPanel layout="block" style="display: table;">
+                                    <apex:inputCheckbox value="{!proposal.sow_ir_mw__c}" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_ir_mw__c.inlineHelpText}" onchange="isIrValidAction();" id="sow_ir_mw__c"/>
+                                    <div style="display: table-cell; padding-left: 0.25em;">
+                                      <span class="helpButton" style="display: table;">
+                                        <apex:outputLabel value="Is Mechanical work required?" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_ir_mw__c.inlineHelpText}" for="sow_ir_mw__c"/>
+                                        <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltip').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltip').hide();"/>
+                                        <span class="helpTooltip" style="top: 1em;">{!$ObjectType.Proposal__c.fields.sow_ir_mw__c.inlineHelpText}</span>
+                                      </span>
+                                    </div>
+                                  </apex:outputPanel>
+                                  <apex:outputPanel layout="block" style="display: table;" id="sowACUnitsPanel">
+                                    <apex:outputPanel layout="block" style="display: {!IF(proposal.sow_ir_mw__c, 'table', 'none')}; padding-left: 20px;">
+                                      <apex:outputpanel style="display: table;">
+                                        <apex:inputCheckbox value="{!proposal.sowACUnits__c}" title="{!$ObjectType.Proposal__c.fields.sowACUnits__c.inlineHelpText}" style="display: table-cell;" id="sowACUnits__c">
+                                          <apex:actionSupport event="onchange" oncomplete="applyStep2('{!serializedProposal}');" reRender="sowACUnitsNumber, msgs" status="overlay"/>
+                                        </apex:inputCheckbox>
+                                        <div style="display: table-cell; padding-left: 0.25em;">
+                                          <span class="helpButton" style="display: table;">
+                                            <apex:outputLabel value="Does Mechanical work include installation of AC units that are cooled by refrigerant?" Title="{!$ObjectType.Proposal__c.fields.sowACUnits__c.inlineHelpText}" for="sowACUnits__c"/>
+                                            <img src="/s.gif" alt="" style="top: 0em;" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltip').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltip').hide();"/>
+                                            <span class="helpTooltip changeLeftPosition" style="top: 1em;">{!$ObjectType.Proposal__c.fields.sowACUnits__c.inlineHelpText}</span>
+                                          </span>
+                                        </div>
+                                      </apex:outputpanel>
+                                      <apex:outputpanel style="display: table; margin-left: 20px;" id="sowACUnitsNumber">
+                                        <div style="display: {!IF(proposal.sowACUnits__c, 'table', 'none')};">
+                                          <div style="display: table-cell; padding-left: 0.25em;">
+                                            <apex:outputLabel value="How many AC units are needed with cooling capacity Greater Than any of the following measures: > 800 CFM, > 2 Tons, > 24,000 BTU, > 24 MBH ?" style="display: table-cell;" for="sowACUnitsNumber__c"/>
+                                          </div>
+                                          <apex:inputText size="2" value="{!sowACUnitsNumber}" style="display: table-cell;" id="sowACUnitsNumber__c">
+                                            <apex:actionSupport event="onchange" reRender="sowACUnitsNumber__c, msgs" oncomplete="applyStep2('{!serializedProposal}');" status="overlay"/>
+                                          </apex:inputText>
+                                        </div>
+                                      </apex:outputpanel>
+                                    </apex:outputpanel>
+                                  </apex:outputPanel>
+                                  <apex:outputPanel layout="block" style="display: table;">
+                                    <apex:inputCheckbox value="{!proposal.sow_ir_pl__c}" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_ir_pl__c.inlineHelpText}" onchange="isIrValidAction();" id="sow_ir_pl__c"/>
+                                    <div style="display: table-cell; padding-left: 0.25em;">
+                                      <span class="helpButton" style="display: table;">
+                                        <apex:outputLabel value="Is Plumbing work required?" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_ir_pl__c.inlineHelpText}" for="sow_ir_pl__c"/>
+                                        <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltip').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltip').hide();"/>
+                                        <span class="helpTooltip" style="top: 1em;">{!$ObjectType.Proposal__c.fields.sow_ir_pl__c.inlineHelpText}</span>
+                                      </span>
+                                    </div>
+                                  </apex:outputPanel>
+                                  <apex:outputPanel layout="block" style="display: table;">
+                                    <apex:inputCheckbox value="{!proposal.sow_ir_st__c}" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_ir_st__c.inlineHelpText}" onchange="isIrValidAction();" id="sow_ir_st__c"/>
+                                    <div style="display: table-cell; padding-left: 0.25em;">
+                                      <span class="helpButton" style="display: table;">
+                                        <apex:outputLabel value="Is Structural work required?" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_ir_st__c.inlineHelpText}" for="sow_ir_st__c"/>
+                                        <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltip').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltip').hide();"/>
+                                        <span class="helpTooltip" style="top: 1em;">{!$ObjectType.Proposal__c.fields.sow_ir_st__c.inlineHelpText}</span>
+                                      </span>
+                                    </div>
+                                  </apex:outputPanel>
+                                </apex:outputPanel>
+                                <apex:outputPanel layout="block" style="display: table; width: 18%; min-width: 125px;">
+                                  <div>Certification Type:</div>
+                                  <apex:selectRadio id="sow_ir_override__c" value="{!proposal.sow_ir_override__c}" layout="pageDirection" style="text-align: left;">
+                                    <apex:selectOptions value="{!sow_ir_override}"/>
+                                    <apex:actionSupport event="onchange" oncomplete="applyStep2('{!serializedProposal}');" reRender="msgs" status="overlay"/> <!-- MRS 7346 -->
+                                  </apex:selectRadio>
+                                </apex:outputPanel>
+                              </apex:pageBlockSectionItem>
+                              <apex:pageBlockSectionItem >
+                                <apex:outputPanel id="irErrorMessage">
+                                  <div class="message infoM3" style="display: {!IF(!isIrValid && !isIrValidEmpty, 'block', 'none')}; margin: 4px 4px;"> <!-- delete '&& !isIrValidEmpty' ho have 'This selection is not valid' message back -->
+                                    <table border="0" cellpadding="0" cellspacing="0" class="messageTable" style="padding:0px;margin:0px;">
+                                      <tr valign="top">
+                                        <td><img alt="INFO" class="msgIcon" src="/s.gif" title="INFO"/></td>
+                                        <td class="messageCell">
+                                          <div class="messageText">
+                                             <span style="color:#0000cc; display:inline-block; font-weight:bold;">Information:</span>
+                                            <ul style="padding-left: 0px; margin: 0px;">
+                                              <li style="display: {!IF(isIrValidEmpty, 'list-item', 'none')};">This selection is not valid. Please select another one.</li>
+                                              <li style="display: {!IF(!isIrValidEmpty, 'list-item', 'none')};">Please make your selection.</li>
+                                            </ul>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    </table>
+                                  </div>
+                                </apex:outputPanel>
+                              </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                          </apex:outputPanel>
+                          <script type="text/javascript">var leftPos = $('.changeLeftPosition').parent().find('.helpOrb').position().left; $('.changeLeftPosition').css('left', leftPos - 2 + 'px')</script>
+
+                          <apex:outputPanel layout="block" style="display: {!IF(CONTAINS(proposal.sowSpaceAlterType__c, 'Interior Demolition'), 'block', 'none')}">
+                            <apex:pageBlockSection columns="2" title="Interior Demolition" collapsible="false">
+                              <apex:pageBlockSectionItem >
+                                <apex:outputPanel layout="block" style="color: #000; font-weight: normal; font-size: small; min-width: 340px; text-align: left;">
+                                  <apex:outputPanel layout="block" style="display: table;">
+                                    <apex:inputCheckbox value="{!proposal.sow_id_aw__c}" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_id_aw__c.inlineHelpText}" onchange="isIdValidAction();" id="sow_id_aw__c"/>
+                                    <div style="display: table-cell; padding-left: 0.25em;">
+                                      <span class="helpButton" style="display: table;">
+                                        <apex:outputLabel value="Is  Architectural work required?" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_id_aw__c.inlineHelpText}" for="sow_id_aw__c"/>
+                                        <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltip').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltip').hide();"/>
+                                        <span class="helpTooltip" style="top: 1em;">{!$ObjectType.Proposal__c.fields.sow_id_aw__c.inlineHelpText}</span>
+                                      </span>
+                                    </div>
+                                  </apex:outputPanel>
+                                  <apex:outputPanel layout="block" style="display: table;">
+                                    <apex:inputCheckbox value="{!proposal.sow_id_mw__c}" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_id_mw__c.inlineHelpText}" onchange="isIdValidAction();" id="sow_id_mw__c"/>
+                                    <div style="display: table-cell; padding-left: 0.25em;">
+                                      <span class="helpButton" style="display: table;">
+                                        <apex:outputLabel value="Is Mechanical work required?" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_id_mw__c.inlineHelpText}" for="sow_id_mw__c"/>
+                                        <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltip').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltip').hide();"/>
+                                        <span class="helpTooltip" style="top: 1em;">{!$ObjectType.Proposal__c.fields.sow_id_mw__c.inlineHelpText}</span>
+                                      </span>
+                                    </div>
+                                  </apex:outputPanel>
+                                  <apex:outputPanel layout="block" style="display: table;">
+                                    <apex:inputCheckbox value="{!proposal.sow_id_pl__c}" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_id_pl__c.inlineHelpText}" onchange="isIdValidAction();" id="sow_id_pl__c"/>
+                                    <div style="display: table-cell; padding-left: 0.25em;">
+                                      <span class="helpButton" style="display: table;">
+                                        <apex:outputLabel value="Is Plumbing work required?" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_id_pl__c.inlineHelpText}" for="sow_id_pl__c"/>
+                                        <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltip').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltip').hide();"/>
+                                        <span class="helpTooltip" style="top: 1em;">{!$ObjectType.Proposal__c.fields.sow_id_pl__c.inlineHelpText}</span>
+                                      </span>
+                                    </div>
+                                  </apex:outputPanel>
+                                  <apex:outputPanel layout="block" style="display: table;">
+                                    <apex:inputCheckbox value="{!proposal.sow_id_st__c}" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_id_st__c.inlineHelpText}" onchange="isIdValidAction();" id="sow_id_st__c"/>
+                                    <div style="display: table-cell; padding-left: 0.25em;">
+                                      <span class="helpButton" style="display: table;">
+                                        <apex:outputLabel value="Is Structural work required?" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_id_st__c.inlineHelpText}" for="sow_id_st__c"/>
+                                        <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltip').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltip').hide();"/>
+                                        <span class="helpTooltip" style="top: 1em;">{!$ObjectType.Proposal__c.fields.sow_id_st__c.inlineHelpText}</span>
+                                      </span>
+                                    </div>
+                                  </apex:outputPanel>
+                                </apex:outputpanel>
+                                <apex:outputPanel layout="block" style="display: table; width: 18%; min-width: 125px;">
+                                  <div>Certification Type:</div>
+                                  <apex:selectRadio id="sow_id_override__c" value="{!proposal.sow_id_override__c}" layout="pageDirection" style="text-align: left;">
+                                    <apex:selectOptions value="{!sow_id_override}"/>
+                                    <apex:actionSupport event="onchange" reRender="msgs" oncomplete="applyStep2('{!serializedProposal}');" status="overlay"/>
+                                  </apex:selectRadio>
+                                </apex:outputPanel>
+                              </apex:pageBlockSectionItem>
+                              <apex:pageBlockSectionItem >
+                                <apex:outputPanel id="idErrorMessage">
+                                  <div class="message infoM3" style="display: {!IF(!isIdValid && !isIdValidEmpty, 'block', 'none')}; margin: 4px 4px;">
+                                    <table border="0" cellpadding="0" cellspacing="0" class="messageTable" style="padding:0px;margin:0px;">
+                                      <tr valign="top">
+                                        <td><img alt="INFO" class="msgIcon" src="/s.gif" title="INFO"/></td>
+                                        <td class="messageCell">
+                                          <div class="messageText">
+                                             <span style="color:#0000cc; display:inline-block; font-weight:bold;">Information:</span>
+                                            <ul style="padding-left: 0px; margin: 0px;">
+                                              <li style="display: {!IF(isIdValidEmpty, 'list-item', 'none')};">This selection is not valid. Please select another one.</li>
+                                              <li style="display: {!IF(!isIdValidEmpty, 'list-item', 'none')};">Please make your selection.</li>
+                                            </ul>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    </table>
+                                  </div>
+                                </apex:outputPanel>
+                              </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                          </apex:outputPanel>
+
+                          <apex:outputPanel layout="block" style="display: {!IF(CONTAINS(proposal.sowSpaceAlterType__c, 'Exterior Repairs or Modification'), 'block', 'none')}">
+                            <apex:pageBlockSection columns="2" title="Exterior Repairs or Modification" collapsible="false">
+                              <apex:pageBlockSectionItem >
+                                <apex:outputPanel layout="block" style="color: #000; font-weight: normal; font-size: small; min-width: 340px; text-align: left;">
+                                  <apex:outputPanel layout="block" style="display: table;">
+                                    <apex:inputCheckbox value="{!proposal.sow_er_be__c}" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_er_be__c.inlineHelpText}" onchange="isErValidAction();" id="sow_er_be__c"/>
+                                    <div style="display: table-cell; padding-left: 0.25em;">
+                                      <span class="helpButton" style="display: table;">
+                                        <apex:outputLabel value="Is work on building exterior?" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_er_be__c.inlineHelpText}" for="sow_er_be__c"/>
+                                        <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltip').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltip').hide();"/>
+                                        <span class="helpTooltip" style="top: 1em;">{!$ObjectType.Proposal__c.fields.sow_er_be__c.inlineHelpText}</span>
+                                      </span>
+                                    </div>
+                                  </apex:outputPanel>
+                                  <apex:outputPanel layout="block" style="display: table;">
+                                    <apex:inputCheckbox value="{!proposal.sow_er_ba__c}" style="display: table-cell;" onchange="isErValidAction();" id="sow_er_ba__c"/>
+                                      <apex:actionSupport event="onchange" reRender="sowErBasQuestions, msgs" oncomplete="applyStep2('{!serializedProposal}');" status="overlay"/>
+                                    <apex:outputLabel value="Is work on exterior building appurtenances?" style="display: table-cell; padding-left: 0.25em;" for="sow_er_ba__c"/>
+                                  </apex:outputPanel>
+                                  <apex:outputPanel layout="block" id="sowErBasQuestions">
+                                    <apex:outputPanel layout="block" style="display: {!IF(proposal.sow_er_ba__c, 'table', 'none')}; padding-left: 20px;">
+                                      <apex:selectCheckboxes value="{!sowErBasSelected}" layout="pageDirection" onchange="isErValidAction();">
+                                        <apex:selectOptions value="{!sowErBas}"/>
+                                      </apex:selectCheckboxes>
+                                    </apex:outputPanel>
+                                  </apex:outputPanel>
+                                  <apex:outputPanel layout="block" style="display: table;">
+                                    <apex:inputCheckbox value="{!proposal.sowFencePermit__c}" title="{!$ObjectType.Proposal__c.fields.sowFencePermit__c.inlineHelpText}" style="display: table-cell;" onchange="isErValidAction();" id="sowFencePermit__c"/>
+                                    <div style="display: table-cell; padding-left: 0.25em;">
+                                      <span class="helpButton" style="display: table;">
+                                        <apex:outputLabel value="Does this job require a Fence Permit?" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sowFencePermit__c.inlineHelpText}" for="sowFencePermit__c"/>
+                                        <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltip').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltip').hide();"/>
+                                        <span class="helpTooltip" style="top: 1em;">{!$ObjectType.Proposal__c.fields.sowFencePermit__c.inlineHelpText}</span>
+                                      </span>
+                                    </div>
+                                  </apex:outputPanel>
+                                </apex:outputPanel>
+                                <apex:outputPanel layout="block" style="display: table; width: 18%; min-width: 125px;">
+                                  <div>Certification Type:</div>
+                                  <apex:selectRadio id="sow_er_override__c" value="{!proposal.sow_er_override__c}" layout="pageDirection" style="text-align: left;">
+                                    <apex:selectOptions value="{!sow_er_override}"/>
+                                    <apex:actionSupport event="onchange" reRender="msgs" oncomplete="applyStep2('{!serializedProposal}');" status="overlay"/>
+                                  </apex:selectRadio>
+                                </apex:outputPanel>
+                              </apex:pageBlockSectionItem>
+                              <apex:pageBlockSectionItem >
+                                <apex:outputPanel id="erErrorMessage">
+                                  <div class="message infoM3" style="display: {!IF(!isErValid && !isErValidEmpty, 'block', 'none')}; margin: 4px 4px;">
+                                    <table border="0" cellpadding="0" cellspacing="0" class="messageTable" style="padding:0px;margin:0px;">
+                                      <tr valign="top">
+                                        <td><img alt="INFO" class="msgIcon" src="/s.gif" title="INFO"/></td>
+                                        <td class="messageCell">
+                                          <div class="messageText">
+                                             <span style="color:#0000cc; display:inline-block; font-weight:bold;">Information:</span>
+                                            <ul style="padding-left: 0px; margin: 0px;">
+                                              <li style="display: {!IF(isErValidEmpty, 'list-item', 'none')};">This selection is not valid. Please select another one.</li>
+                                              <li style="display: {!IF(!isErValidEmpty, 'list-item', 'none')};">Please make your selection.</li>
+                                            </ul>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    </table>
+                                  </div>
+                                </apex:outputPanel>
+                              </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                          </apex:outputPanel>
+
+                          <apex:outputPanel layout="block" style="display: {!IF(CONTAINS(proposal.sowSpaceAlterType__c, 'Sprinkler System Modification'), 'block', 'none')}">
+                            <apex:pageBlockSection columns="2" title="Sprinkler System Modification" collapsible="false">
+                              <apex:pageBlockSectionItem >
+                                <apex:outputPanel layout="block" style="color: #000; font-weight: normal; font-size: small; min-width: 340px; text-align: left;">
+                                  <apex:outputPanel layout="block" style="display: table;">
+                                    <apex:inputCheckbox value="{!proposal.sow_sp_ssb__c}" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_sp_ssb__c.inlineHelpText}" onchange="isSpValidAction();" id="sow_sp_ssb__c"/>
+                                    <div style="display: table-cell; padding-left: 0.25em;">
+                                      <span class="helpButton" style="display: table;">
+                                        <apex:outputLabel value="Is  Sprinkler System build-out work required?" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_sp_ssb__c.inlineHelpText}" for="sow_sp_ssb__c"/>
+                                        <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltip').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltip').hide();"/>
+                                        <span class="helpTooltip" style="top: 1em;">{!$ObjectType.Proposal__c.fields.sow_sp_ssb__c.inlineHelpText}</span>
+                                      </span>
+                                    </div>
+                                  </apex:outputPanel>
+                                  <apex:outputPanel layout="block" style="display: table;">
+                                    <apex:inputCheckbox value="{!proposal.sow_sp_ssd__c}" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_sp_ssd__c.inlineHelpText}" onchange="isSpValidAction();" id="sow_sp_ssd__c"/>
+                                    <div style="display: table-cell; padding-left: 0.25em;">
+                                      <span class="helpButton" style="display: table;">
+                                        <apex:outputLabel value="Is Sprinkler System Demolition work required?" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_sp_ssd__c.inlineHelpText}" for="sow_sp_ssd__c"/>
+                                        <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltip').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltip').hide();"/>
+                                        <span class="helpTooltip" style="top: 1em;">{!$ObjectType.Proposal__c.fields.sow_sp_ssd__c.inlineHelpText}</span>
+                                      </span>
+                                    </div>
+                                  </apex:outputPanel>
+                                  <apex:outputPanel layout="block" style="display: table;">
+                                    <apex:inputCheckbox value="{!proposal.sow_sp_tls__c}" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_sp_tls__c.inlineHelpText}" onchange="isSpValidAction();" id="sow_sp_tls__c"/>
+                                    <div style="display: table-cell; padding-left: 0.25em;">
+                                      <span class="helpButton" style="display: table;">
+                                        <apex:outputLabel value="Is Temporary Core Sprinkler Protection work required?" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_sp_tls__c.inlineHelpText}" for="sow_sp_tls__c"/>
+                                        <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltip').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltip').hide();"/>
+                                        <span class="helpTooltip" style="top: 1em;">{!$ObjectType.Proposal__c.fields.sow_sp_tls__c.inlineHelpText}</span>
+                                      </span>
+                                    </div>
+                                  </apex:outputPanel>
+                                </apex:outputPanel>
+                                <apex:outputPanel layout="block" style="display: table; width: 18%; min-width: 125px;">
+                                  <div>Certification Type:</div>
+                                  <apex:selectRadio id="sow_sp_override__c" value="{!proposal.sow_sp_override__c}" layout="pageDirection" style="text-align: left;">
+                                    <apex:selectOptions value="{!sow_sp_override}"/>
+                                    <apex:actionSupport event="onchange" reRender="msgs" oncomplete="applyStep2('{!serializedProposal}');" status="overlay"/>
+                                  </apex:selectRadio>
+                                </apex:outputPanel>
+                              </apex:pageBlockSectionItem>
+                              <apex:pageBlockSectionItem >
+                                <apex:outputPanel id="spErrorMessage">
+                                  <div class="message infoM3" style="display: {!IF(!isSpValid && !isSpValidEmpty, 'block', 'none')}; margin: 4px 4px;">
+                                    <table border="0" cellpadding="0" cellspacing="0" class="messageTable" style="padding:0px;margin:0px;">
+                                      <tr valign="top">
+                                        <td><img alt="INFO" class="msgIcon" src="/s.gif" title="INFO"/></td>
+                                        <td class="messageCell">
+                                          <div class="messageText">
+                                             <span style="color:#0000cc; display:inline-block; font-weight:bold;">Information:</span>
+                                            <ul style="padding-left: 0px; margin: 0px;">
+                                              <li style="display: {!IF(isSpValidEmpty, 'list-item', 'none')};">This selection is not valid. Please select another one.</li>
+                                              <li style="display: {!IF(!isSpValidEmpty, 'list-item', 'none')};">Please make your selection.</li>
+                                            </ul>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    </table>
+                                  </div>
+                                </apex:outputPanel>
+                              </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                          </apex:outputPanel>
+
+                          <apex:outputPanel layout="block" style="display: {!IF(CONTAINS(proposal.sowSpaceAlterType__c, 'Standpipe Modification'), 'block', 'none')}">
+                            <apex:pageBlockSection columns="2" title="Standpipe Modification" collapsible="false">
+                              <apex:pageBlockSectionItem >
+                                <apex:outputPanel layout="block" style="color: #000; font-weight: normal; font-size: small; min-width: 340px; text-align: left;">
+                                  <apex:outputPanel layout="block" style="display: table;">
+                                    <apex:inputCheckbox value="{!proposal.sow_sm_bow__c}" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_sm_bow__c.inlineHelpText}" onchange="isSmValidAction();" id="sow_sm_bow__c"/>
+                                    <div style="display: table-cell; padding-left: 0.25em;">
+                                      <span class="helpButton" style="display: table;">
+                                        <apex:outputLabel value="Is  Standpipe build-out work required?" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_sm_bow__c.inlineHelpText}" for="sow_sm_bow__c"/>
+                                        <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltip').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltip').hide();"/>
+                                        <span class="helpTooltip" style="top: 1em;">{!$ObjectType.Proposal__c.fields.sow_sm_bow__c.inlineHelpText}</span>
+                                      </span>
+                                    </div>
+                                  </apex:outputPanel>
+                                  <apex:outputPanel layout="block" style="display: table;">
+                                    <apex:inputCheckbox value="{!proposal.sow_sm_dwk__c}" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_sm_dwk__c.inlineHelpText}" onchange="isSmValidAction();" id="sow_sm_dwk__c"/>
+                                    <div style="display: table-cell; padding-left: 0.25em;">
+                                      <span class="helpButton" style="display: table;">
+                                        <apex:outputLabel value="Is Standpipe Demolition work required?" style="display: table-cell;" title="{!$ObjectType.Proposal__c.fields.sow_sm_dwk__c.inlineHelpText}" for="sow_sm_dwk__c"/>
+                                        <img src="/s.gif" alt="" class="helpOrb" title="" onmouseover="$(this).parent().find('.helpTooltip').css('display', 'inline');" onmouseout="$(this).parent().find('.helpTooltip').hide();"/>
+                                        <span class="helpTooltip" style="top: 1em;">{!$ObjectType.Proposal__c.fields.sow_sm_dwk__c.inlineHelpText}</span>
+                                      </span>
+                                    </div>
+                                  </apex:outputPanel>
+                                </apex:outputPanel>
+                                <apex:outputPanel layout="block" style="display: table; width: 18%; min-width: 125px;">
+                                  <div>Certification Type:</div>
+                                  <apex:selectRadio id="sow_sm_override__c" value="{!proposal.sow_sm_override__c}" layout="pageDirection" style="text-align: left;">
+                                    <apex:selectOptions value="{!sow_sm_override}"/>
+                                    <apex:actionSupport event="onchange" reRender="msgs" oncomplete="applyStep2('{!serializedProposal}');" status="overlay"/>
+                                  </apex:selectRadio>
+                                </apex:outputPanel>
+                              </apex:pageBlockSectionItem>
+                              <apex:pageBlockSectionItem >
+                                <apex:outputPanel id="smErrorMessage">
+                                  <div class="message infoM3" style="display: {!IF(!isSmValid && !isSmValidEmpty, 'block', 'none')}; margin: 4px 4px;">
+                                    <table border="0" cellpadding="0" cellspacing="0" class="messageTable" style="padding:0px;margin:0px;">
+                                      <tr valign="top">
+                                        <td><img alt="INFO" class="msgIcon" src="/s.gif" title="INFO"/></td>
+                                        <td class="messageCell">
+                                          <div class="messageText">
+                                             <span style="color:#0000cc; display:inline-block; font-weight:bold;">Information:</span>
+                                            <ul style="padding-left: 0px; margin: 0px;">
+                                              <li style="display: {!IF(isSmValidEmpty, 'list-item', 'none')};">This selection is not valid. Please select another one.</li>
+                                              <li style="display: {!IF(!isSmValidEmpty, 'list-item', 'none')};">Please make your selection.</li>
+                                            </ul>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    </table>
+                                  </div>
+                                </apex:outputPanel>
+                              </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                          </apex:outputPanel>
+                        </apex:outputPanel>
+                      </apex:pageBlock>
+
+                    </div>
+                  </apex:outputPanel>
+
+                </div>
+              </apex:outputPanel>
+
+            </div>
+          </apex:outputPanel>
+
+        </apex:outputPanel>
+
+        <apex:outputPanel layout="block" rendered="{!!proposal.Is_Draft__c}" style="padding: 20px;">
+          <div class="message infoM3">
+            <table border="0" cellpadding="0" cellspacing="0" class="messageTable" style="padding:0px;margin:0px;">
+              <tr valign="top">
+                <td><img alt="INFO" class="msgIcon" src="/s.gif" title="INFO"/></td>
+                <td class="messageCell">
+                  <div class="messageText">
+                    <span style="color:#0000CC; display:inline-block; font-weight:bold;">Information:</span>
+                    <ul style="padding-left: 0px; margin: 0px;"><li>
+                      You can not edit or view the settings on the 'Step 2: Scope of Work' page for an existing proposal, because they were already converted to Services.<br/>
+                      Please have a look at the 'Step 3: Services and Fees' step in order to manipulate the services that were created.
+                    </li></ul>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </apex:outputPanel>
+      </div>
+
+    </div>
+  </apex:form>
+
+</apex:page>

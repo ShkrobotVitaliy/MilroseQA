@@ -1,0 +1,7 @@
+<apex:page standardController="Service_Detail__c" sidebar="true" showHeader="false">  
+  
+  <iframe id="gridFrame" scrolling="auto" height="600" width="100%" frameborder="0"
+    src="/apex/gbfree__grid?gname=CofO&id={!Service_Detail__c.Id}&sh=0&ssb=0">
+    
+  </iframe>
+</apex:page>

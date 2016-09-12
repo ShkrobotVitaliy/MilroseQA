@@ -1,0 +1,14 @@
+<apex:page standardController="Pro_forma_Invoice__c" recordSetVar="proFormaInvoiceList" extensions="MassCreateAndSendInvoiceController">
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <apex:form >
+        <apex:pageMessages id="messages"/>
+        <script type="text/javascript">
+            $(document).ready(function () {
+                processInvoices();
+            });
+        </script>
+        <apex:actionFunction action="{!autoRun}" name="processInvoices" rerender="messages" />
+        <apex:commandButton value="Back To Invoices" action="{!backToInvoicesAction}" />
+    </apex:form>
+</apex:page>

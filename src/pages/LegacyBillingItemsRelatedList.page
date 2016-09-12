@@ -1,0 +1,59 @@
+<apex:page standardController="Legacy_Pro_forma_Invoice__c" extensions="LegacyBillingItemsExtensions">
+    <style type="text/css" height="100">
+        .actionColumn {
+            display : none;
+            visibility : hidden
+        }
+        .presence_chat_widget {
+            display : none;
+            visibility : hidden
+        } 
+        .pbHeader {
+            display : none;
+            visibility : hidden
+        }
+        body {
+            margin: 0px !important;
+        }
+    </style>
+
+    <apex:pageMessages id="message"/>
+
+    <apex:outputPanel layout="block" style="height: 200px;overflow-y: auto;">
+        <apex:pageBlock title="Legacy Billing Items">
+            <apex:pageBlockTable value="{!LegacyBillingItemList}" var="billItem">
+
+                <apex:column >
+                    <apex:facet name="header"> Action </apex:facet>
+                    <apex:form >
+                        <apex:outputLink value="/{!billItem.Id}/e?retURL={!billItem.Id}" target="_blank">Edit</apex:outputLink>
+                        &#160;|&#160;
+                        <apex:commandLink action="{!removeLegacyProformaInvoiceLookUp}" value="Remove" target="_top">
+                            <apex:param name="billItemIdForremove" value="{!billItem.Id}" assignTo="{!legacyBillingItemId}"/>
+                        </apex:commandLink>
+                    </apex:form>
+                </apex:column>
+
+                <apex:column >
+                    <apex:facet name="header"> Legacy Billing Item Name </apex:facet>
+                    <apex:outputLink value="/{!billItem.Id}" target="_blank"> {!billItem.Name} </apex:outputLink> 
+                </apex:column>
+
+                <apex:column >
+                    <apex:facet name="header"> Invoice Line Description </apex:facet>
+                    <apex:outputField value="{!billItem.Invoice_Line_Description__c}" /> 
+                </apex:column>
+
+                <apex:column >
+                    <apex:facet name="header"> Date Added </apex:facet>
+                    <apex:outputField value="{!billItem.Date_Added__c}"/>
+                </apex:column>
+
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+    </apex:outputPanel>
+
+	<apex:form > 
+		<apex:inputField value="{!Legacy_Pro_forma_Invoice__c.FF_Sales_Invoice__c}" rendered="false"/>
+	</apex:form> 
+</apex:page>

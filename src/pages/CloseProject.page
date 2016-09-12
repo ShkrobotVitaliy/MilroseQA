@@ -1,0 +1,57 @@
+<apex:page standardcontroller="Project_Profile__c" extensions="CloseProjectController" sidebar="false">
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    
+    <style type="text/css">
+        .requiredBlockWrapper{
+            position: relative;
+        }
+        .requiredBlockMarker{
+            background-color: #c00 !important;
+            position: absolute;
+            left: -6px;
+            width: 3px;
+            top: 10px;
+            height: 57px;
+        }
+        .textAreaDesc {
+            width: 100%;
+            height: 200px;
+        }
+    </style> 
+    <apex:form >
+        <apex:pageMessages id="pageMessages" />
+        <apex:pageBlock title="Please add a note describing the Project Closure Reason:" rendered="{!isValid}">
+            <apex:pageBlockSection columns="1">
+                <div class="requiredBlockWrapper"><div class="requiredBlockMarker"></div></div>
+                <apex:inputTextarea label="" value="{!currentProject.Project_Closure_Reason__c}" styleClass="textAreaDesc" style="height: 50px; width: 80%;" />
+            </apex:pageBlockSection>
+            <apex:pageBlockButtons location="bottom" style="text-align: left;">
+                <apex:commandButton value="Submit" action="{!showDialogCloseProject}" disabled="{!disableSaveButton}" styleClass="milroseBtnStyle" rerender="closeProjectActionPanel"/>
+                <apex:commandButton value="Cancel" action="{!cancelAction}" styleClass="milroseBtnStyle"/>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+        <apex:pageBlock rendered="{!NOT(isValid)}">
+            <apex:pageBlockButtons location="bottom" style="text-align: left;">
+                <apex:commandButton value="Back" action="{!cancelAction}" styleClass="milroseBtnStyle"/>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+        
+         <apex:outputpanel id="closeProjectActionPanel">
+             <div id="closeProjectActionArea" style="display: {!IF(closeProjectAction , "block", "none")};">
+                 <div style="z-index:40; opacity:0.7; filter:alpha(opacity=70); position:absolute; top:0px; left:0px; width:100%; height:100%; background-color: #8AC;"/>
+                 <div style="z-index:41; position:absolute; top:0px; left:0px; width:100%; height:100%; background-color: transparent;">
+                     <div style="width:500px; position:relative; left:25%; top:20%; border:1px solid #888; background-color:#F0F8FF; box-shadow:5px 5px 25px #115577;">
+                         <div style="text-align: center; padding: 10px;">
+                             <span><b> Do you really want close this Project? </b></span>
+                             <br/><br/>
+                             <span id="closeProjectCommandButton">
+                                 <apex:commandButton Id="closeProjectBtn" value="Yes" action="{!addProjectClosingReasonAction}" />
+                             </span>
+                             <apex:commandButton style="display: inline-block;" value="No" action="{!cancelCloseProject}"/>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </apex:outputPanel>
+    </apex:form>
+</apex:page>

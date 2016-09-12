@@ -1,0 +1,345 @@
+<apex:page standardController="Project_Profile__c" extensions="ProjectBillingMethogViewerContExt" sidebar="false" showChat="false" showHeader="false" standardStylesheets="true" action="{!init}" rendered="{!isVisible}"> <!-- MRS 7593 -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js" />
+
+    <style>
+    /* Grey area styles */
+        DIV#grayArea {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            z-index: 10;
+            padding: 0 0 0 0;
+            margin: 0 0 0 -10px;
+            display: none;
+        }
+        DIV#grayAreaInside{
+            width: 100%;
+            height: 100%;
+            background-color: #39C;
+            position: absolute;
+            z-index: 11;
+            opacity: 0.5;
+            padding: 400px 0 0 0;
+            margin: -359px 0 0 0;
+            filter:progid:DXImageTransform.Microsoft.Alpha(opacity=50);
+        }
+        IMG#loadingImage{
+            margin: 100px 0;
+            position: absolute;
+            position: relative;
+            z-index: 12;
+        }
+        TH{
+            text-align: center;
+        }
+        .applyButton {
+            border: 1px solid #3887A8 !important;
+            background: #F4F6F9 !important;
+            -moz-border-radius: 0px !important;
+            -webkit-border-radius: 0px !important;
+            border-radius: 0px !important;
+            padding-left: 8px !important;
+            padding-right: 8px !important;
+            margin-left: 3px !important;
+            margin-right: 0px !important;
+        }
+        .applyButton:hover {
+            background: #69B3D6 !important;
+            color: #FFFFFF !important;
+        }
+        .applyButton:active {
+            background: #5FA2C2 !important;
+            color: #FFFFFF !important;
+        }
+        .applyButton.btnDisabled {
+            border: 1px solid #BBBBBB !important;
+            background-color: #DDDDDD !important;
+            color: #888888 !important;
+        }
+        .applyButton.btnDisabled:hover {
+            background: #D4D4D4 !important;
+            color: #808080 !important;
+        }
+        .applyButton.btnDisabled:active {
+            background: #CACACA !important;
+            color: #808080 !important;
+        }
+        .messagesHolder{
+            /*position: fixed;*/
+            width: 100%;
+            top: 0px;
+            background-color: white;
+        }
+        .totalPersentageHolder{
+            position: absolute;
+            //width: 100%;
+            bottom: 20px;
+            background-color: white;
+            //padding-bottom: 10px;
+            z-index: 10000;
+            right: 150px;
+        }
+        .totalPersentage{
+            //float: right;
+            //margin-right: 150px;
+            color: #69B3D6;
+            font-size: 16px;
+            font-weight: bold;
+            font-style: italic;
+        }
+        .commandButtonsHolder{
+            position: absolute;
+            width: 100%;
+            bottom: 15px;
+            background-color: white;
+        }
+        .overlay{
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            text-align: center;
+            z-index: 1000;
+            padding: 0;
+            margin: 0;
+            display: none;
+            background-color: #F7FAFF;
+            font-family: Arial;
+            font-size: 24px;
+            color: #000077;
+            opacity: 0.8;
+        }
+        .overlayContent{
+            position: absolute;
+            top: 50%;
+            left: 40%;
+        }
+    </style>
+
+    <div class="overlay" id="AllPannelOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"/>
+    <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+        <div style="text-align: center;">
+            <img src="{!$Resource.loading_bar}" />
+            <p style="color: #000; margin-bottom: 0px; font-size: 24px;">Please wait</p>
+        </div>
+    </div>
+
+    <apex:form id="MainForm">
+        <apex:actionStatus id="showOverlay" onstart="$('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);" onstop="$('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });"/>
+        <apex:pageMessages id="pageMessagesReviewBillableServices"/>
+
+        <div id="grayArea" class="grayArea">
+            <div id="grayAreaInside" class="grayAreaInside"/>
+            <div align="center">
+                <img alt="Loading..." src="/img/loading32.gif" id="loadingImage"/> <!-- TODO Static recource -->
+            </div>
+        </div>
+
+        <apex:actionFunction name="updatePercentage" oncomplete="yourFunction()" action="{!setAmount}" rerender="MainForm, pageMessagesReviewBillableServices" status="showOverlay">
+            <apex:param name="ServiceItemId" value=""/>
+        </apex:actionFunction>
+
+        <div id="box" class="apexp" style="max-height: 608px; overflow: auto;">
+            <div class="individualPalette">
+                <div class="Custom62Block">
+                    <div class="bPageBlock brandSecondaryBrd apexDefaultPageBlock secondaryPalette">
+                        <div class="pbHeader">
+                            <table border="0" cellpadding="0" cellspacing="0">
+                                <tbody>
+                                    <tr>
+                                        <td class="pbTitle">
+                                            <h2 class="mainTitle">Billing method: {!billingMethodSelectedString}</h2>
+                                        </td>
+                                        <td>&nbsp;</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pbBody">
+                            <apex:outputPanel layout="block" rendered="{!isPercentage && isInterval}">
+                                <apex:outputLabel value="Number of Intervals: " style="font-weight: bold;"/>
+                                <apex:inputText style="margin: 3px 3px 2px;" value="{!numberInterval}" disabled="{!datesBlocked}"/>
+                                <apex:commandButton value="Set number of intervals" styleClass="milroseBtnStyle" action="{!numberIntervalAction}" style="margin-bottom: 5px; margin-left: 5px; padding: 3px 3px 2px;" reRender="pageMessagesReviewBillableServices, MainForm, commandButtonApplyOutputPanel" status="showOverlay" disabled="{!datesBlocked}"/>
+                            </apex:outputPanel>
+
+                            <apex:outputPanel layout="block" rendered="{!isMilestone || (isPercentage && !isInterval)}" style="width: 100%: height: 100%;">
+                                <apex:repeat value="{!serviceStaticData}" var="serviceIdItem">
+                                    <a href="/{!serviceIdItem}" style="cursor: pointer;" target="_blank"><span style="font-weight: bold; font-style: italic; cursor: pointer;">{!serviceItemIdToServiceItemNameMap[serviceIdItem]}</span></a>
+                                    <br/>
+                                    <div style="width: 100%: height: 100%; display: {!IF( NOT( isPercentage ) && isRenderedPrice, 'block', 'none' )};">
+                                        <span style="color: red;">Total Service Price: </span>
+                                        <span style="display: {!IF( OR(isMilestone), 'inline', 'none')};">$ {!serviceStaticData[serviceIdItem].Total_Service_Price__c}</span>
+                                    </div>
+                                    <div style="width: 100%: height: 100%; display: {!IF( NOT( isPercentage ), 'block', 'none' )};">
+                                        <span style="color: red;">Total Percentage: </span>
+                                        <apex:outputPanel rendered="{!isMilestone}">{!totalPercentageTaskItemForServiceItemMap[serviceIdItem]} %"</apex:outputPanel>
+                                    </div>
+                                    <div style="width: 100%: height: 100%;">
+                                        <table class="list" border="0" cellpadding="0" cellspacing="0">
+                                            <thead class="rich-table-thead">
+                                                <tr class="headerRow">
+                                                    <th class="headerRow" scope="col" style="width:50px;">
+                                                        <div>Is Billable</div>
+                                                    </th>
+                                                    <th class="headerRow" scope="col">
+                                                        <div>Task Item name</div>
+                                                    </th>
+                                                    <th class="headerRow" scope="col" style="width: 180px;">
+                                                        <div>Percentage (%)</div>
+                                                    </th>
+                                                    <th class="headerRow" scope="col" style="width: 123px; display: {!IF( isRenderedPrice, 'table-cell', 'none' )};">
+                                                        <div>Billing Line Item Amount</div>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <apex:repeat value="{!servicesIdToTaskItemListMap[serviceIdItem]}" var="taskItem">
+                                                <tbody>
+                                                    <tr class="dataRow even first" onmouseover="if (window.hiOn){hiOn(this);} " onmouseout="if (window.hiOff){hiOff(this);} " onblur="if (window.hiOff){hiOff(this);}" onfocus="if (window.hiOn){hiOn(this);}">
+                                                        <td class="dataCell">
+                                                            <apex:inputCheckbox value="{!taskItem.isBillable}" disabled="{!datesBlocked || (isPercentage && taskItemStaticData[taskItem.id].Is_Locked__c) || !userHasPermission}" onmouseover="scollPos();"> <!-- MRS 7504 --> <!-- MRS 7365 disabled="{!datesBlocked || taskItem.isLockedTaskItem || (isPercentage && !isInterval)}" -->
+                                                                <apex:actionSupport action="{!changeIsBillableAction}" event="onchange" rerender="MainForm, pageMessagesReviewBillableServices" oncomplete="yourFunction()"> <!-- MRS 7504 -->
+                                                                    <apex:param name="ServiceItemId" value="{!serviceIdItem}"/>
+																	<apex:param name="taskId" value="{!taskItem.Id}"/> <!-- MRS 7365 -->
+                                                                </apex:actionSupport>
+                                                            </apex:inputCheckbox>
+                                                        </td>
+                                                        <td class="dataCell">
+                                                            <a href="/{!taskItem.Id}" target="_blank">{!taskItemStaticData[taskItem.id].Name}</a>
+                                                        </td>
+                                                        <td class="dataCell">
+                                                            <apex:inputText value="{!taskItem.percentage}" onfocus="rememberValue({!taskItem.percentage}); scollPos();" onchange="fillPercetage(this, '{!serviceIdItem}'); return;" rendered="{!taskItem.isBillable}" disabled="{!(datesBlocked || (taskItem.isLockedTaskItem && !(isPercentage && !isInterval)) || (isPercentage && taskItemStaticData[taskItem.id].Is_Locked__c) || !userHasPermission)}" style="width: 80%;"/> <!-- MRS 7365 -->
+                                                            <apex:inputText value="{!taskItem.percentage}" onchange="roundPercentage(this);" disabled="true" rendered="{!NOT(taskItem.isBillable)}" style="width: 80%;"/> %
+                                                        </td>
+                                                        <td class="dataCell" style="text-align: right; display: {!IF( isRenderedPrice, 'table-cell', 'none' )};">
+                                                            $<span style="text-align:right;">{!taskItem.amount}</span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </apex:repeat>
+                                        </table>
+                                        <br/>
+                                    </div>
+                                </apex:repeat>
+
+                                <!--div style="height: 25px;"/-->
+                                <div class="totalPersentageHolder">
+                                    <apex:outputLabel value="Total Percentage: {!totalPercentageTaskItems} %" rendered="{!isPercentage}" styleClass="totalPersentage"/>
+                                </div>
+                            </apex:outputPanel>
+
+                            <apex:outputPanel rendered="{!isInstallment || (isPercentage && isInterval)}" style="width: 100%: height: 100%;">
+                                <table class="list" border="0" cellpadding="0" cellspacing="0" style="text-align: center;">
+                                    <thead class="rich-table-thead">
+                                        <tr class="headerRow">
+                                            <th class="headerRow" scope="col" style="width:50px;">
+                                                <div>Step Number</div>
+                                            </th>
+                                            <th class="headerRow" scope="col">
+                                                <div>Billing Date</div>
+                                            </th>
+                                            <th class="headerRow" scope="col" style="width: 180px;">
+                                                <div>Percentage (%)</div>
+                                            </th>
+                                            <th class="headerRow" scope="col" style="width: 123px; display: {!IF( isRenderedPrice, 'table-cell', 'none' )};">
+                                                <div>Billing Line Item Amount</div>
+                                            </th>
+                                            <th class="headerRow" scope="col">
+                                                <div>Billed</div>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <apex:repeat value="{!billingDateWrapperList}" var="item">
+                                        <tbody>
+                                            <tr class="dataRow even first" onmouseover="if (window.hiOn){hiOn(this);} " onmouseout="if (window.hiOff){hiOff(this);} " onblur="if (window.hiOff){hiOff(this);}" onfocus="if (window.hiOn){hiOn(this);}">
+                                                <td class="dataCell">
+                                                    <apex:outputField value="{!item.bd.Step_Number__c}"/>
+                                                </td>
+                                                <td class="dataCell">
+                                                    <apex:outputField value="{!item.bd.Processing_Day__c}"/>
+                                                </td>
+                                                <td class="dataCell">
+                                                    <apex:inputField value="{!item.bd.Percentage__c}" rendered="{!!datesBlocked && isPercentage && isInterval && !item.bd.Billed__c}" style="text-align: right; disable: true;">
+                                                        <apex:actionSupport event="onchange" action="{!item.setAmount}" reRender="MainForm" status="showOverlay"/>
+                                                    </apex:inputField>
+                                                    <apex:outputField value="{!item.bd.Percentage__c}" rendered="{!datesBlocked || (isInstallment || (isPercentage && isInterval && item.bd.Billed__c))}"/>
+                                                </td>
+                                                <td class="dataCell" style="text-align: center; display: {!IF( isRenderedPrice, 'table-cell', 'none' )};">
+                                                    $<span style="text-align: center;">{!item.Amount}</span>
+                                                </td>
+                                                <td class="dataCell" style="text-align: center;">
+                                                    <apex:inputCheckbox selected="{!item.bd.Billed__c}" disabled="true" />
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </apex:repeat>
+                                </table>
+                            </apex:outputPanel>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <apex:actionFunction name="apply" action="{!apply}" status="showOverlay" />
+        <apex:outputPanel id="commandButtonApplyOutputPanel" >
+            <div class="commandButtonsHolder"> <!-- MRS 7365 -->
+                <apex:commandButton title="Apply" value="Apply" onclick="apply(); $('.commandButtonsHolder input').attr('disabled', 'disabled').addClass('btnDisabled').removeClass('btn');" styleClass="applyButton" style="float: right; margin-right: 40px !important;" reRender="pageMessagesReviewBillableServices, MainPageBlock, commandButtonApplyOutputPanel" rendered="{!AND(commandButtonApply, !isInstallment)}" status="showOverlay" disabled="{!datesBlocked || !userHasPermission}"/>
+				<apex:commandButton title="Reset" value="Reset" action="{!reset}" styleClass="applyButton" style="float: right; margin-right: 0px !important;" reRender="MainForm, pageMessagesReviewBillableServices" rendered="{!AND(isPercentage, !isInterval)}" status="showOverlay" disabled="{!datesBlocked || !userHasPermission}"/>
+            </div>
+
+        </apex:outputPanel>
+
+<script type="text/javascript">
+    var height = document.documentElement.clientHeight;
+    var mess = document.getElementsByClassName("message");
+    var x = 0;
+    if(mess.length != 0){
+        x = mess[0].offsetHeight;
+    }
+
+    var y = document.getElementById("box");
+    var newMaxHeight = height - x - 42;
+    y.style.maxHeight = newMaxHeight + "px";
+</script>
+
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+    </apex:form>
+
+    <script type="text/javascript">
+
+    	var divSave;
+
+        function yourFunction() {
+           var div = document.getElementById('box');
+           div.scrollTop = divSave;
+        }
+
+        function scollPos() {
+            divSave = document.getElementById('box').scrollTop ;
+        }
+
+        var percentage;
+
+        function rememberValue(val) {
+            percentage = val;
+		}
+
+        function fillPercetage(item, serviceItem) {
+            if (isNaN(item.value)) {
+                item.value = percentage;
+                return false;
+
+            }
+
+            item.value = Math.round(item.value).toFixed(2);
+            updatePercentage(serviceItem);
+
+        }
+
+        function roundPercentage(item) {
+            item.value = Math.round(item.value).toFixed(2);
+
+        }
+    </script>
+
+</apex:page>

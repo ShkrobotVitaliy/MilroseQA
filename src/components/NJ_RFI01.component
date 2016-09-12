@@ -1,0 +1,40 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="false" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="2">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: 50%;">Application Permit Response</th>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Owner Entity Name</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Owner_Entity_Name_App__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Owner Contact Name &amp; Information</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Owner_Contact_Name_Information_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Authorized Signatory &amp; Information</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Authorized_Signatory_Information_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Legal Property Address</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Legal_Property_Address_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Property Mailing Address</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Property_Mailing_Address_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Lot &amp; Block #</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Lot_Block_App__c}"/></td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

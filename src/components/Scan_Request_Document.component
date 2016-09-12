@@ -1,0 +1,48 @@
+<apex:component >    
+    <apex:attribute name="scanRequestRecord" description="Scan Request record." type="Scan_Request__c" required="true" /> <!-- assignTo="{!scanRequest}" -->
+    <apex:attribute name="author"            description=""                     type="selectOption[]"  required="true" />
+    <apex:attribute name="authorSelect"      description=""                     type="String"          required="false" />
+    
+    <apex:pageBlock >
+        <apex:pageBlockSection columns="2">
+            <!--Title-->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Document Title:"/>
+                <apex:outputPanel layout="block">
+                    <apex:outputPanel layout="block" styleClass="requiredBlockWrapper" rendered="true"><div class="requiredBlockMarker"></div></apex:outputPanel>
+                    <apex:inputText value="{!scanRequestRecord.Artifact_Name__c}" />
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+
+            <!--Description-->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Document Description:"/>
+                <apex:outputPanel layout="block">
+                    <apex:inputField value="{!scanRequestRecord.Description__c}" />
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+
+            <!--File Format-->
+
+            <!--Document Author-->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Document Author:"/>
+                
+                <apex:outputPanel layout="block">
+                    <apex:selectList value="{!scanRequestRecord.Project_Roster__c}" size="1" >
+                        <apex:selectOptions value="{!author}"/>
+                    </apex:selectList>
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+
+            <!--Key Words-->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Keywords:"/>
+                <apex:outputPanel layout="block" >
+                    <apex:inputField value="{!scanRequestRecord.Keywords__c}" />
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+</apex:component>

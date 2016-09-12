@@ -1,0 +1,162 @@
+<apex:page showheader="false" applyhtmltag="false" controller="CFRController" contentType="application/vnd.ms-excel#Project_Status_Report.xls; charset=UTF-8" cache="true">
+    <html>
+        <head>
+
+            <meta http-equiv="Content-Type" content="application/vnd.ms-excel; charset=UTF-8"/>
+            <meta http-equiv="Content-Disposition" content="attachment; filename=Project_Status_Report.xls"/>
+        </head>
+        <body>
+            <apex:pageMessages id="msgs"/>
+            <apex:outputPanel rendered="true" layout="none">
+<!-- XLS -->
+                <apex:outputPanel layout="none">
+                    <table style="font: 12pt Calibri, Arial, Sans-serif; width: 24,58cm">
+                        <apex:outputPanel rendered="{!IF(AND(isSingleProject, !isManyProjects), true, false)}"> <!-- MRS 6865 -->
+                            <tr style="height: 120px;">
+                                <td style="width: 25mm;">
+                                    <img src="{!milroseLogoIdExternalUrl}" style="width: 25mm;height: 140px;"/>
+                                </td>
+                                <td colspan="6" style="font: 11pt Calibri, Arial, Sans-serif; text-align: left; vertical-align: middle; font-weight: bold;">
+                                    Project Name: {!selectedProjectsList[0].Project_Name__c}<br/>
+                                    Project #: {!selectedProjectsList[0].Name}<br/>
+                                    Client Project #: {!selectedProjectsList[0].Client_Project__c}<br/>
+                                    Project Address: {!selectedProjectsList[0].Building_Formula__c}<br/>
+                                    Floor(s): {!selectedProjectsList[0].Floor_s__c}<br/>
+                                </td>
+                                <td colspan="7" style="font: 18pt Calibri, Arial, Sans-serif; text-align: center; vertical-align: middle; font-weight: bold;">Project Status Report for {!IF(isSingleProject, selectedProjectsList[0].Project_Name__c, selectedProjectsList[0].Building_Formula__c)}</td>
+                            </tr>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!isManyProjects}">
+                            <tr style="height: 120px;">
+                                <td style="width: 25mm;">
+                                    <img src="{!milroseLogoIdExternalUrl}" style="width: 25mm;height: 140px;"/>
+                                </td>
+                                <td colspan="13" style="font: 18pt Calibri, Arial, Sans-serif; text-align: center; vertical-align: middle; font-weight: bold;">Project Status Report</td>
+                            </tr>
+                        </apex:outputPanel>
+                        <tr/>
+                        <tr/>
+                        <thead>
+                            <tr style="height: 14pt;">
+
+                                <apex:outputPanel rendered="{!isManyProjects}">
+                                    <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Item#</td>
+                                    <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">MRC#</td>
+                                    <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Project Name</td>
+                                    <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Project Address</td>
+                                </apex:outputPanel>
+
+                                <apex:outputPanel rendered="{!!isSinglePhaseProject}">
+                                    <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Phase</td>
+                                    <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Floors</td>
+                                </apex:outputPanel>
+
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Application Type</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Work Type</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">RFI Received</td>
+
+                                <!--apex:outputPanel rendered="{!isManyProjects}">
+                                    <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Drawings Requested</td>
+                                </apex:outputPanel-->
+
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Drawings Received</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Applicant Forms Sent</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Applicant Forms Received</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Owner Forms Sent</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Owner Forms Received</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Tenant Forms Sent</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Tenant Forms Received</td>
+
+                                <!--apex:outputPanel rendered="{!isManyProjects}">
+                                    <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Asbestos Requested</td>
+                                </apex:outputPanel-->
+                                
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Asbestos Received</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Date Filed</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">DOB #</td>
+                                <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">DOB Status</td>
+                                
+                                <apex:outputPanel rendered="{!isSignOff}">
+                                    <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">General Contractor</td>
+                                    <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Party Responsible</td>
+                                    <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Signoff Requirements</td>
+                                    <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Items Required</td>
+                                    <td style="font: 9pt Calibri, Arial, Sans-serif; font-weight: bold; text-align: center; border-right: 0.5pt solid black; border-top: 0.5pt solid black;">Comment</td>
+                                </apex:outputPanel>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <apex:repeat value="{!level1List}" var="level1">
+                                <apex:repeat value="{!level1.level2phaseList}" var="level2phase">
+                                    <apex:repeat value="{!level2phase.level2List}" var="level2">
+                                        <apex:repeat value="{!level2.level3List}" var="level3">
+                                            <apex:repeat value="{!level3.level4List}" var="level4">
+                                                <apex:repeat value="{!level4.level5List}" var="level5">
+                                                    <tr>
+                                                        <apex:outputPanel rendered="{!(level2.level2Rowspan < 2 && level4.level4Rowspan < 2 && level3.level3Rowspan < 2 && level5.level5Rowspan < 2 && level2phase.level2phaseRowspan < 2 )}" layout="none">
+                                                            <apex:outputPanel rendered="{!isManyProjects}">
+                                                                <td rowspan="{!level1.level1Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border-top: 0.5pt solid black; border-right: 0.5pt solid black; border-bottom: 0.5pt solid black; vertical-align: middle; text-align: center; font-weight: normal">{!level1.itemNumber}</td>
+                                                                <td rowspan="{!level1.level1Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; font-weight: normal">{!level1.currentProject.Name}</td>
+                                                                <td rowspan="{!level1.level1Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border-top: 0.5pt solid black; border-right: 0.5pt solid black; border-bottom: 0.5pt solid black; vertical-align: middle; text-align: center; font-weight: normal">{!level1.currentProject.Project_Name__c}</td>
+                                                                <td rowspan="{!level1.level1Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border-top: 0.5pt solid black; border-right: 0.5pt solid black; border-bottom: 0.5pt solid black; vertical-align: middle; text-align: center; font-weight: normal">{!level1.currentProject.Building_Formula__c}</td>
+                                                            </apex:outputPanel>
+                                                        </apex:outputPanel>
+                                                        <apex:outputPanel rendered="{!(level2.level2Rowspan < 2 && level4.level4Rowspan < 2 && level3.level3Rowspan < 2 && level5.level5Rowspan < 2) && !isSinglePhaseProject}" layout="none">
+                                                            <td rowspan="{!level2phase.level2phaseSize}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; font-weight: normal">{!level2phase.phase}</td>
+                                                            <td rowspan="{!level2phase.level2phaseSize}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; font-weight: normal">{!level2phase.serviceFloors}</td>
+                                                        </apex:outputPanel>
+                                                        <apex:outputPanel rendered="{!(level4.level4Rowspan < 2 && level3.level3Rowspan < 2 && level5.level5Rowspan < 2)}" layout="none">    
+                                                            <td rowspan="{!level2.level2Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; font-weight: normal">{!level3.applicationType}</td>
+                                                        </apex:outputPanel>
+                                                        <apex:outputPanel rendered="{!level5.level5Rowspan < 2}" layout="none">
+                                                            <td rowspan="{!level4.level4Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; border-right: 0.5pt solid black; border-bottom: 0.5pt solid black; vertical-align: middle; text-align: center; font-weight: normal">{!level4.workType}</td>
+                                                        </apex:outputPanel>
+                                                        <apex:outputPanel rendered="{!(level5.level5Rowspan < 2)}" layout="none">
+                                                            <td rowspan="{!level4.level4Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; border-right: 0.5pt solid black; border-bottom: 0.5pt solid black; vertical-align: middle; text-align: center; font-weight: normal">{!IF(level3.RFIReceived != null, '&nbsp;'&TEXT(MONTH(level3.RFIReceived))&'/'&TEXT(DAY(level3.RFIReceived))&'/'&TEXT(YEAR(level3.RFIReceived))&'&nbsp;', '') }</td>
+                                                        
+                                                            <!--apex:outputPanel rendered="{!isManyProjects}">
+                                                                <td rowspan="{!level4.level4Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; border-right: 0.5pt solid black; border-bottom: 0.5pt solid black; vertical-align: middle; text-align: center; font-weight: normal">{!IF(level4.drawingsRequested!= null, '&nbsp;'&TEXT(MONTH(level4.drawingsRequested))&'/'&TEXT(DAY(level4.drawingsRequested))&'/'&TEXT(YEAR(level4.drawingsRequested))&'&nbsp;', '') }</td>
+                                                            </apex:outputPanel-->
+                                                            
+                                                            <td rowspan="{!level4.level4Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; border-right: 0.5pt solid black; border-bottom: 0.5pt solid black; vertical-align: middle; text-align: center; font-weight: normal">{!IF(level4.drawingsReceived!= null, '&nbsp;'&TEXT(MONTH(level4.drawingsReceived))&'/'&TEXT(DAY(level4.drawingsReceived))&'/'&TEXT(YEAR(level4.drawingsReceived))&'&nbsp;', '') }</td>
+                                                            <td rowspan="{!level4.level4Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; font-weight: normal">{!IF(level3.applicantFormSent != null, '&nbsp;'&TEXT(MONTH(level3.applicantFormSent))&'/'&TEXT(DAY(level3.applicantFormSent))&'/'&TEXT(YEAR(level3.applicantFormSent))&'&nbsp;', '') }</td>
+                                                            <td rowspan="{!level4.level4Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; border-right: 0.5pt solid black; border-bottom: 0.5pt solid black; vertical-align: middle; text-align: center; font-weight: normal">{!IF(level3.applicantFormReceived != null, '&nbsp;'&TEXT(MONTH(level3.applicantFormReceived))&'/'&TEXT(DAY(level3.applicantFormReceived))&'/'&TEXT(YEAR(level3.applicantFormReceived))&'&nbsp;', '') }</td>
+                                                            <td rowspan="{!level4.level4Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; font-weight: normal">{!IF(level3.ownerFormSent!= null, '&nbsp;'&TEXT(MONTH(level3.ownerFormSent))&'/'&TEXT(DAY(level3.ownerFormSent))&'/'&TEXT(YEAR(level3.ownerFormSent))&'&nbsp;', '') }</td>
+                                                            <td rowspan="{!level4.level4Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; font-weight: normal">{!IF(level3.ownerFormReceived!= null, '&nbsp;'&TEXT(MONTH(level3.ownerFormReceived))&'/'&TEXT(DAY(level3.ownerFormReceived))&'/'&TEXT(YEAR(level3.ownerFormReceived))&'&nbsp;', '') }</td>
+                                                            <td rowspan="{!level4.level4Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; font-weight: normal">{!IF(level3.tenantsFormsSent!= null, '&nbsp;'&TEXT(MONTH(level3.tenantsFormsSent))&'/'&TEXT(DAY(level3.tenantsFormsSent))&'/'&TEXT(YEAR(level3.tenantsFormsSent))&'&nbsp;', '') }</td>
+                                                            <td rowspan="{!level4.level4Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; font-weight: normal">{!IF(level3.tenantsFormsReceived!= null, '&nbsp;'&TEXT(MONTH(level3.tenantsFormsReceived))&'/'&TEXT(DAY(level3.tenantsFormsReceived))&'/'&TEXT(YEAR(level3.tenantsFormsReceived))&'&nbsp;', '') }</td>
+                                                            <!--apex:outputPanel rendered="{!isManyProjects}">
+                                                                <td rowspan="{!level4.level4Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; font-weight: normal">{!IF(level3.asbestosRequested!= null, '&nbsp;'&TEXT(MONTH(level3.asbestosRequested))&'/'&TEXT(DAY(level3.asbestosRequested))&'/'&TEXT(YEAR(level3.asbestosRequested))&'&nbsp;', '') }</td>
+                                                            </apex:outputPanel-->
+                                                        
+                                                            <td rowspan="{!level4.level4Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; font-weight: normal">{!IF(level3.asbestosReceived!= null, '&nbsp;'&TEXT(MONTH(level3.asbestosReceived))&'/'&TEXT(DAY(level3.asbestosReceived))&'/'&TEXT(YEAR(level3.asbestosReceived))&'&nbsp;', '') }</td>
+                                                            <td rowspan="{!level4.level4Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; font-weight: normal">{!IF(level3.dateFilled!= null, '&nbsp;'&TEXT(MONTH(level3.dateFilled))&'/'&TEXT(DAY(level3.dateFilled))&'/'&TEXT(YEAR(level3.dateFilled))&'&nbsp;', '') }</td>
+                                                            <td rowspan="{!level4.level4Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; font-weight: normal">{!level3.DOBNumber}</td>
+                                                            <td rowspan="{!level4.level4Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; font-weight: normal">{!level3.DOBStatus} </td>
+                                                        </apex:outputPanel>
+                                                        <apex:outputPanel rendered="{!isSignOff}">
+                                                            <apex:outputPanel rendered="{!level5.level5Rowspan < 2}" layout="none">
+                                                                <td rowspan="{!level4.level4Size}" style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; font-weight: normal">{!level3.generalContractor}</td>
+                                                            </apex:outputPanel>
+                                                            <td style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border-top: 0.5pt solid black; border-right: 0.5pt solid black; border: 0.5pt solid black; vertical-align: middle; text-align: center; font-weight: normal; {!IF(!isSignOff, '', 'display: none;')}">{!level5.partyResponsible}</td>
+                                                            <td style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; font-weight: normal;">{!level5.signoffRequirements}</td>
+                                                            <td style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; font-weight: normal;">{!level5.itemsRequired}</td>
+                                                            <td style="word-wrap: break-word; font: 9pt Calibri, Arial, Sans-serif; border: 0.5pt solid black; vertical-align: middle; font-weight: normal;">{!level5.comment}</td>
+                                                        </apex:outputPanel>
+                                                    </tr>
+
+                                                </apex:repeat>
+                                            </apex:repeat>
+                                        </apex:repeat>
+                                    </apex:repeat>
+                                </apex:repeat>
+                            </apex:repeat>
+
+                        </tbody>
+                    </table>
+                </apex:outputPanel>
+            </apex:outputpanel>
+        </body>
+    </html>
+</apex:page>

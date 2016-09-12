@@ -1,0 +1,10 @@
+<apex:page showHeader="false" standardcontroller="Account" sidebar="false">
+
+    <apex:form style="width: 100%; ">
+        <apex:outputPanel rendered="{!Account.Accounting_Hold__c}">
+            <div style="color: #FF6347; text-align: center; font-size: 150%;"><b>“Accounting Hold.”</b></div>
+        </apex:outputPanel>
+        <apex:inputField value="{!Account.Accounting_Hold__c}" rendered="false"/>
+    </apex:form>
+
+</apex:page>

@@ -1,0 +1,3 @@
+<apex:page title="Documents" showHeader="true" sidebar="true" standardcontroller="Scanned_Project_Folders__c" extensions="LStore.storedDocInline" id="aP">
+    <LStore:storedDocInlinePageComponent componentController="{!customControllerInline}" />
+</apex:page>

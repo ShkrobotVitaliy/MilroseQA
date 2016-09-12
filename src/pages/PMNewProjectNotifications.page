@@ -1,0 +1,78 @@
+<apex:page controller="ProjectManagerHomePageController" sidebar="false" showHeader="false">
+    <apex:stylesheet value="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/css/jquery.dataTables.css')}"/>
+    <apex:stylesheet value="{!$Resource.HomePage_CSS}"/>    
+    <style> 
+        .sorting {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_both.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_asc {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_asc.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_desc {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_desc.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_asc_disabled {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_asc_disabled.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_desc_disabled {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_desc_disabled.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+    </style>
+    <apex:form id="form">
+    <apex:pageMessages id="msgs"></apex:pageMessages>
+    <apex:pageBlock id="pgblock">
+        <apex:pageBlockSection columns="1">
+          <apex:outputPanel styleClass="tableContainer" layout="block">
+            <apex:pageBlockTable value="{!notStartedProjectsForProjectManagerMap}" var="item" styleClass="dataTable">
+                <apex:column headerValue="MRC #" >
+                    <apex:outputLink value="/{!item.Id}" target="_blank">{!item.Name}</apex:outputLink>
+                </apex:column>
+                <apex:column headerValue="Project Name" value="{!item.Project_Name__c}" />
+                <apex:column headerValue="Primary Client Name" value="{!item.Primary_Company_Name__r.Name}" />
+                <apex:column headerValue="Street Address" value="{!item.Building__r.Name}" />
+                <apex:column headerValue="Proposal #" >
+                    <apex:outputLink value="/{!item.Proposal__c}" target="_blank">{!item.Proposal__r.Name}</apex:outputLink>
+                </apex:column>
+                <apex:column headerValue="Awarded Date" value="{!item.Proposal__r.Proposal_Awarded_Date__c}" />
+            </apex:pageBlockTable>
+          </apex:outputpanel>   
+    </apex:pageBlockSection>
+    </apex:pageBlock>
+    <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+    </apex:form>
+<script src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.js')}"></script>
+<script src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.dataTables.js')}"></script>
+<script src="{!URLFOR($Resource.DateUS)}"></script>
+
+<script >
+    var j$ = jQuery.noConflict();
+    var oTable = j$('table.dataTable').dataTable({
+        sPaginationType: "full_numbers",
+        bLengthChange: false,
+        bAutoWidth: false,
+        "aoColumns": [{ "sWidth": "12%" }, { "sWidth": "24%" }, { "sWidth": "20%" }, { "sWidth": "20%" }, { "sWidth": "12%" },
+            { "sWidth": "12%" }
+        ],
+        aoColumnDefs: [ 
+            { "sSortDataType": "date-us", sType: "date-us", aTargets: [5] }
+        ],
+        sScrollY: (jQuery(window).height() - 130)
+    });
+    oTable.fnSort( [ [5,'desc'] ]);
+    
+    jQuery(window).resize(function () {
+        jQuery('.dataTables_scrollHeadInner').width(100 + '%');
+        jQuery('.dataTable').width(100 + '%');
+        if (jQuery('.dataTables_scrollBody>.dataTable').height() > 255 ) {
+            jQuery('.dataTables_scrollHeadInner').width(jQuery('.dataTables_scrollHeadInner').width() - 17 + 'px');
+        };
+    }); 
+    
+</script>  
+
+</apex:page>

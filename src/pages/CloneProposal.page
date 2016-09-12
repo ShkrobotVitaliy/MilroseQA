@@ -1,0 +1,10 @@
+<apex:page standardcontroller="Proposal__c" extensions="CloneProposalExtention" action="{!createCloneOfProposal}">
+	<apex:form >
+        <apex:pageMessages id="pageMessages" />
+        <apex:pageBlock >
+            <apex:pageBlockButtons location="bottom" style="text-align: left;">
+                <apex:commandButton value="Back To Proposal" action="{!backAction}" />
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

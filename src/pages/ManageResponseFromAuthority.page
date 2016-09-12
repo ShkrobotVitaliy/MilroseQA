@@ -1,0 +1,194 @@
+<apex:page standardController="Task_Item__c" extensions="ManageResponseFromAuthorityExtention" showChat="false" sidebar="false" showHeader="false">
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}"/>
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}" />
+    <style>
+        .tableContainer {
+            width: 100%; 
+            margin: 0px; 
+            overflow: auto;
+        }            
+        .floatingStyle { 
+            position:relative;
+            background:#F2F3F3;
+        }
+        body {
+            margin: 0px !important;
+        }
+        .currentRecordForEmail{
+            background-color: #FFEFD5;
+        }
+        .inlineEditField:hover{
+            background-color, #E0F0F9;
+        }
+    </style>
+    <script type="text/javascript">function setFocusOnLoad() {}</script>
+    
+    <script type="text/javascript">
+        function checkAll(cb, cbid) {
+            var inputElem = document.getElementsByTagName("input");
+
+            for (var i = 0; i < inputElem.length; i++) {
+                if (-1 != inputElem[i].id.indexOf(cbid)) {
+                    inputElem[i].checked = cb.checked;
+                
+                }
+            
+            }
+        
+        }
+        function attachDocument() {
+            $("#attachmentPanelId").show();
+            $("#attachmentButtonId").attr('disabled', 'disabled').addClass('btnDisabled').removeClass('btn');
+        }
+        
+        function closeAttachDocument() {
+            $("#attachmentPanelId").hide();
+            $("#attachmentButtonId").removeAttr("disabled").addClass('btn').removeClass('btnDisabled');
+        }
+        
+        function showAddCCPopup () {
+            $("#popupAddCCToEmail").show();
+        }
+        function showOverlay(){
+            $('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);
+        }
+        function hideOverlay(){
+            $('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });
+        }
+        /* remove this two function and action function as well */
+        function callSendDDPEmail(){
+            $('#emailTemplateEditor').hide(); 
+            showOverlay();
+            sendDDPEmail();
+        }
+        function callUpdateRecordToSendEmail(){
+            updateRecordToSendEmail();
+        }
+
+
+        function containerPerformAfterSaveAction(){
+            showOverlay();
+            updateRecordToSendEmail();
+        }
+    </script>
+    
+    <apex:form id="form" style="max-height: 800px;overflow-y: auto;">
+        <apex:actionFunction name="handleRowDelete" action="{!deleteDataRowAction}" reRender="pageMessages, formsTableOutputPanel" status="allPanelsOverlay" >
+            <apex:param name="rowIdToRemove" value="" assignTo="{!manageResponseItemId}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="handleRowsUpdate" action="{!updateDataRowsAction}" reRender="pageMessages, formsTableOutputPanel, emailRecipients" status="allPanelsOverlay" />
+        <apex:actionStatus id="allPanelsOverlay" onstart="showOverlay();" onstop="hideOverlay();"/>
+        <div class="overlay" id="AllPannelOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"/>
+        <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+            <div style="text-align: center;">
+                <img src="{!$Resource.loading_bar}" />
+                <p style="color: #000; margin-bottom: 0px; font-size: 24px;">Please wait</p>
+            </div>
+        </div>
+        <apex:pageMessages id="pageMessages"/>
+        <apex:pageBlock >
+            <div style="max-height: 600px; overflow-y:scroll; width: 100%; margin:0px;" id="formsTableOutputArea">
+                <apex:outputPanel style="max-height: 600px; min-height: 100px; verflow:auto;" layout="block" id="formsTableOutputPanel">
+                    <table id="formTable" class="generalTableStyle">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" style="width: 2%;">Email<br/>Sent</th>
+                                <th rowspan="2" style="display:table-cell; width: 10%;">Artifacts</th>
+                                <th rowspan="2" style="display:table-cell; width: 5%;">Role</th>
+                                <th rowspan="2" style="display:table-cell; width: 8%;">Name</th>
+                                <th colspan="5" style="display:table-cell; width: 31%;">Sent</th>
+                                <th colspan="3" style="display:table-cell; width: 22%;">Received</th>
+                                <th rowspan="2" style="width: 2%;">Delete<br/>Row</th>
+                            </tr>
+                            <tr class="nodrop nodrag">
+                                <th style="display:table-cell; width: 7%;">Date/Time</th>
+                                <th style="display:table-cell; width: 5%;">VIA</th>
+                                <th style="display:table-cell; width: 10%;">Tracking</th>
+                                <th style="display:table-cell; width: 2%;">Use<br/>Alert</th>
+                                <th style="display:table-cell; width: 7%;">Alert Time</th>
+                                <th style="display:table-cell; width: 7%;">Date/Time</th>
+                                <th style="display:table-cell; width: 5%;">VIA</th>
+                                <th style="display:table-cell; width: 10%;">Tracking</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <apex:repeat value="{!authorityResponseDataRows}" var="dataItem">
+                                <tr class="{!IF(dataItem.Id == manageResponseItemToSendEmailId,'currentRecordForEmail','')}">
+                                    <td class="data"> 
+                                        <img src="{!IF(dataItem.Is_Email_Sent__c, '/img/checkbox_checked.gif', '/img/checkbox_unchecked.gif')}" />
+                                        <apex:inputHidden value="{!dataItem.Is_Email_Sent__c}" />
+                                    </td>
+                                    <td class="data inlineEditField" >
+                                        <apex:inputText value="{!dataItem.Artifacts__c}" />
+                                    </td>
+                                    <td class="data">
+                                        <apex:selectList value="{!dataItem.Project_Roster__c}" size="1" >
+                                            <apex:actionSupport event="onchange" onsubmit="if({!dataItem.Id == manageResponseItemToSendEmailId}){$('#emailTemplateEditor').hide();} handleRowsUpdate(); return false;" status="allPanelsOverlay"/>
+                                            <apex:selectOptions value="{!rosterIdToRoleOptions}" />
+                                        </apex:selectList>
+                                    </td>
+                                    <td class="data">
+                                        <apex:outputText value="{!dataItem.Project_Roster_Name__c}"/>
+                                    </td>
+                                    <td class="data inlineEditField" >
+                                        <apex:inputField value="{!dataItem.Sent_Date_Time__c}"/>
+                                    </td>
+                                    <td class="data inlineEditField" >
+                                        <apex:inputField value="{!dataItem.Sent_VIA__c}"/>
+                                    </td>
+                                    <td class="data inlineEditField" >
+                                        <apex:inputText value="{!dataItem.Sent_Tracking__c}" />
+                                    </td>
+                                    <td class="data"> 
+                                        <apex:inputCheckbox value="{!dataItem.Use_Alert__c}" />
+                                    </td>
+                                    <td class="data inlineEditField" >
+                                        <apex:inputField value="{!dataItem.Alert_Time__c}"/>
+                                    </td>
+                                    <td class="data inlineEditField" >
+                                        <apex:inputField value="{!dataItem.Received_Date_Time__c}"/>
+                                    </td>
+                                    <td class="data inlineEditField" >
+                                        <apex:inputField value="{!dataItem.Received_VIA__c}"/>
+                                    </td>
+                                    <td class="data inlineEditField" >
+                                        <apex:inputText value="{!dataItem.Received_Tracking__c}" />
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <apex:commandLink onclick="if({!dataItem.Id == manageResponseItemToSendEmailId}){$('#emailTemplateEditor').hide();} handleRowDelete('{!dataItem}'); return false;">
+                                            <img src="/img/func_icons/remove12.gif" alt="delete" title="delete" class="deleteItemImage" onmouseover="this.src='/img/func_icons/remove12_on.gif'" onmouseout="this.src='/img/func_icons/remove12.gif'"/>
+                                        </apex:commandLink>
+                                    </td>
+                                </tr>    
+                            </apex:repeat> 
+                        </tbody>
+                    </table>
+                    <script type="text/javascript">$('#formsTableOutputArea .dateFormat').hide();  $('#formsTableOutputArea span.dateInput input').attr('size', '16');</script>
+                </apex:outputPanel>
+                <apex:pageBlockButtons location="bottom" style="text-align: center;">
+                    <apex:outPutpanel >
+                        <apex:commandButton action="{!updateDataRowsAction}" value="Update All Rows" id="updateDataRowsButton" styleClass="milroseBtnStyle" status="allPanelsOverlay"/>
+                        <apex:commandButton value="Add New Row" action="{!addNewDataRowAction}" id="addNewRowButton" styleClass="milroseBtnStyle" reRender="pageMessages, formsTableOutputPanel" status="allPanelsOverlay" />
+                        <apex:commandButton value="Send Email"  action="{!previewEmailForCurrentRecordAction}" styleClass="milroseBtnStyle" id="previewEmailButton"/>
+                    </apex:outPutpanel>
+                </apex:pageBlockButtons>
+            </div>
+        </apex:pageBlock>
+
+        <apex:actionFunction name="containerUpdateParentRecordCC" action="{!updateRecordCCField}" reRender="" status="allPanelsOverlay">
+            <apex:param name="emailCC" value="" assignTo="{!emailsToDDP}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="updateRecordToSendEmail" action="{!updateRecordToSendEmail}" reRender="pageMessages, formsTableOutputPanel, previewEmailArea"/>
+        <apex:outputPanel id="previewEmailArea">
+            <apex:outputPanel style="display: {!IF(showTemplateEditor, 'block', 'none')};" >
+                <c:PreviewAndSendEmail defaultBody="true" parentDDPRecordId="{!manageResponseItemToSendEmailId}" taskItemRecord="{!taskItem}" DDPRecordName="{!DDPName}" emailTemplate="{!emailTemplateName}" draftTemplate="{!draftTemplateName}" sendAddressTo="{!manageResponseItemToSendEmail.Project_Roster_Name__c} ({!manageResponseItemToSendEmail.Email_To__c})" projectProfileRecord="{!projectProfileItem}" attachIds="{!recordsForAttachmentsIds}" emailTypeRecord="{!emailTypeRecord}" linkToCloseButton="{!linkToCloseTemplate}" contactId="{!contactRecipient}"/>
+            </apex:outputPanel>
+        </apex:outputPanel>
+
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+
+        <apex:inputField value="{!Task_Item__c.Project_Profile__c}" rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Project_Profile__r.Proposal__c}" rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Service_Item__c}" rendered="false"/>
+    </apex:form>
+</apex:page>

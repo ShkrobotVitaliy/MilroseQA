@@ -1,0 +1,23 @@
+<apex:page standardController="Legacy_Pro_forma_Invoice__c" extensions="MassSendLegacyInvoiceExtensions" recordSetVar="legacyInvoices">
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}" />
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    
+    <apex:form >
+        <apex:pageMessages id="msgs"/>
+        <apex:actionFunction name="autoRun" rerender="" action="{!autorun}" reRender="msgs">
+            <apex:param name="ddpNameParam " value="" assignTo="{!ddpNameParam}" />
+            <apex:param name="actionParam"   value="" assignTo="{!actionParam}" />
+        </apex:actionFunction>
+        
+        <apex:commandButton value="Back"     action="{!back}"        styleClass="milroseBtnStyle"/>
+        <apex:commandButton value="Download" action="{!downloadPdf}" styleClass="milroseBtnStyle" reRender="msgs" style="display: none;" id="downloadId"/>
+    </apex:form>
+    
+    <script type="text/javascript">
+        $(document).ready(function () {
+            autoRun('Create Legacy Invoice', 'Attach');
+            $('input[id*=downloadId]').slideUp(500).delay(1000).fadeIn(600);
+               
+        });
+    </script>
+</apex:page>

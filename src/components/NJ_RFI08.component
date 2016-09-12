@@ -1,0 +1,177 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="false" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="2">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: 50%;">Application Permit Response</th>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Sub Contractor Information (Project Manager, address, phone, fax &amp; mobile)</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Sub_Contractor_Information_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Please provide a copy of NJ License</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Please_Provide_A_Copy_Of_NJ_License_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Electrical Description of work</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Electrical_Description_Of_Work_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="td-table" colspan="2">
+                    <table style="width:100%;">
+                        <col width="50%"></col>
+                        <col width="25%"></col>
+                        <col width="25%"></col>
+                        <tr>
+                            <td class="mainRequestHeader">Fixture / Equipment</td>
+                            <td class="mainRequestHeader data">QTY</td>
+                            <td class="mainRequestHeader data">SIZE</td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Lighting Fixtures</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Lighting_Fixtures_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Lighting_Fixtures_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Receptacles</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Receptacles_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Receptacles_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Switches</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Switches_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Switches_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Detectors</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Detectors_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Detectors_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Light Poles</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Light_Poles_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Light_Poles_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Motors-Fract. HP</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Motors_Fract_HP_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Motors_Fract_HP_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Emergency &amp; Exit Lights</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Emergency_Exit_Lights_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Emergency_Exit_Lights_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Communication Points</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Communication_Points_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Communication_Points_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Alarm Devices/F.A.C. Panel</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Alarm_Devices_F_A_C_Panel_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Alarm_Devices_F_A_C_Panel_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Pool Permit/with UV Lights</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Pool_Permit_With_UV_Lights_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Pool_Permit_With_UV_Lights_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Storable Stool/Spa/Hot Tub</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Storable_Stool_Spa_Hot_Tub_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Storable_Stool_Spa_Hot_Tub_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">KW Elec. Range/Receptacle</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.KW_Elec_Range_Receptacle_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.KW_Elec_Range_Receptacle_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">KW Oven/Surface Unit</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.KW_Oven_Surface_Unit_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.KW_Oven_Surface_Unit_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">KW Elec. Water Heater</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.KW_Elec_Water_Heater_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.KW_Elec_Water_Heater_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">KW Elec. Dryer/Receptacle</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.KW_Elec_Dryer_Receptacle_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.KW_Elec_Dryer_Receptacle_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">KW Dishwasher</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.KW_Dishwasher_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.KW_Dishwasher_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">HP Garbage Disposal</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.HP_Garbage_Disposal_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.HP_Garbage_Disposal_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">KW Central A/C Unit</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.KW_Central_A_C_Unit_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.KW_Central_A_C_Unit_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">HP/KW Space Heater/Air Handler</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.HP_KW_Space_Heater_Air_Handler_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.HP_KW_Space_Heater_Air_Handler_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">KW Baseboard Heat</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.KW_Baseboard_Heat_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.KW_Baseboard_Heat_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">HP Motors 1/+HP</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.HP_Motors_1_HP_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.HP_Motors_1_HP_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">KW Transformer/Generator</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.KW_Transformer_Generator_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.KW_Transformer_Generator_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">AMP Service</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.AMP_Service_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.AMP_Service_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">AMP Subpanels</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.AMP_Subpanels_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.AMP_Subpanels_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">AMP Motor Control Center</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.AMP_Motor_Control_Center_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.AMP_Motor_Control_Center_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">KW Elec. Sign/Outline Light</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.KW_Elec_Sign_Outline_Light_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.KW_Elec_Sign_Outline_Light_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Other</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Other_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Other_Size_App__c}"/></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

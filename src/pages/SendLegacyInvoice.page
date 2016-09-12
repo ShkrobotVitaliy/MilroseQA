@@ -1,0 +1,27 @@
+<apex:page standardController="Legacy_Pro_forma_Invoice__c" extensions="SendLegacyInvoiceController" action="{!autorun}" sidebar="false" showHeader="false" showChat="false">
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    
+    <apex:form >
+        <apex:pageMessages id="msgs"/>
+        
+        <apex:commandButton value="Back" action="{!back}" styleClass="milroseBtnStyle" />
+        
+        <apex:inputField value="{!Legacy_Pro_forma_Invoice__c.Billing_Contact__c}"              rendered="false"/>
+        <apex:inputField value="{!Legacy_Pro_forma_Invoice__c.FF_Sales_Invoice__c}"             rendered="false"/>
+        <apex:inputField value="{!Legacy_Pro_forma_Invoice__c.Create_FFA_Invoice__c}"           rendered="false"/>
+        <apex:inputField value="{!Legacy_Pro_forma_Invoice__c.FFA_Invoice_Created__c}"          rendered="false"/>
+        <apex:inputField value="{!Legacy_Pro_forma_Invoice__c.cl_FF_Sales_Credit_Note_1__c}"    rendered="false"/>
+        <apex:inputField value="{!Legacy_Pro_forma_Invoice__c.cl_FF_Sales_Credit_Note_2__c}"    rendered="false"/>
+        <apex:inputField value="{!Legacy_Pro_forma_Invoice__c.Project_Native__c}"               rendered="false"/>
+        <apex:inputField value="{!Legacy_Pro_forma_Invoice__c.Name}"                            rendered="false"/>
+        <apex:inputField value="{!Legacy_Pro_forma_Invoice__c.Accounting_Contact__c}"           rendered="false"/>        
+        <apex:inputField value="{!Legacy_Pro_forma_Invoice__c.Sent_To_Client__c}"               rendered="false"/>
+        <apex:inputField value="{!Legacy_Pro_forma_Invoice__c.cl_FFA_Credit_Note_1_Created__c}" rendered="false"/>
+        <apex:inputField value="{!Legacy_Pro_forma_Invoice__c.cl_FFA_Credit_Note_2_Created__c}" rendered="false"/>
+        
+        <apex:inputField value="{!Legacy_Pro_forma_Invoice__c.Contains_Fedex_Mailroom__c}"      rendered="false"/> 
+        <apex:inputField value="{!Legacy_Pro_forma_Invoice__c.Contains_Mess_Meilroom__c}"       rendered="false"/> 
+        <apex:inputField value="{!Legacy_Pro_forma_Invoice__c.Contains_Shredding__c}"           rendered="false"/> 
+        <apex:inputField value="{!Legacy_Pro_forma_Invoice__c.Contains_Scanning__c}"            rendered="false"/>         
+    </apex:form>
+</apex:page>

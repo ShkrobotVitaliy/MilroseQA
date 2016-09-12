@@ -1,0 +1,133 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="false" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="2">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: 50%;">Application Permit Response</th>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Project Manager &amp; Information (address, phone, fax &amp; mobile)</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Project_Manager_Information_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Description of work to be completed</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Description_Of_Work_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="td-table" colspan="2">
+                    <table style="width:100%;">
+                        <col width="50%"></col>
+                        <col width="25%"></col>
+                        <col width="25%"></col>
+                        <tr>
+                            <td class="mainRequestHeader">Fixture / Equipment</td>
+                            <td class="mainRequestHeader data">QTY</td>
+                            <td class="mainRequestHeader data">SIZE</td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Flammable/Combustible Tanks</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Flammable_Combustible_Tanks_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Flammable_Combustible_Tanks_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Alarm Devices</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Alarm_Devices_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Alarm_Devices_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Supervisory Devices</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Supervisory_Devices_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Supervisory_Devices_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Signaling Devices</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Signaling_Devices_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Signaling_Devices_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Fire Pump/Type</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Fire_Pump_Type_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Fire_Pump_Type_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Dry Pipe/Alarm Valves</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Dry_Pipe_Alarm_Valves_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Dry_Pipe_Alarm_Valves_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Pre-Action Valves</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Pre_Action_Valves_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Pre_Action_Valves_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Sprinkler Heads (Dry and Wet)</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Sprinkler_Heads_Dry_and_Wet_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Sprinkler_Heads_Dry_and_Wet_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Standpipes</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Standpipes_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Standpipes_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Wet Chemical Pre-engineered System</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Wet_Chemical_Pre_engineered_System_Q_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Wet_Chemical_Pre_engineered_System_S_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Dry Chemical Pre-Engineered System</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Dry_Chemical_Pre_Engineered_System_Q_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Dry_Chemical_Pre_Engineered_System_S_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">CO2 Suppression System</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.CO2_Suppression_System_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.CO2_Suppression_System_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Foam Suppression System</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Foam_Suppression_System_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Foam_Suppression_System_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">FM200 Suppression System</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.FM200_Suppression_System_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.FM200_Suppression_System_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Kitchen Hood Exhaust System</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Kitchen_Hood_Exhaust_System_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Kitchen_Hood_Exhaust_System_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Smoke Control System</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Smoke_Control_System_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Smoke_Control_System_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Fuel-Fired Appliances (Gas, Oil, Solid)</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Fuel_Fired_Appliances_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Fuel_Fired_Appliances_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Fireplace Venting/Metal Chimney</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Fireplace_Venting_Metal_Chimney_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Fireplace_Venting_Metal_Chimney_Size_App__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="mainRequestHeader">Other</td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Other_Qty_App__c}"/></td>
+                            <td><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Other_Size_App__c}"/></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

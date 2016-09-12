@@ -1,0 +1,75 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:variable var="displayColumn" value="{!IF(AND(projectView), 'table-cell', 'none')}"/>
+    <apex:variable var="display2Column" value="{!IF(OR(projectView, AND(!projectView, show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="display3Column" value="{!IF(OR(projectView, AND(!projectView, !show2column)), 'table-cell', 'none')}"/>
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="{!IF(projectView, 3, 2)}">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: {!IF(projectView, '33', '50')}%; display:{!display2Column}">Application Permit Response</th>
+                <th style="width: {!IF(projectView, '33', '50')}%; display:{!display3Column}">Application Sign Off Response</th>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Contractor Contact Information</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Contractor_Contact_Information_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Contractor_Contact_Information_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Project Manager (if different)</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Project_Manager_App__c}" /></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Project_Manager_Off__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Construction Estimated Start Date</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputField value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Construction_Estimated_Start_Date_App__c}" styleClass="dataPicker"/></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputField value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Construction_Estimated_Start_Date_Off__c}" styleClass="dataPicker"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Construction End Date</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputField value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Construction_End_Date_App__c}" styleClass="dataPicker"/></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputField value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Construction_End_Date_Off__c}" styleClass="dataPicker"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Subcontractor/Vendor:</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Subcontractor_Vendor_App__c}"/></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Subcontractor_Vendor_Off__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Electrician Contact Information </td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Electrician_Contact_Information_App__c}"/></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Electrician_Contact_Information_Off__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Plumber Contact Information</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Plumber_Contact_Information_App__c}"/></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Plumber_Contact_Information_Off__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">HVAC/MH Contact Information</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.HVAC_MH_Contact_Information_App__c}"/></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.HVAC_MH_Contact_Information_Off__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Sprinkler Contact Information</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Sprinkler_Contact_Information_App__c}"/></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Sprinkler_Contact_Information_Off__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Fire Alarm Subcontractor Contact Information</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Fire_Alarm_Subcontractor_Contact_Inf_App__c}"/></td>
+                <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Fire_Alarm_Subcontractor_Contact_Inf_Off__c}"/></td>
+            </tr>
+            <tr>
+                <td style="display:{!display2Column}" class="mainRequestHeader">Insurance Requirements made out to the Municipal Authority (Original unless otherwise noted):</td>
+                <td style="display:{!display2Column}" class="secondColumn"><apex:inputField value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Insurance_Requirements_Municipal_Aut_App__c}"/></td>
+                <td style="display:{!displayColumn}; background: #D9D9D9;" class="secondColumn permission-massage"><apex:outputText value="{!notRequiredPermissionSignOff}"/></td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

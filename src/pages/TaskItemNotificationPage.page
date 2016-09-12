@@ -1,0 +1,9 @@
+<apex:page showHeader="false" standardcontroller="Task_Item__c" sidebar="false">
+
+    <apex:form style="width: 100%; ">
+        <apex:outputPanel rendered="{!Task_Item__c.Project_Profile__r.Billing_Company_Name__r.Accounting_Hold__c}">
+            <div style="color: #FF6347; text-align: center; font-size: 150%;"><b>“Accounting Hold.”</b></div>
+        </apex:outputPanel>
+    </apex:form>
+
+</apex:page>

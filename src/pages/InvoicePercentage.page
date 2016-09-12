@@ -1,0 +1,557 @@
+<apex:page renderAs="pdf" showheader="false" applyhtmltag="false" controller="InvoicePercentageController"> 
+	<html>
+		<head>
+            <style type="text/css">
+            @page {
+                size: letter portrait;
+                margin: 63.5mm 12.7mm 20.0mm 25.4mm;
+                @top-center {
+                    font: 9pt Arial, Sans-serif;
+                    padding-top: 8.47mm;
+                    content: element(header);
+                }
+                @bottom-center {
+                    padding-bottom: 8.47mm;
+                    content: element(footer);
+                }
+            }
+            body {
+                padding: 0;
+                margin: 0;
+            }
+            #page-header {
+                position: running(header);
+            }
+            #page-footer {
+                position: running(footer);
+            }
+            .page-number:before {
+                content: counter(page);
+            }
+            .page-count:before {
+                content: counter(pages);
+            }
+            body {
+                font: 9pt Calibri, Arial, Sans-serif;
+            }
+            table.content {
+                border-collapse: separate;
+                border-spacing: 0;
+                page-break-after: auto;
+                width: 100%;
+            }
+            table.content thead {
+                display: table-header-group;
+                page-break-inside: avoid;
+            }
+            table.content tbody {
+                display: table-row-group;
+                page-break-after: auto;
+            }
+            table.content tfoot {
+                display: table-footer-group;
+                page-break-after: auto;
+            }
+            table.pageBreakAfter {
+                page-break-after: always;
+            }
+            table.pageBreakBefore {
+                page-break-before: always;
+            }
+            table.content thead tr {
+                page-break-inside: avoid;
+            }
+            table.content tr {
+                page-break-inside: avoid;
+            }
+            table.content td {
+                padding: 2px 4px;
+            }
+            table.content td.header {
+                text-align: center;
+                border-top: 1px solid black;
+                border-right: 1px solid black;
+                border-bottom: none;
+                border-left: none;
+                background-color: #365F91;
+                color: #FFFFFF;
+                vertical-align: middle;
+            }
+            table.content td.line, table.content td.footer {
+                border-top: 1px solid black;
+                border-right: 1px solid black;
+                border-bottom: none;
+                border-left: none;
+                vertical-align: middle;
+                text-align: center;
+            }
+            td.bottomline {
+                border-bottom: 1px solid black !important;;
+            }
+            td.leftline {
+                border-left: 1px solid black !important;;
+            }
+            .leftpadhalf {
+                padding-left: 0.5em !important;
+            }
+            .bold {
+                font-weight: bold !important;
+            }
+            .left {
+                text-align: left !important;
+            }
+            .center {
+                text-align: center !important;
+            }
+            .right {
+                text-align: right !important;
+            }
+            .justify {
+                text-align: justify !important;
+            }
+            .smf {
+                font-size: 8pt !important;
+            }
+            </style>
+		</head>
+		<body>
+            <apex:pageMessages id="msgs"/>
+            <apex:outputPanel layout="block" rendered="{!isValid}" style="width: 100%;">
+                <div id="page-header">
+                    <div style="width: 100%; display: table;">
+                        <div style="width: 15%; display: table-cell;">
+                            <img src="{!URLFOR($Resource.MilroseLogo)}" style="width: 25mm;"/>
+                        </div>
+                        <div style="width: 36%; display: table-cell; vertical-align: top;">
+                            <div><span class="leftpadhalf bold">MILROSE CONSULTANTS, INC.</span></div>
+                            <div><span class="leftpadhalf">498 Seventh Avenue, 17th Floor</span></div>
+                            <div><span class="leftpadhalf">New York, NY 10018</span></div>
+                            <div><span class="leftpadhalf">Tel: 212.643.4545</span></div>
+                            <div><span class="leftpadhalf">Fax: 212.643.4859</span></div>
+                        </div>
+                        <div style="width: 2%; display: table-cell; vertical-align: top;">
+                        </div>
+                        <div style="width: 45%; display: table-cell; vertical-align: top;">
+                            <div><span class="leftpadhalf bold">CN#:</span>&nbsp;{!content.record.Project_Profile__r.Proposal__r.Name}</div>
+                            <div style="border-bottom: 0.5pt solid black;"><span class="leftpadhalf bold">INVOICE DATE:</span>&nbsp;{!MONTH(content.record.Invoice_Date__c)}/{!DAY(content.record.Invoice_Date__c)}/{!YEAR(content.record.Invoice_Date__c)}</div>
+                            <div style="">
+                                <div><span class="leftpadhalf bold">CLIENT PROJECT #:</span>&nbsp;{!content.record.Client_Project__c}</div>
+                                <div><span class="leftpadhalf bold">CLIENT PO #:</span>&nbsp;{!content.record.Purchase_Order__r.Name}</div>
+                                <div><span class="leftpadhalf bold">PAYMENT TERMS:</span>&nbsp;UPON RECEIPT</div>
+                                <div style="border-bottom: 0.5pt solid black;"><span class="leftpadhalf bold">ACCOUNT MANAGER:</span>&nbsp;{!content.record.Account_Manager__r.Name}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="width: 100%; display: block;">
+                        <div class="bold" style="width: 100%; padding: 0; margin: 0; text-align: center; font-size: 14pt;">INVOICE:&nbsp;{!content.record.Name_without_Prefix__c}</div>
+                        <div class="bold" style="width: 100%; padding: 0; margin: 0; text-align: center; font-size: 14pt;">{!content.record.Project_Profile__r.Name}</div>
+                    </div>
+                </div>
+                <div id="page-footer" style="width: 100%; display: table;">
+                    <div style="width: 100%; display: table;">
+                        <div class="right" style="width: 50%; display: table-cell;">
+                            Page <span class="page-number"/> of <span class="page-count"/>
+                        </div>
+                    </div>
+                    <br/>
+                    <div style="width: 100%; display: table;">
+                        <div class="center" style="width: 100%;">
+                            <div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">Offices in:</div><!--
+                            --><div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">New York</div><!--
+                            --><div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">New Jersey</div><!--
+                            --><div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">Philadelphia</div><!--
+                            --><div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">Connecticut</div><!--
+                            --><div class="bold" style="display: inline-block; padding-right: 1cm; color: gray;">Long Island</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="page-content" style="width: 100%;">
+                    <table style="width: 100%; border-collapse: collapse; border-spacing: 0;">
+                        <tr>
+                            <td style="width: 50%; border-top: 0.5px solid black;">
+                                <div style="display: {!IF(content.record.Project_Profile__r.Delivery_Method__c != 'Email', 'block', 'none')};">
+                                    <span class="bold left">MAIL TO:</span><br/>
+                                    <apex:outputPanel layout="none" rendered="{!content.record.Accounting_Contact_Company__r.Name != null}">
+                                        <span>{!content.record.Accounting_Contact_Company__r.Name}</span><br/>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{!content.record.Accounting_Contact__r.MailingStreet != null}">
+                                        <span>{!content.record.Accounting_Contact__r.MailingStreet}</span><br/>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{!content.record.Accounting_Contact__r.MailingCity != null || content.record.Accounting_Contact__r.MailingState != null || content.record.Accounting_Contact__r.MailingPostalCode != null}">
+                                        <span>{!content.record.Accounting_Contact__r.MailingCity}<span style="display: {!IF(content.record.Accounting_Contact__r.MailingCity != null && ( content.record.Accounting_Contact__r.MailingState != null || content.record.Accounting_Contact__r.MailingPostalCode != null ), 'inline', 'none')};">, </span>{!content.record.Accounting_Contact__r.MailingState}<span style="display: {!IF(content.record.Accounting_Contact__r.MailingState != null && content.record.Accounting_Contact__r.MailingPostalCode != null, 'inline', 'none')};"> </span>{!content.record.Accounting_Contact__r.MailingPostalCode}</span><br/>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{!content.record.Accounting_Contact__r.Name != null}">
+                                        <span>Attn: {!content.record.Accounting_Contact__r.Salutation} {!content.record.Accounting_Contact__r.Name}</span>
+                                    </apex:outputPanel>
+                                </div>
+                            </td>
+                            <td style="width: 50%; border-top: 1px solid black;">
+                                <div>
+                                    <span class="bold left">BILL TO:</span><br/>
+                                    <apex:outputPanel layout="none" rendered="{!content.record.Billing_Client_Company__r.Name != null}">
+                                        <span>{!content.record.Billing_Client_Company__r.Name}</span><br/>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{!content.record.Billing_Contact__r.MailingStreet != null}">
+                                        <span>{!content.record.Billing_Contact__r.MailingStreet}</span><br/>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{!content.record.Billing_Contact__r.MailingCity != null || content.record.Billing_Contact__r.MailingState != null || content.record.Billing_Contact__r.MailingPostalCode != null}">
+                                        <span>{!content.record.Billing_Contact__r.MailingCity}<span style="display: {!IF(content.record.Billing_Contact__r.MailingCity != null && ( content.record.Billing_Contact__r.MailingState != null || content.record.Billing_Contact__r.MailingPostalCode != null ), 'inline', 'none')};">, </span>{!content.record.Billing_Contact__r.MailingState}<span style="display: {!IF(content.record.Billing_Contact__r.MailingState != null && content.record.Billing_Contact__r.MailingPostalCode != null, 'inline', 'none')};"> </span>{!content.record.Billing_Contact__r.MailingPostalCode}</span><br/>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{!content.record.Billing_Contact__r.Name != null}">
+                                        <span>Attn: {!content.record.Billing_Contact__r.Salutation} {!content.record.Billing_Contact__r.Name}</span>
+                                    </apex:outputPanel>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    <br/>
+                    <table class="content">
+                        <thead>
+                            <tr>
+                                <td class="header bold leftline" style="width: 60%; vertical-align: top;">Project Address</td>
+                                <td class="header bold" style="width: 40%; vertical-align: top;">Project Details</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="line left leftline bottomline" style="vertical-align: top;">
+                                    <apex:outputPanel layout="none" rendered="{!address1 != ''}">
+                                        <span class="left">{!address1}</span><!--
+                                    --></apex:outputPanel><!--
+                                    --><apex:outputPanel layout="none" rendered="{!address2 != ''}">
+                                        <br/><span class="left">{!address2}</span><!--
+                                    --></apex:outputPanel><!--
+                                    --><apex:outputPanel layout="none" rendered="{!content.record.Project_Profile__r.Floor_s__c != null}"><!--
+                                        --><span class="left">;</span><br/>
+                                           <span class="left">Floor: {!content.record.Project_Profile__r.Floor_s__c}</span>
+                                    </apex:outputPanel>
+                                </td>
+                                <td class="line left bottomline" style="vertical-align: top;">
+                                    <apex:outputPanel layout="none" rendered="{!content.record.Project_Profile__r.Project_Name__c != null}">
+                                        <span slass="left">{!content.record.Project_Profile__r.Project_Name__c}</span>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{!content.record.Project_Profile__r.Project_Name__c == null}">
+                                        <span slass="left">&nbsp;</span>
+                                    </apex:outputPanel>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <br/>
+                    <br/>
+                    <table class="content">
+                        <thead>
+                            <tr>
+                                <td class="header bold leftline">Ref.</td>
+                                <apex:outputPanel layout="none" rendered="{!content.showServiceNumber}">
+                                    <td class="header bold">PS#</td>
+                                </apex:outputPanel>
+                                <apex:outputPanel layout="none" rendered="{!content.showFloors}">
+                                    <td class="header bold">Floors</td>
+                                </apex:outputPanel>
+                                <td class="header bold">Professional Services</td>
+                                <td class="header bold" style="padding-top: 0px;"><img src="{!URLFOR($Resource.Sigma)}" height="0.8em"/></td>
+                                <td class="header bold">Fees</td>
+                                <td class="header bold">Extended&nbsp;Fee</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <apex:repeat value="{!content.phaseWithIdToLinesList}" var="phase"> <!-- MRS 6617 -->
+                                <tr style="display: {!IF(!ISBLANK(phase),'inline','none')}">
+                                    <td style="text-align: left !important;" class="line right leftline bold" colspan="{!IF(content.showServiceNumber, IF(content.showFloors, '7', '6'), '5')}">
+                                        {!content.phaseIdToNameMap[phase]}
+                                    </td>
+                                </tr>
+                                <apex:repeat value="{!content.phaseWithIdToLinesList[phase]}" var="line">
+                                <tr>
+                                    <td class="line center leftline">{!line.refNumber}</td>
+                                    <apex:outputPanel layout="none" rendered="{!content.showServiceNumber}">
+                                        <td class="line center">{!line.serviceNameShort}</td>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{!content.showFloors}">
+                                        <td class="line center"><apex:outputText escape="false" value="{!line.floors}"/></td>
+                                    </apex:outputPanel>
+                                    <td class="line left"><apex:outputText escape="false" value="{!line.description}"/></td>
+                                    <td class="line right">{!line.quantity}</td>
+                                    <td class="line right">
+                                        <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!line.showUnitPrice}">
+                                            <apex:param value="{!line.unitPrice}"/>
+                                        </apex:outputText>
+                                    </td>
+                                    <td class="line right">
+                                        <apex:outputText value="${0, number,###,###,##0.00}">
+                                            <apex:param value="{!line.amount}"/>
+                                        </apex:outputText>
+                                    </td>
+									<td style="display:{!content.showAsteriskRow};">{!IF(line.isTaxable,'*','')}</td> <!-- MRS 7519 -->
+                                </tr>
+                                </apex:repeat>
+                            </apex:repeat>
+							
+							<tr style="display: {!IF(showEmptyLine,'inline','none')}"> <!-- MRS 6617 -->
+                                <td style="text-align: left !important;" class="line right leftline bold" width="50px" colspan="{!IF(content.showServiceNumber, IF(content.showFloors, '7', '6'), '5')}"><br/></td>
+                            </tr>
+
+							<apex:repeat value="{!content.phaseNullIdToLinesList}" var="phase"> <!-- MRS 6617 -->
+                                <apex:repeat value="{!content.phaseNullIdToLinesList[phase]}" var="line">
+                                    <tr>
+                                        <td class="line center leftline">{!line.refNumber}</td>
+                                        <apex:outputPanel layout="none" rendered="{!content.showServiceNumber}">
+                                            <td class="line center">{!line.serviceNameShort}</td>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel layout="none" rendered="{!content.showFloors}">
+                                            <td class="line center"><apex:outputText escape="false" value="{!line.floors}"/></td>
+                                        </apex:outputPanel>
+                                        <td class="line left"><apex:outputText escape="false" value="{!line.description}"/></td>
+                                        <td class="line right">{!line.quantity}</td>
+                                        <td class="line right">
+                                            <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!line.showUnitPrice}">
+                                                <apex:param value="{!line.unitPrice}"/>
+                                            </apex:outputText>
+                                        </td>
+                                        <td class="line right">
+                                            <apex:outputText value="${0, number,###,###,##0.00}">
+                                                <apex:param value="{!line.amount}"/>
+                                            </apex:outputText>
+                                        </td>
+										<td style="display:{!content.showAsteriskRow};">{!IF(line.isTaxable,'*','')}</td> <!-- MRS 7519 -->
+                                    </tr>
+                                </apex:repeat>
+                            </apex:repeat>
+                            <tr>
+                                <td class="line right leftline bottomline" colspan="{!IF(content.showServiceNumber, IF(content.showFloors, '6', '5'), '4')}">
+                                    Subtotal:<br/>
+                                    Tax*:<br/> <!-- MRS 7519 -->
+                                    Applied Retainer/Credits:
+                                </td>
+                                <td class="line right bottomline">
+                                    <apex:outputText value="${0, number,###,###,##0.00}">
+                                        <apex:param value="{!content.subtotal}"/>
+                                    </apex:outputText><br/>
+                                    <apex:outputText value="${0, number,###,###,##0.00}">
+                                        <apex:param value="{!content.tax}"/>
+                                    </apex:outputText><br/>
+                                    <apex:outputText value="${0, number,###,###,##0.00}">
+                                        <apex:param value="{!content.credits}"/>
+                                    </apex:outputText>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <br/>
+					<div class="bold" style="font-size: 8pt; font-style: italic;">
+						Please note: change order services are pro-rated across any remaining bills.
+					</div>
+                    <div class="bold right">
+                        Amount Due:&nbsp;
+                        <apex:outputText value="${0, number,###,###,##0.00}">
+                            <apex:param value="{!content.amountDue}"/>
+                        </apex:outputText>
+                    </div>
+                </div>
+                <br/>
+                <br/>
+                <table class="content" style="page-break-inside: avoid;">
+                    <thead>
+                        <tr>
+                            <td class="header bold leftline" colspan="6">PROJECT OUTSTANDING INVOICE SUMMARY</td>
+                        </tr>
+                        <tr>
+                            <td class="header bold leftline">Current Amount</td>
+                            <td class="header bold">1-30 days</td>
+                            <td class="header bold">31-60 days</td>
+                            <td class="header bold">61-90 days</td>
+                            <td class="header bold">91+ days</td>
+                            <td class="header bold">Total Due</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="line center leftline bottomline" style="width: 16.66%;">
+                                <apex:outputText value="${0, number,###,###,##0.00}">
+                                    <apex:param value="{!content.outstAmtToday}"/>
+                                </apex:outputText>
+                            </td>
+                            <td class="line center bottomline" style="width: 16.67%;">
+                                <apex:outputText value="${0, number,###,###,##0.00}">
+                                    <apex:param value="{!content.outstAmt30}"/>
+                                </apex:outputText>
+                            </td>
+                            <td class="line center bottomline" style="width: 16.67%;">
+                                <apex:outputText value="${0, number,###,###,##0.00}">
+                                    <apex:param value="{!content.outstAmt60}"/>
+                                </apex:outputText>
+                            </td>
+                            <td class="line center bottomline" style="width: 16.67%;">
+                                <apex:outputText value="${0, number,###,###,##0.00}">
+                                    <apex:param value="{!content.outstAmt90}"/>
+                                </apex:outputText>
+                            </td>
+                            <td class="line center bottomline" style="width: 16.67%;">
+                                <apex:outputText value="${0, number,###,###,##0.00}">
+                                    <apex:param value="{!content.outstAmt90plus}"/>
+                                </apex:outputText>
+                            </td>
+                            <td class="line center bottomline" style="width: 16.66%;">
+                                <apex:outputText value="${0, number,###,###,##0.00}">
+                                    <apex:param value="{!content.outstAmtTotal}"/>
+                                </apex:outputText>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <br/>
+                <!-- MRS 6043 -->
+                <apex:outputPanel rendered="{!content.hourlyInvoiceDescriptionRendered}">
+                    <table class="content" style="page-break-inside: avoid;">
+                        <thead>
+                            <tr>
+                                <td class="header bold leftline">PS#</td>
+                                <td class="header bold">Date</td>
+                                <td class="header bold">Quantity</td>
+                                <td class="header bold">Description</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <apex:repeat value="{!content.hourlyBlis}" var="hBli">
+                                <tr>
+                                    <td class="line center leftline bottomline" style="width: 20.00%;">
+                                        <apex:outputText value="{!hBli.Service_Name_Short__c}">
+                                        </apex:outputText>
+                                    </td>
+                                    <td class="line center bottomline" style="width: 20.00%;">
+                                        <apex:outputText value="{0, date,MM/d/YY}">
+                                            <apex:param value="{!hBli.Milestone_Date__c}"/>
+                                        </apex:outputText>
+                                    </td>
+                                    <td class="line center bottomline" style="width: 10.00%;">
+                                        <apex:outputText value="{0, number,###,###,##0.00}">
+                                            <apex:param value="{!hBli.Quantity__c}"/>
+                                        </apex:outputText>
+                                    </td>
+                                    <td class="line center bottomline" style="width: 50.00%;">
+                                        <apex:outputText value="{!hBli.Description__c + ' ( ' + hBli.Owner.firstName + ' ' + hBli.Owner.lastName + ' )'}">
+                                        </apex:outputText>
+                                    </td>
+                                </tr>
+                            </apex:repeat>
+                        </tbody>
+                    </table>
+                </apex:outputPanel>
+                <br/>
+                <br/>
+                <table class="content">
+                    <tbody>
+                        <apex:outputPanel layout="none" rendered="{!content.poShow || content.reimbDepositShow || content.srvDepositShow}">
+                            <tr>
+                                <td style="vertical-align: top; padding-bottom: 0.2cm; width: 40%; font-size: 7.5pt;">
+                                    <apex:outputPanel layout="none" rendered="{!content.poShow}">
+                                        <span class = "bold left">PURCHASE ORDER (PO) SUMMARY:</span><br/>
+                                        <span class = "left">Total P.O. Amount:</span>&nbsp;
+                                        <apex:outputText value="${0, number,###,###,##0.00}">
+                                            <apex:param value="{!content.poAmount}"/>
+                                        </apex:outputText><br/>
+                                        <span class = "left">Total Billed This Invoice:</span>&nbsp;
+                                        <apex:outputText value="${0, number,###,###,##0.00}({!content.totalBilledPercentage}%)">
+                                            <apex:param value="{!content.amountDue}"/>
+                                        </apex:outputText><br/><br/>
+										<apex:outputPanel layout="none" rendered="{!content.poUnbilledReimbShow}">
+	                                        <span class = "left">Unbilled Reimbursables Balance:</span>&nbsp;
+	                                        <apex:outputText value="${0, number,###,###,##0.00}({!content.totalUnbReimbPerc}%)">
+	                                            <apex:param value="{!content.poUnbilledReimburs}"/>
+	                                        </apex:outputText><br/>
+										</apex:outputPanel>
+										<apex:outputPanel layout="none" rendered="{!content.poUnbilledServShow}">
+											<span class = "left">Unbilled Services Balance:</span>&nbsp;
+	                                        <apex:outputText value="${0, number,###,###,##0.00}({!content.totalUnbServsPerc}%)">
+	                                            <apex:param value="{!content.poUnbilledServices}"/>
+	                                        </apex:outputText><br/>
+										</apex:outputPanel>
+										<apex:outputPanel layout="none" rendered="{!content.poUnbilledMuFeeShow}">
+											<span class = "left" style="font-size: 7pt;">Unbilled Municipal Agency Fee Balance:</span>&nbsp;
+	                                        <apex:outputText value="${0, number,###,###,##0.00}({!content.totalUnbMuFeePerc}%)">
+	                                            <apex:param value="{!content.poUnbilledMunAgFee}"/>
+	                                        </apex:outputText><br/>
+										</apex:outputPanel>
+										<br/>
+                                    </apex:outputPanel>
+									<apex:outputPanel layout="none" rendered="{!content.reimbDepositShow}">
+                                        <span class="bold left">REIMBURSABLE DEPOSIT<br/>SUMMARY:</span><br/>
+                                        <span class="left">Total Deposit Paid:</span>&nbsp;
+                                        <apex:outputText value="${0, number,###,###,##0.00}">
+                                            <apex:param value="{!content.reimbDepositPaid}"/>
+                                        </apex:outputText><br/>
+                                        <span class="left">Total Deposit Applied:</span>&nbsp;
+                                        <apex:outputText value="${0, number,###,###,##0.00}">
+                                            <apex:param value="{!content.reimbDepositApplied}"/>
+                                        </apex:outputText><br/>
+                                        <span class="left">Deposit Remaining:</span>&nbsp;
+                                        <apex:outputText value="${0, number,###,###,##0.00}">
+                                            <apex:param value="{!content.reimbDepositRemaining}"/>
+                                        </apex:outputText>
+										<br/><br/>
+                                    </apex:outputPanel>
+									<apex:outputPanel layout="none" rendered="{!content.srvDepositShow}">
+                                        <span class="bold left">PROFESSIONAL SERVICES<br/>RETAINER SUMMARY:</span><br/>
+                                        <span class="left">Total Deposit Paid:</span>&nbsp;
+                                        <apex:outputText value="${0, number,###,###,##0.00}">
+                                            <apex:param value="{!content.srvDepositPaid}"/>
+                                        </apex:outputText><br/>
+                                        <span class="left">Total Deposit Applied:</span>&nbsp;
+                                        <apex:outputText value="${0, number,###,###,##0.00}">
+                                            <apex:param value="{!content.srvDepositApplied}"/>
+                                        </apex:outputText><br/>
+                                        <span class="left">Deposit Remaining:</span>&nbsp;
+                                        <apex:outputText value="${0, number,###,###,##0.00}">
+                                            <apex:param value="{!content.srvDepositRemaining}"/>
+                                        </apex:outputText>
+                                    </apex:outputPanel>
+                                </td>
+                                <td style="vertical-align: top; padding-bottom: 0.2cm; width: 30%; font-size: 7.5pt;">
+									<span class="bold left">TO INITIATE A WIRE TRANSFER OR ACH:</span><br/>
+	                                <span class="left">Bank of America</span><br/>
+	                                <span class="left">1185 Avenue of the Americas</span><br/>
+	                                <span class="left">New York, NY 10036</span><br/>
+	                                <span class="left">ACCT # 4837307121</span><br/>
+	                                <span class="left">ABA # (ACH) 021000322</span><br/>
+	                                <span class="left">ABA # (Wire) 026009593</span>
+									<br/><br/>
+									<span class="bold left">MAKE CHECKS PAYABLE TO:</span><br/>
+	                                <span class="left">Milrose Consultants, Inc.</span><br/>
+	                                <span class="left">ATTN: Accounts Receivable</span><br/>
+	                                <br/>
+	                                <span class="bold left">MILROSE CONSULTANTS ACCEPTS<br/>ALL MAJOR CREDIT CARDS</span><br/>
+	                                <span class="bold left"><a href="https://www.milrose.com/payments/">https://www.milrose.com/payments/</a></span><br/> <!-- MRS 7475 -->
+                                </td>
+                                <td style="vertical-align: top; padding-bottom: 0.2cm; width: 30%; font-size: 7.5pt;">
+									<span class="bold left">DIRECT ALL INQUIRIES TO:</span><br/><br/>
+	                                <span class="bold left">BILLING RELATED</span><br/>
+	                                <span class="left">{!content.arCoorName}</span><br/>
+	                                <span class="left">{!content.arCoorTitle}</span><br/>
+	                                <span class="left">{!content.arCoorPhone}</span><br/>
+	                                <span class="left">{!content.arCoorEmail}</span><br/><br/>
+	                                <span class="bold left" rendered="{!content.showPRArea}">PROJECT RELATED</span><br/>
+	                                <span class="left" rendered="{!content.showPRArea}">{!content.prName}</span><br/>
+	                                <span class="left" rendered="{!content.showPRArea}">{!content.prTitle}</span><br/>
+	                                <span class="left" rendered="{!content.showPRArea}">{!content.prPhone}</span><br/>
+	                                <span class="left" rendered="{!content.showPRArea}">{!content.prEmail}</span>
+                                </td>
+                            </tr>
+                        </apex:outputPanel>
+                        <tr>
+                            <td style="vertical-align: top; width: 33.33%;">
+                            </td>
+
+                            <td style="vertical-align: top; width: 33.34%;">
+                                <apex:outputField value="{!proforma.Display_Text_on_Invoice__c}"/>
+                            </td>
+
+                            <td style="vertical-align: top; width: 33.33%;">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </apex:outputPanel>
+        </body>
+	</html>
+</apex:page>

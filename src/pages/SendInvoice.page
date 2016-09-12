@@ -1,0 +1,52 @@
+<apex:page standardController="Pro_forma_Invoice__c" extensions="SendInvoiceController" action="{!autoRun}" sidebar="false" showHeader="false" showChat="false">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+
+    <apex:form >
+        <script type="text/javascript">
+            $(document).ready(function () {
+                if( {!!showWarning && isValid} ) prepareAndRunDDP();
+            });
+        </script>
+
+        <apex:pageMessages id="msgs"/>
+
+        <apex:outputPanel layout="block" style="width: 100%;" rendered="{!!showWarning}">
+            <apex:actionFunction name="prepareAndRunDDP" action="{!prepareAndRunDDP}"/>
+        </apex:outputPanel>
+
+        <apex:outputPanel layout="block" style="width: 100%;" rendered="{!showWarning && isValid}">
+            <apex:outputPanel layout="block" style="background-color: #BBDCEF; padding: 30px; font-weight: bold; text-align: center;">
+                You are attempting to print or send an invoice with a deposit on account that has not been applied.<br/>
+                Do you wish to continue?<br/>
+                <apex:commandButton style="padding: 5px; margin-top: 5px;" value=" Yes " action="{!prepareAndRunDDP}"/>
+                <apex:commandButton style="padding: 5px; margin-top: 5px;" value="Go Back" action="{!goBack}"/>
+            </apex:outputPanel>
+        </apex:outputPanel>
+        <apex:outputPanel layout="block" style="width: 100%;" rendered="{!!showWarning && !isValid}">
+            <apex:outputPanel layout="block" style="background-color: #BBDCEF; padding: 30px; font-weight: bold; text-align: center;">
+                <apex:commandButton style="padding: 5px; margin-top: 5px;" value="Go Back" action="{!goBack}"/>
+            </apex:outputPanel>
+        </apex:outputPanel>
+
+        <apex:inputField value="{!Pro_forma_Invoice__c.Billing_Contact__c}" rendered="false"/>
+        <apex:inputField value="{!Pro_forma_Invoice__c.Accounting_Contact__c}" rendered="false"/>
+        <apex:inputField value="{!Pro_forma_Invoice__c.Sales_Invoice__c}" rendered="false"/>
+        <apex:inputField value="{!Pro_forma_Invoice__c.Project_Profile__c}" rendered="false"/>
+        <apex:inputField value="{!Pro_forma_Invoice__c.cl_FF_Sales_Credit_Note_1__c}" rendered="false"/>
+        <apex:inputField value="{!Pro_forma_Invoice__c.cl_FF_Sales_Credit_Note_2__c}" rendered="false"/>
+        <apex:inputField value="{!Pro_forma_Invoice__c.cl_Create_FFA_Invoice__c}" rendered="false"/>
+        <apex:inputField value="{!Pro_forma_Invoice__c.cl_FFA_Invoice_Created__c}" rendered="false"/>
+        <apex:inputField value="{!Pro_forma_Invoice__c.Deposit_On_Account__c}" rendered="false"/>
+        <apex:inputField value="{!Pro_forma_Invoice__c.Credit__c}" rendered="false"/>
+        <apex:inputField value="{!Pro_forma_Invoice__c.Contains_Fedex_Mailroom__c}" rendered="false"/>
+        <apex:inputField value="{!Pro_forma_Invoice__c.Contains_Mess_Meilroom__c}" rendered="false"/>
+        <apex:inputField value="{!Pro_forma_Invoice__c.Contains_Scanning__c}" rendered="false"/>
+        <apex:inputField value="{!Pro_forma_Invoice__c.Contains_Sredding__c}" rendered="false"/>
+        <apex:inputField value="{!Pro_forma_Invoice__c.Sent_To_Client__c}" rendered="false"/>
+        <apex:inputField value="{!Pro_forma_Invoice__c.Contains_Hourly_Consulting__c}" rendered="false"/>
+        <apex:inputField value="{!Pro_forma_Invoice__c.Contains_AmEx_Checks__c}" rendered="false"/>
+        
+        <apex:inputField value="{!Pro_forma_Invoice__c.cl_FFA_Credit_Note_Created_1__c}" rendered="false"/>
+        <apex:inputField value="{!Pro_forma_Invoice__c.cl_FFA_Credit_Note_Created_2__c}" rendered="false"/>
+    </apex:form>
+</apex:page>

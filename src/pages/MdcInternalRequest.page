@@ -1,0 +1,31 @@
+<apex:page standardController="Project_Profile__c" extensions="MdcInternalRequestController">
+    <script type="text/javascript">
+        var masrObjectPrefix = 'a3X'; //MDC_Internal_Request__c
+
+        var projectProfileIdField = 'CF00N1200000BDFZX_lkid'; //Project_Profile__c
+        var projectProfileNameField = 'CF00N1200000BDFZX'; //Project_Profile__c
+        var mrcNumberField = '00NA000000AJDIB'; //MRC_Number__c
+        var jobAddressIdField = 'CF00NA000000Af0ey_lkid'; //Job_Address__c
+        var jobAddressNameField = 'CF00NA000000Af0ey'; //Job_Address__c
+        var munipicalAgencyField = '00NA000000Af0NJ'; //Municipal_Agency_ID__c
+        var refProjNamePoBillingField = '00NA000000AIQQe' //Reference_Project_Name_P_O_Billing__c
+
+        var retUrl = '{!retURL}';
+
+        window.location = '/' + masrObjectPrefix + '/e' +
+                          addPair( projectProfileIdField, '{!projectId}', true ) +
+                          addPair( projectProfileNameField, encodeURIComponent('{!projectName}'), false ) +
+                          addPair( mrcNumberField, '{!mrcNumber}', false ) +
+                          addPair( jobAddressIdField, '{!jobAddressId}', false ) +
+                          addPair( jobAddressNameField, encodeURIComponent('{!jobAddressName}'), false ) +
+                          addPair( munipicalAgencyField, encodeURIComponent('{!munipicalAgency}'), false ) +
+                          addPair( refProjNamePoBillingField, encodeURIComponent('{!projectNameStr}'), false ) +
+                          retUrl;
+
+        function addPair( field, fieldData, isFirst ) {
+            var result = isFirst ? '?' : '&';
+            result += field + '=' + fieldData;
+            return result;
+        }
+    </script>
+</apex:page>

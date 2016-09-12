@@ -1,0 +1,78 @@
+<apex:page showHeader="false" sidebar="false" standardcontroller="Task_Item__c" extensions="ManageReviewCont" id="pageId" action="{!getReviewList}">
+    <script src="{!$Resource.jquery_tablednd_js}"></script>
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}"/>
+    <script src="{!$Resource.jquery_tablednd_js}"></script>
+    <script src="{!URLFOR($Resource.jquery_vfFloatingHeaders)}"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            DatePicker.prototype.position = function() {
+                var datePicker = $('div.datePicker');
+                var scrolledSectionTop = $('div:has(.AllInfoPanelHolder)').scrollTop();
+                var scrolledSectionLeft = $('div:has(.AllInfoPanelHolder)').scrollLeft();
+                var elementLeft = $(this.myElement).position().left;
+                var elementTop = $(this.myElement).position().top;
+                var elementHeight = $(this.myElement).outerHeight();
+                var datePickerHeight = datePicker.outerHeight();
+                var topHeaderHeight = $('#AppBodyHeader').outerHeight();
+                var maxTop = $(window).height() - topHeaderHeight - datePickerHeight - 15;
+                var datePickerTop = elementTop + elementHeight - scrolledSectionTop + 5;
+                var datePickerLeft = elementLeft + scrolledSectionLeft;
+                if( datePickerTop > maxTop ) datePickerTop = elementTop - datePickerHeight - scrolledSectionTop - 3;
+                $('div.datePicker').css('top', datePickerTop);
+                $('div.datePicker').css('left', datePickerLeft);
+            }
+            // Hide Calendar on scroll
+            $('span:has(.generalTableStyle)').scroll(function() {
+                $('#datePicker').hide();
+            });
+        });
+    </script>
+    <apex:form >
+        <apex:pageMessages id="messagesId"/>
+        <apex:outputPanel id="reviewListPageBlock" style="overflow-y: auto;height: 200px;display: block;">
+            <table class="BlogForce9Table generalTableStyle" style="width: 100%;">
+                <thead class="rich-table-thead" border="solid 1px black">
+                    <tr class="headerRow">
+                        <th class="headerRow floatingStyle" style="width: 35%;">{!$ObjectType.Review__c.Fields.Artifact__c.label}</th>
+                        <th class="headerRow floatingStyle" style="width: 15%;">{!$ObjectType.Review__c.Fields.Reviewer__c.label}</th>
+                        <th class="headerRow floatingStyle" style="width: 15%;">{!$ObjectType.Review__c.Fields.Review_Start_Date__c.label}</th>
+                        <th class="headerRow floatingStyle" style="width: 15%;">{!$ObjectType.Review__c.Fields.Review_End_Date__c.label}</th>
+                        <th class="headerRow floatingStyle" style="width: 15%;">{!$ObjectType.Review__c.Fields.Results__c.label}</th>
+                    </tr>
+                </thead>
+                <apex:repeat value="{!reviewList}" var="item">
+                    <tr>
+                        <td class="data dragHandle onChangeClass" style="vertical-align: middle; padding: 0px 10px 0px 4px;">
+                            <apex:inputTextArea value="{!item.Artifact__c}" style="width: 100%;"/>
+                        </td>
+                        <td class="data dragHandle onChangeClass" style="vertical-align: middle;">
+                            <apex:selectList value="{!item.Reviewer__c}" size="1">
+                                <apex:selectOptions value="{!rosterIdToContact}" />
+                            </apex:selectList>
+                        </td>
+                        <td class="data dragHandle onChangeClass" style="vertical-align: middle;">
+                            <apex:inputField value="{!item.Review_Start_Date__c}"/>
+                        </td>
+                        <td class="data dragHandle onChangeClass" style="vertical-align: middle;">
+                            <apex:inputField value="{!item.Review_End_Date__c}"/>
+                        </td>
+                        <td class="data dragHandle onChangeClass" style="vertical-align: middle;">
+                            <apex:inputField value="{!item.Results__c}"/>
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </table>
+            <script type="text/javascript">$('.dateInput input').attr('size', '16');</script>
+        </apex:outputPanel>
+        <apex:outPutpanel layout="block" style="text-align: right;">
+            <apex:commandButton value="Add New" action="{!addNew}" styleClass="milroseBtnStyle" status="allPanelsOverlay"/>
+            <apex:commandButton value="Save" action="{!save}" styleClass="milroseBtnStyle" status="allPanelsOverlay" reRender="messagesId, reviewListPageBlock"/>
+        </apex:outPutpanel>
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+        <apex:inputField value="{!Task_Item__c.Project_Profile__c}" rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Manager_Lookup__c}" rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.OwnerId}" rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Status__c}" rendered="false"/>
+    </apex:form>
+</apex:page>

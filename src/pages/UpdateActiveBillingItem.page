@@ -1,0 +1,2 @@
+<apex:page standardController="Billing_Line_Item__c" extensions="UpdateActiveBillingItem" action="{!updateActiveField}">
+</apex:page>

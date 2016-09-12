@@ -1,0 +1,29 @@
+<apex:page controller="ProjectManagerHomePageController" sidebar="false" showHeader="false" >
+ 
+    <apex:pageBlock >
+            
+       <apex:tabPanel switchType="client" selectedTab="report1" id="theTabPanel" >
+            
+            <apex:tab label="Task Action View" name="report1" id="tabOne" style="overflow:hidden;width:100%;height:600px" >
+                 
+                    <apex:iframe src="/00OA0000005KagV?isdtp=nv&pv3={!$User.FirstName} {!$User.LastName}" height="600px" width="100%" scrolling="true" />
+                 
+            </apex:tab>
+            <apex:tab label="Single Project View" name="report2" id="tabTwo" style="overflow:auto;width:100%;height:600px" rendered="{!AND(!isCZAnalyst, !isFREP)}">
+                
+                    <apex:iframe src="/00OA0000005KLZY?isdtp=nv" height="600px" width="100%" scrolling="true" />
+                
+            </apex:tab>
+            <apex:tab label="All projects View" name="report3" id="tabThree" style="overflow:auto;width:100%;height:600px" rendered="{!AND(!isCZAnalyst, !isFREP)}">
+                
+                    <apex:iframe src="/00OA0000005jK5M?isdtp=nv&pv0={!$User.FirstName} {!$User.LastName}" height="600px" width="100%" scrolling="true" rendered="{!isProjectManager1}"/>
+                    <apex:iframe src="/00OA0000005KLZX?isdtp=nv" height="600px" width="100%" scrolling="true" rendered="{!!isProjectManager1}"/>
+               
+            </apex:tab>
+        </apex:tabPanel>
+
+    </apex:pageBlock>
+
+    <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+
+</apex:page>

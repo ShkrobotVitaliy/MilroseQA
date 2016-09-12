@@ -1,0 +1,504 @@
+<apex:page standardController="Task_Item__c" extensions="CompleteFormsTaskExtension" action="{!autorun}" showHeader="false" sidebar="false" showChat="false" >
+    <script src="{!$Resource.jquery_tablednd_js}"></script>
+    <apex:stylesheet value="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/css/jquery.dataTables.css')}"/>
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}"/>
+    <script src="{!$Resource.jquery_tablednd_js}"></script>
+    <script src="{!URLFOR($Resource.jquery_vfFloatingHeaders)}"></script>
+    <apex:stylesheet value="{!$Resource.HomePage_CSS}"/>
+
+    <style>
+        .inputLabelFilter {
+            color: #4A4A56;
+            font-weight: bold;
+            padding-right: 4px;
+            padding-left: 10px;
+        }
+        .selestListRegion {
+            width: 138px;
+        }
+        .requiredBlockWrapper{
+            position: relative;
+        }
+        .requiredBlockMarker{
+            background-color: #c00 !important;
+            position: absolute;
+            left: -4px;
+            width: 3px;
+            top: 2px;
+            height: 19px;
+        }
+        #formsTable td {
+            vertical-align: top;
+        }
+        .shortNameCss, .signatoriesCss, .descriptionCss {
+            box-sizing: border-box;
+            width: 100% !important;
+        }
+        .formRefCss {
+            white-space: nowrap;
+        }
+        .shortNameCss {
+            min-width: 30px;
+        }
+        .signatoriesCss {
+            white-space: nowrap;
+        }
+        .formStatusCss {
+            max-width: 65px;
+        }
+        .delCss {
+            max-width: 25px;
+        }
+    </style>
+
+    <style> 
+        .sorting {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_both.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_asc {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_asc.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_desc {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_desc.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_asc_disabled {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_asc_disabled.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_desc_disabled {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_desc_disabled.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+    </style>
+
+    <script type="text/javascript">
+        function formsLookupKeyup(e) {
+            console.log(e)
+            if (e.which == 13) {
+                $(".milroseBtnStyle").click();
+            }
+            return false;
+        }
+        function checkAll( cb, cbid ) {
+            var inputElem = document.getElementsByTagName("input");
+            for(var i=0; i<inputElem.length; i++)
+            {
+                 if(inputElem[i].id.indexOf(cbid)!=-1){
+                    inputElem[i].checked = cb.checked;
+                }
+            }
+        }
+        function uncheckAll() {
+            var inputElem = document.getElementsByTagName("input");
+            for( var i=0; i < inputElem.length; i++ ) {
+                inputElem[i].checked = false;
+            }
+        }
+        function focusProjectRoster( strClass ) {
+            $('.'+strClass).focus();
+        }
+         /*$( document ).ready(function() {
+            var height = $('.formClass').height();
+            $('.formClass').css('max-height', height+'px');
+        });*/
+
+        function openPDF( ){
+            var downloadFrame = document.createElement('iframe');
+            //downloadFrame.src = "/apex/lstore__storedDocViewRestore?id=" + docId + "&action=download&contentType=redirect";
+            downloadFrame.src = "/apex/lstore__storedDocViewRestore?id=a0dJ0000007Eyz8IAC&action=download&contentType=redirect";
+            downloadFrame.style.display = 'none';
+            //downloadFrame.style.height = '200px';
+            document.body.appendChild(downloadFrame);
+        }
+        function reloadWindow(){
+            console.log('in reloadWindow action');
+            location.reload(true);
+        }
+        function cancelFormUpload(){
+            console.log('in cancel action');
+            cancelFormUploadAction();
+        }
+        function tableRowOrder(){
+            var valIdOrdered = '';
+            var rowElemPos = $('.rowIdValue');
+            for (var i = 0; i < rowElemPos.size(); i++){
+                var si = rowElemPos[i].getAttribute('id');
+                valIdOrdered += si + ';';
+            }
+            return valIdOrdered;
+        }
+        // Apply DragAndDrop
+        function attachDndToTables( table ) {
+            $('#'+table).tableDnD({
+                onDragClass: 'rowDnD',
+                dragHandle: '.dragHandle'
+            });
+        }
+    </script>
+
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+
+    <apex:form id="form" styleClass="formClass" style="overflow-y: auto;">
+        <apex:actionStatus id="allPanelsOverlay" onstart="$('#overlayContent').show().fadeTo('slow', 1.0); $('#allPanelsOverlay').show().fadeTo('slow', 0.7);" onstop="$('#allPanelsOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });"/>
+
+        <apex:actionFunction name="searchAction" action="{!searchAction}" onComplete="uncheckAll();" reRender="msgError, resultPanel" status="allPanelsOverlay" />
+        <apex:actionFunction name="updateFormSignature" action="{!updateFormSignature}" reRender="msgError" oncomplete="focusProjectRoster('prjectRosterSelectList_{!formSignId}');">
+            <apex:param name="orderedList" assignTo="{!orderedForm}" value=""/>
+            <apex:param name="formSignId" assignTo="{!formSignId}" value=""/>
+            <apex:param name="formId" assignTo="{!formId}" value=""/>
+        </apex:actionFunction>
+        <apex:actionFunction name="submitAction" action="{!submitAction}" reRender="formsTableOutputPanel, msgError, searchPanel, resultPanel, addNewFormPanel" status="allPanelsOverlay"/>
+        <apex:actionFunction name="addNewForm" action="{!addNewForm}" reRender="msgError, searchPanel, resultPanel, addNewFormPanel, formsTableOutputPanel" status="allPanelsOverlay">
+            <apex:param name="orderedList" assignTo="{!orderedForm}" value=""/>
+        </apex:actionFunction>
+        <apex:actionFunction name="save" action="{!saveAction}" reRender="msgError, formsTableOutputPanel" status="allPanelsOverlay">
+            <apex:param name="orderedList" assignTo="{!orderedForm}" value=""/>
+        </apex:actionFunction>        
+        <apex:actionFunction name="uploadFormArtifact" action="{!prepareDocumentUpload}" reRender="msgError, formsTableOutputPanel" status="allPanelsOverlay" oncomplete="location.href='{!iframeUrl}';">
+            <apex:param name="orderedList" assignTo="{!orderedForm}" value=""/>
+        </apex:actionFunction>
+        <apex:actionFunction name="deleteFormItem" action="{!deleteFormItem}" reRender="msgError, formsTableOutputPanel" status="allPanelsOverlay">
+            <apex:param name="selectedFormItemId" value="" assignTo="{!selectedFormItemId}"/>
+            <apex:param name="orderedList" assignTo="{!orderedForm}" value=""/>
+        </apex:actionFunction>
+        <apex:actionFunction name="cloneAction" action="{!cloneAction}" reRender="msgError, formsTableOutputPanel" status="allPanelsOverlay">
+            <apex:param name="selectedFormItemIdForClone" value="" assignTo="{!selectedFormItemIdForClone}"/>
+            <apex:param name="orderedList" assignTo="{!orderedForm}" value=""/>
+        </apex:actionFunction>
+
+        <div class="overlay" id="allPanelsOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"/>
+        <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+            <div style="text-align: center;">
+                <img src="{!$Resource.loading_bar}" />
+                <p style="color: #000; margin-bottom: 0px; font-size: 24px;">Please wait</p>
+            </div>
+        </div>
+
+        <!-- Main table-->
+        <apex:pageBlock >
+            <apex:pageBlockButtons location="bottom" style="text-align: right;" rendered="true">
+                <apex:outPutpanel id="addNewFormPanel">
+                    <apex:commandButton onclick="addNewForm( tableRowOrder() ); return false;" value="Add New Form" id="btnAdd" styleClass="milroseBtnStyle" disabled="{!isSearchPanel || isInactiveService}"/>
+                    <apex:commandButton value="Save" onclick="save( tableRowOrder() ); return false;" id="btnSave" styleClass="milroseBtnStyle" disabled="{!isInactiveService}"/>
+                    <apex:commandButton value="Cancel" action="{!cancelAction}" id="btnCancel" styleClass="milroseBtnStyle" reRender="msgError, searchPanel, resultPanel, addNewFormPanel, formsTableOutputPanel" status="allPanelsOverlay" disabled="{!isInactiveService}"/>
+                </apex:outPutpanel>
+            </apex:pageBlockButtons>
+
+                <apex:pageMessages id="msgError"/>
+                    <apex:outputPanel layout="block" id="formsTableOutputPanel" >
+                    <div style="overflow-y:auto; max-height: 460px; overflow-y: scroll;" class="tableContainer">
+                        <table id="formsTable" class="BlogForce generalTableStyle" >
+                            <thead class="rich-table-thead" border="solid 1px black">
+                                <tr >
+                                    <th class="formRefCss" style="min-width: 62px;">Form (Ref)</th>
+                                    <th>Short Name</th>
+                                    <th>Form Name</th>
+                                    <th>Signatories</th>
+                                    <th>Role</th>
+                                    <th>Description</th>
+                                    <th>Form Status</th>
+                                    <th>Del</th>
+                                    <th style="min-width: 32px;">Clone</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <apex:repeat value="{!formWrapperList}" var="formWrapper">
+                                    <tr style="display: {!IF(!formWrapper.formItemRecord.Is_Copy__c, 'table-row', 'none')};">
+                                        <td id="{!formWrapper.formItemRecord.Id}" class="name dragHandle rowIdValue" style="width: 4%; text-align: center; {!IF(formWrapper.formItemRecord.Id != null, 'border-bottom:0;', 'border-top:0; border-bottom:0;')}" >
+                                            <apex:commandLink value="{!formWrapper.formItemRecord.Form_Id__c}" action="{!updateMetaDataRecord}" reRender="msgError" status="allPanelsOverlay"
+                                            oncomplete="if({!isValid}) { window.top.location='/apex/{!sveFormPage}?Id={!sveFormMetaData}'; } return false;" rendered="{!!formWrapper.formItemRecord.Manualy_Uploaded_Form__c && !isInactiveService}" styleClass="formRefCss">
+                                                <apex:param name="formId" assignTo="{!formId}" value="{!formWrapper.formItemRecord.Id}"/>
+                                            </apex:commandLink>
+                                            <apex:outputField value="{!formWrapper.formItemRecord.Form_Id__c}" rendered="{!formWrapper.formItemRecord.Manualy_Uploaded_Form__c || isInactiveService}"/>
+                                        </td>
+                                        <td class="name" style="width: 9%; text-align: center; {!IF(formWrapper.formItemRecord.Id != null, 'border-bottom:0;', 'border-top:0; border-bottom:0;')}">
+                                            <apex:inputText value="{!formWrapper.formItemRecord.Short_Form_Name__c}" rendered="{!(formWrapper.formItemRecord.Id != null && formWrapper.formItemRecord.Form_Id__c != null) || formWrapper.formItemRecord.Manualy_Uploaded_Form__c}" styleClass="shortNameCss" disabled="{!isInactiveService}"/>
+                                        </td>
+                                        <td class="name dragHandle" style="width: 17%; {!IF(formWrapper.formItemRecord.Id != null, 'border-bottom:0;', 'border-top:0; border-bottom:0;')}">
+                                            <apex:outputField value="{!formWrapper.formItemRecord.External_Form__c}" rendered="{!formWrapper.formItemRecord.Form_Id__c == null && !formWrapper.formItemRecord.Manualy_Uploaded_Form__c}" />
+                                            <apex:outputField value="{!formWrapper.formItemRecord.Form_Name__c}" rendered="{!formWrapper.formItemRecord.Form_Id__c != null || formWrapper.formItemRecord.Manualy_Uploaded_Form__c}"/>
+                                        </td>
+                                        <td class="name" style="width: 28%; border-right:0; {!IF(formWrapper.formItemRecord.Id != null, 'border-bottom:0;', 'border-top:0; border-bottom:0;')}">
+                                            <apex:repeat value="{!formWrapper.formSignatureList}" var="formSignature">
+                                                <div style="font-size: 12px; padding-bottom: 2px; {!IF(isInactiveService,'display:none;','')}" >
+                                                    <!--apex:selectList value="{!formSignature.Project_Roster__c}" size="1" rendered="{!formWrapper.formItemRecord.External_Form__c == null}" styleClass="prjectRosterSelectList_{!formSignature.Id} signatoriesCss" onchange="updateFormSignature( tableRowOrder(), '{!formSignature.Id}', '{!formWrapper.formItemRecord.Id}' );"-->
+                                                    <apex:selectList value="{!formSignature.Project_Roster__c}" size="1" rendered="{!formWrapper.formItemRecord.External_Form__c == null && !isInactiveService}" styleClass="prjectRosterSelectList_{!formSignature.Id} signatoriesCss">
+                                                        <apex:selectOptions value="{!rosterIdToContact}" />
+                                                    </apex:selectList>
+                                                </div>
+                                                <div style=" padding-top: 2px; padding-bottom: 5px; white-space: nowrap; {!IF(!isInactiveService,'display:none;','')}">
+                                                    <apex:outputText value="{!projectRosterMap[formSignature.Project_Roster__c]}" rendered="{!formWrapper.formItemRecord.External_Form__c == null && isInactiveService}"  style="font-size: 12px; white-space: nowrap;"/>
+                                                </div>
+                                            </apex:repeat>
+                                        </td>
+                                        <td class="name dragHandle" style="width: 15%; text-align: left; {!IF(formWrapper.formItemRecord.Id != null, 'border-bottom:0;', 'border-top:0; border-bottom:0;')}">
+                                            <apex:repeat value="{!formWrapper.formSignatureList}" var="formSignature">
+                                                <div style=" padding-top: 2px; padding-bottom: 5px; white-space: nowrap;">
+                                                    <apex:outputField value="{!formSignature.Role__c}" style="font-size: 12px; white-space: nowrap;"/>
+                                                </div>
+                                            </apex:repeat>
+                                        </td>
+                                        <td class="name" style="width: 12%; text-align: center; {!IF(formWrapper.formItemRecord.Id != null, 'border-bottom:0;', 'border-top:0; border-bottom:0;')}">
+                                            <apex:inputText value="{!formWrapper.formItemRecord.Subject__c}" rendered="{!(formWrapper.formItemRecord.Id != null && formWrapper.formItemRecord.Form_Id__c != null) || formWrapper.formItemRecord.Manualy_Uploaded_Form__c}" styleClass="descriptionCss" disabled="{!isInactiveService}"/>
+                                        </td>
+                                        <td class="name dragHandle" style="width: 7%; text-align: center; {!IF(formWrapper.formItemRecord.Id != null, 'border-bottom:0;', 'border-top:0; border-bottom:0;')}">
+                                            <apex:outputField value="{!formWrapper.formItemRecord.Complete_Forms_Status__c}" rendered="{!(formWrapper.formItemRecord.Id != null && formWrapper.formItemRecord.Form_Id__c != null) || formWrapper.formItemRecord.Manualy_Uploaded_Form__c}" styleClass="formStatusCss"/>
+                                        </td>
+                                        <td class="data dragHandle" style="width: 3%; text-align: center; {!IF(formWrapper.formItemRecord.Id != null, 'border-bottom:0;', 'border-top:0; border-bottom:0;')}" styleClass="delCss">
+                                            <apex:outputPanel rendered="{!!isInactiveService && ((!isSearchPanel && formWrapper.formItemRecord.Id != null && formWrapper.formItemRecord.Form_Id__c != null) || formWrapper.formItemRecord.Manualy_Uploaded_Form__c)}">
+                                                <img onclick="deleteFormItem( '{!formWrapper.formItemRecord.Id}', tableRowOrder() );" src="/img/func_icons/remove12.gif" alt="delete" title="delete" class="deleteItemImage" onmouseover="this.src='/img/func_icons/remove12_on.gif'" onmouseout="this.src='/img/func_icons/remove12.gif'" style="cursor: pointer;"/>
+                                            </apex:outputPanel>
+                                        </td>
+                                        <td style="vertical-align: top; text-align: center; width: 3%;">
+                                            <apex:outputPanel rendered="{!!isInactiveService && ((!isSearchPanel && formWrapper.formItemRecord.Id != null && formWrapper.formItemRecord.Form_Id__c != null) || formWrapper.formItemRecord.Manualy_Uploaded_Form__c)}">
+                                                <img onclick="cloneAction( '{!formWrapper.formItemRecord.Id}', tableRowOrder() );" src="/img/icon/form16.png" alt="Clone" title="Clone" onmouseover="this.src='/img/icon/form16.png'" onmouseout="this.src='/img/icon/form16.png'" style="cursor: pointer;"/>
+                                            </apex:outputPanel>
+                                        </td>
+                                    </tr>
+                                </apex:repeat>
+                            </tbody>
+                        </table>
+                        <script type="text/javascript">
+                            attachDndToTables('formsTable');
+                            $('#formsTableMainDiv span.dateInput input').attr('size', '16');
+                            $('#formsTableMainDiv span .dateFormat').hide();
+                        </script>
+                    </div>
+                    </apex:outputPanel>
+        </apex:pageBlock>
+
+        <!-- Search Forms table-->
+        <apex:outputPanel id="searchPanel" layout="block" style="display: {!IF(isSearchPanel, 'block', 'none' )};">
+            <apex:pageBlock title="Forms Lookup" id="formsLookupPopup">
+                <script>
+                     $( ".formsLookupPopup" ).animate({
+                        width: "100%",
+                        height: "100%"
+                        }, {
+                        queue: false,
+                        duration: 1000
+                      });
+                </script>
+                <apex:outPutpanel styleClass="formsLookupPopup">
+                        <apex:outputPanel id="searchPanel1" layout="block">
+                            <table style="width:100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td>
+                                        <apex:outputPanel layout="block" styleClass="outputPanelFilter">
+                                            <p> <apex:outputLabel value="Region:" styleClass="inputLabelFilter"/> </p>
+                                            <apex:selectList value="{!regionId}" size="1" styleClass="selestListRegion">
+                                                <apex:selectOptions value="{!regionOptions}" />
+                                            </apex:selectList>
+                                        </apex:outputPanel>
+                                    </td>
+                                    <td>
+                                        <apex:outputPanel layout="block" styleClass="outputPanelFilter">
+                                            <p> <apex:outputLabel value="Municipality:" styleClass="inputLabelFilter"/> </p>
+                                            <apex:inputText value="{!municipalityFilter}" styleClass="selestListRegion" />
+                                        </apex:outputPanel>
+                                    </td>
+                                    <td>
+                                        <apex:outputPanel layout="block" styleClass="outputPanelFilter">
+                                            <p> <apex:outputLabel value="MRC #:" styleClass="inputLabelFilter"/> </p>
+                                            <apex:inputText disabled="true" value="{!Task_Item__c.Project_Number__c}" styleClass="selestListRegion"/>
+                                        </apex:outputPanel>
+                                    </td>
+                                    <td>
+                                        <apex:outputPanel layout="block" styleClass="outputPanelFilter">
+                                            <p> <apex:outputLabel value="Form Ref.#:" styleClass="inputLabelFilter"/> </p>
+                                            <apex:inputText value="{!refNumberFilter}" styleClass="selestListRegion"/>
+                                        </apex:outputPanel>
+                                    </td>
+                                    <td>
+                                        <apex:outputPanel layout="block" styleClass="outputPanelFilter">
+                                            <p> <apex:outputLabel value="Short Name:" styleClass="inputLabelFilter"/> </p>
+                                            <apex:inputText value="{!shortNameFilter}" styleClass="selestListRegion"/>
+                                        </apex:outputPanel>
+                                    </td>
+                                    <td>
+                                        <apex:outputPanel layout="block" styleClass="outputPanelFilter">
+                                            <p> <apex:outputLabel value="Long Name:" styleClass="inputLabelFilter"/> </p>
+                                            <apex:inputText value="{!fullNameFilter}" styleClass="selestListRegion"/>
+                                        </apex:outputPanel>
+                                    </td>
+                                </tr>
+
+                            </table>
+                        </apex:outputPanel>
+                        <apex:outPutpanel id="searchButtons" styleClass="searchButtons" layout="block" style="border-top: 1px solid #DBDBDB;margin-top: 10px;padding-top: 5px;text-align: center;">
+                            <apex:commandButton value="Search" styleClass="milroseBtnStyle" onClick="searchAction(); return false;" disabled="{!isInactiveService}"/>
+                            <apex:commandButton action="{!cancelAction}" value="Cancel" styleClass="milroseBtnStyle" reRender="msgError, searchPanel, resultPanel, addNewFormPanel, formsTableOutputPanel" status="allPanelsOverlay"/>
+                        </apex:outPutpanel>
+                </apex:outPutpanel>
+            </apex:pageBlock>
+        </apex:outputPanel>
+
+        <!-- Search Results table-->
+        <apex:outputPanel layout="block" id="resultPanel" style="display: {!IF(isSearchResults, 'block', 'none' )};">
+            <script>
+                 $( ".resultPanel" ).animate({
+                    width: "100%",
+                    height: "toggle"
+                    }, {
+                    queue: false,
+                    duration: 1000
+                  });
+            </script>
+            <apex:outputPanel layout="block" styleClass="resultPanel" style="display:none;">
+                <apex:pageBlock >
+                    <apex:pageBlockButtons location="bottom" style="text-align: right; padding-top: 0px; padding-bottom: 0px;" rendered="true">
+                        <apex:outPutpanel Id="disableSubmitbtnJQ">
+                            <apex:commandButton onclick="submitAction(); return false;" value="Add Forms" styleClass="disableSubmitbtnJQ milroseBtnStyle"/>
+                        </apex:outPutpanel>
+                    </apex:pageBlockButtons>
+
+                        <apex:outputPanel layout="block" id="resultPanel1" style="max-height: 340px; overflow-y:scroll; width:100%; margin:0px;" styleClass="tableContainer">
+                            <table id="formsTable" class="BlogForce generalTableStyle">
+                                <thead class="rich-table-thead" border="solid 1px black">
+                                    <tr class="nodrop nodrag">
+                                        <th class="headerRow" style="width: 30px;"> <apex:inputCheckbox id="checkedAll" onclick="checkAll( this, 'checkedone'), disableSubmitbtn()" /></th>
+                                        <th class="headerRow" style="width: 30px;">Amount</th>
+                                        <th class="headerRow">Form Ref#</th>
+
+                                        <th class="headerRow">Short Name</th>
+                                        <th class="headerRow">Long Name</th>
+                                        <th class="headerRow">Consumer</th>
+                                        <th class="headerRow">Multi-Part</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <apex:repeat value="{!FormTemplatesWrapperList}" var="item">
+                                        <tr>
+                                            <td class="data dragHandle"> <apex:inputCheckbox value="{!item.isSelected}" id="checkedone" onclick="formCheckboxActionJS();"/></td>
+                                            <td class="name" style="width: 90px;"><apex:inputText value="{!item.amount}"/></td>
+                                            <td class="name"><apex:outputField value="{!item.formTemplate.Form_ID__c}"/></td>
+
+                                            <td class="name"><apex:outputField value="{!item.formTemplate.Name}"/></td>
+                                            <td class="name"><apex:outputField value="{!item.formTemplate.Form_Name__c}"/></td>
+                                            <td class="name"><apex:outputField value="{!item.formTemplate.Consumer__c}"/></td>
+                                            <td class="name" style="text-align: center;"><apex:outputField value="{!item.formTemplate.Mulit_Part__c}"/></td>
+                                        </tr>
+                                    </apex:repeat>
+                                </tbody>
+                            </table>
+                        </apex:outputPanel>
+
+                </apex:pageBlock>
+            </apex:outputPanel>
+        </apex:outputPanel>
+
+        <!-- Generated Forms table-->
+        <apex:outputPanel layout="block" id="generatedFormsTableOutputPanel">
+            <apex:pageBlock title="Generated Forms">
+                <div id="queuedFiles" style="height: 191px; overflow-y: scroll;">
+                    <apex:pageBlockTable id="queuedFiles" styleClass="data dataTable" value="{!lStoreDocumentsForDisplay}" var="file">
+                        <apex:column >
+                            <apex:facet name="header">Name</apex:facet>
+                            <apex:commandLink value="{!file.LStore__File_Name__c}" action="{!openPDF}" target="_blank" oncomplete="window.top.location='{!downloadPdfUrl}'; return false;">
+                                <apex:param name="selectedFormItemId" value="{!file.Id}" assignTo="{!selectedFormItemId}"/>
+                            </apex:commandLink>
+                        </apex:column>
+                        <apex:column >
+                            <apex:facet name="header">Description</apex:facet>
+                            <apex:outputField value="{!file.LStore__Description__c}"/>
+                        </apex:column>
+                        <apex:column >
+                            <apex:facet name="header">File Size</apex:facet>
+                            <apex:outputField value="{!file.LStore__File_Size_Calc__c}"/>
+                        </apex:column>
+                        <apex:column >
+                            <apex:facet name="header">Created Date</apex:facet>
+                            <apex:outputField value="{!file.CreatedDate}"/>
+                        </apex:column>
+                        <apex:column >
+                            <apex:facet name="header">Type</apex:facet>
+                            <apex:outputField value="{!file.LStore__Type_Calc__c}"/>
+                        </apex:column>
+                        <apex:column >
+                            <apex:facet name="header">Author</apex:facet>
+                            <apex:outputLink value="/{!file.CreatedById}" target="_blank">
+                                <apex:outputField value="{!file.CreatedBy.Alias}"/>
+                            </apex:outputLink>
+                        </apex:column>
+                        <apex:column >
+                            <apex:facet name="header">Delete</apex:facet>
+                            <apex:commandLink reRender="msgError, generatedFormsTableOutputPanel" status="allPanelsOverlay" action="{!deleteStoredDocument}" rendered="{!!isInactiveService}">
+                                <img src="/img/func_icons/remove12.gif" alt="delete" title="delete" class="deleteItemImage" onmouseover="this.src='/img/func_icons/remove12_on.gif'" onmouseout="this.src='/img/func_icons/remove12.gif'"/>
+                                <apex:param name="storedDocumentId" value="{!file.Id}" assignTo="{!storedDocumentId}"/>
+                            </apex:commandLink>
+                        </apex:column>
+                    </apex:pageBlockTable>
+                </div>
+            </apex:pageBlock>
+        </apex:outputPanel>
+
+        <apex:inputField value="{!Task_Item__c.Service_Item__c}" rendered="false" />
+        <apex:inputField value="{!Task_Item__c.Service_Item__r.Status__c}" rendered="false" />
+        <apex:inputField value="{!Task_Item__c.Project_Profile__c}" rendered="false" />
+        <apex:inputField value="{!Task_Item__c.Region__c}" rendered="false" />
+        <apex:inputField value="{!Task_Item__c.Project_Profile__r.Region_ID__c}" rendered="false" />
+        <apex:inputField value="{!Task_Item__c.Successor_Task__c}" rendered="false" />
+        <apex:inputField value="{!Task_Item__c.Actual_Start_Date__c}" rendered="false" />
+        <apex:inputField value="{!Task_Item__c.Status__c}" rendered="false" />
+    </apex:form>
+
+    <script type="text/javascript" language="javascript" src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.js')}"></script>
+    <script type="text/javascript" language="javascript" src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.dataTables.js')}"></script>
+    <script src="{!URLFOR($Resource.DatetimeUS)}"></script>
+    <script src="{!URLFOR($Resource.DateUS)}"></script>
+    <script type="text/javascript" language="javascript">
+        var j$ = jQuery.noConflict();
+        var oTable = j$('table.dataTable').dataTable({
+            bPaginate: false,
+            sPaginationType: "full_numbers",
+            bLengthChange: false,
+            showNEntries: false,
+            bFilter: false,
+            bInfo: false,
+            bAutoWidth: false,
+            bScrollCollapse: true,
+            aoColumnDefs: [ 
+                { "sSortDataType": "datetime-us", sType: "datetime-us", aTargets: [3] }
+            ],
+            "aoColumns": [{ "sWidth": "25%" }, { "sWidth": "18%" }, { "sWidth": "9%" }, { "sWidth": "19%" }, { "sWidth": "8%" }, { "sWidth": "13%" }, { "sWidth": "8%" }],
+            sScrollY: "auto"
+        });
+        oTable.fnSort( [ [3,'asc'] ]);
+
+        var resizeDelay = function() {
+          var timer = 0;
+          return function(delay) {
+            clearTimeout( timer );
+            timer = setTimeout( function(){ jQuery('.dataTable').fnAdjustColumnSizing(); }, delay );
+          }
+        }();
+        
+        jQuery(window).resize(function () {
+            jQuery('.dataTables_scrollHeadInner').width(100 + '%');
+            jQuery('.dataTable').width(100 + '%');
+            /*if (jQuery('.dataTables_scrollBody>.dataTable').height() > 360 ) {
+                jQuery('.dataTables_scrollHeadInner').width(jQuery('.dataTables_scrollHeadInner').width() - 17 + 'px');
+            };*/
+            resizeDelay( 100 );
+        }); 
+        
+    </script>
+
+    <!-- Upload Form Artifact -->
+    <apex:outPutpanel id="uploadFormArtifactArea">
+        <apex:pageBlock >
+            <apex:form >
+                <apex:outPutpanel styleClass="uploadFormButtonJQ" layout="block" style="text-align: right;">
+                    <apex:commandButton value="Upload Form Artifact" onclick="uploadFormArtifact( tableRowOrder() ); return false;" styleClass="milroseBtnStyle" disabled="{!isInactiveService}"/>
+                </apex:outputPanel>
+            </apex:form>
+        </apex:pageBlock>
+    </apex:outputPanel>
+
+    <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+
+</apex:page>

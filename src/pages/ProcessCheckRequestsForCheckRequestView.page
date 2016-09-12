@@ -1,0 +1,14 @@
+<apex:page standardController="Check__c" extensions="ProcessCheckRequestForCheckRequestView" action="{!setClickPreventor}" recordSetVar="doc" showChat="false" showHeader="false" sidebar="false">
+    <apex:form >
+    <apex:pageMessages id="msgs"/>
+
+        <apex:commandButton value="Return Back" action="{!returnBack}" rendered="{!isError}"/>
+
+        <apex:actionFunction name="processCheckRequestsInQueue" action="{!processCheckRequestsInQueue}"/>
+        <apex:outputPanel layout="none" rendered="{!!isError}">
+            <script type="text/javascript">
+                setTimeout( function() { processCheckRequestsInQueue(); }, 2000 );
+            </script>
+        </apex:outputPanel>
+    </apex:form>
+</apex:page>

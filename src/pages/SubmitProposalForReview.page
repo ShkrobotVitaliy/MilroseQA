@@ -1,0 +1,12 @@
+<apex:page action="{!submitRequest}" controller="SubmitProposalForReviewController">
+	<apex:form >	
+		<apex:pageMessages />
+		<apex:pageBlock rendered="{!isValidUser}">
+			<apex:pageBlockSection >
+			
+			</apex:pageBlockSection>
+		</apex:pageBlock>
+		
+	</apex:form>
+
+</apex:page>

@@ -1,0 +1,108 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="false" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:variable var="display2Column" value="{!IF(OR(projectView, AND(!projectView, show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="display3Column" value="{!IF(OR(projectView, AND(!projectView, !show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="colspanValue" value="{!IF(projectView, 2, 1)}"/>
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="2" style="text-align: left;">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: 50%;">Application Permit Response</th>
+            </tr>
+            <tr class="sectionRow">
+                <td><span class="mainRequestHeader"><apex:outputText value="Technical Report (TR6):"/></span></td>
+                <td></td>
+            </tr>
+             <tr class="sectionRow">
+                <td> - Qualified Exterior Wall Inspector signing/sealing and license # :</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Inspector_signing_sealing_App__c}" /></td>
+            </tr>
+            <tr class="sectionRow">
+                <td> - Qualified Exterior Wall Inspector PM/primary contact:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Inspector_PM_primary_App__c}" /></td>
+            </tr>
+            <tr class="sectionRow">
+                <td> - Identify the Report Cycle you wish to file:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Identify_the_Report_Cycle_App__c}" /></td>
+            </tr>
+            <tr class="sectionRow">
+                <td> - Identify the Inspection Status you wish to file (Safe/Unsafe/Safe with Repairs):</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Identify_the_Inspection_Status_App__c}" /></td>
+            </tr>
+            <tr class="sectionRow">
+                <td> - Indicate the date the Inspection was performed:</td>
+                <td class="secondColumn"><apex:inputField value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Indicate_the_date_the_Inspection_App__c}" styleClass="dataPicker" /></td>
+            </tr>
+            <tr class="sectionRow">
+                <td> - Identify the exterior wall type (brick masonry/aluminum/glass curtain wall etc):</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Identify_the_exterior_wall_type_App__c}" /></td>
+            </tr>
+            <tr class="sectionRow">
+                <td> - Indicate the area of the exterior wall and appurtenances that is subject to inspection (partial or all):</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Indicate_the_area_of_the_exterior_App__c}" /></td>
+            </tr>
+            
+            <tr class="sectionRow">
+                <td>
+                    <span class="mainRequestHeader">Building Owner of Record (deed owner) Information (Not a representative or Business Manager or Agent): </span>
+                    Contact information for the building owner (this individual is not required to sign forms. The information is required for recording on the TR6 forms only)
+                </td>
+                <td></td>
+            </tr>
+            <tr class="sectionRow">
+                <td>Owner name:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Owner_Name_App__c}" /></td>
+            </tr>
+            <tr class="sectionRow">
+                <td>Business name:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Business_Name_App__c}" /></td>
+            </tr>
+            <tr class="sectionRow">
+                <td>Business address:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Business_Address_App__c}" /></td>
+            </tr>
+            <tr class="sectionRow">
+                <td>Business telephone:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Business_Telephone_App__c}" /></td>
+            </tr>
+            <tr class="sectionRow">
+                <td>Fax:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Fax_App__c}" /></td>
+            </tr>
+
+            <tr class="sectionRow">
+                <td>
+                    <span class="mainRequestHeader">Building Owner/Owner Representative: </span>
+                    Contact information for the building owner/owner representative(this individual is required to sign forms)
+                </td>
+                <td></td>
+            </tr>
+                
+            <tr class="sectionRow">
+                <td>Owner/Owner Rep name:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Owner_Name_Representative_App__c}" /></td>
+            </tr>
+            <tr class="sectionRow">
+                <td>Business name:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Business_name_Representative_App__c}" /></td>
+            </tr>            
+            <tr class="sectionRow">
+                <td>Business address:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Business_address_Representative_App__c}" /></td>
+            </tr>
+            <tr class="sectionRow">
+                <td>Business telephone:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Business_telephone_Representative_App__c}" /></td>
+            </tr>
+            <tr class="sectionRow">
+                <td>Fax:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Fax_Representative_App__c}" /></td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

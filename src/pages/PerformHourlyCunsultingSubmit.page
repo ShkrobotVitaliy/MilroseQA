@@ -1,0 +1,290 @@
+<apex:page showHeader="false" sidebar="false" standardcontroller="Task_Item__c" extensions="PerformHourlyConsultingSubmitCont">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    
+    <style>
+        .outputPanelButton {
+            text-align:right;
+        }
+        .outputPanleMainBlock {
+            margin: 0 auto;
+            width: 100%;
+        }
+        body .outputPanleMainBlock .bPageBlock {
+            margin-bottom: 0px;
+        }
+        .outputPanleMainBlock .outputPanelButton {
+            margin-bottom: 10px;
+            margin-top: 5px;
+        }
+        input[type=submit], input[type=button], input[type=button].milroseBtnStyle, input[type=submit].milroseBtnStyle {
+            border: 1px solid #3887A8 !important;
+            background: #F4F6F9 !important;
+            -moz-border-radius: 0px !important;
+            -webkit-border-radius: 0px !important;
+             border-radius: 0px !important;
+            padding-left: 8px !important;
+            padding-right: 8px !important;
+            margin-left: 3px !important;
+            margin-right: 0px !important;
+        }
+        input[type=submit].btnDisabled, input[type=button].btnDisabled, input[type=button].milroseBtnStyle.btnDisabled, input[type=submit].milroseBtnStyle.btnDisabled {
+            border: 1px solid #BBBBBB !important;
+            background-color: #DDDDDD !important;
+            color: #888888 !important;
+        }
+        input[type=submit]:hover, input[type=button]:hover, input[type=button].milroseBtnStyle:hover, input[type=submit].milroseBtnStyle:hover {
+            background: #69B3D6 !important;
+            color: #FFFFFF !important;
+        }
+        input[type=submit].btnDisabled:hover, input[type=button].btnDisabled:hover, input[type=button].milroseBtnStyle.btnDisabled:hover, input[type=submit].milroseBtnStyle.btnDisabled:hover {
+            background: #D4D4D4 !important;
+            color: #808080 !important;
+        }
+
+        .detailsPanel {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .requiredBlockWrapper {
+            position: relative;
+        }
+        .requiredBlockMarker {
+            background-color: #c00 !important;
+            position: absolute;
+            left: -4px;
+            width: 3px;
+            top: 2px;
+            height: 21px;
+        }
+        @-moz-document url-prefix() { 
+            .requiredBlockMarker {
+                background-color: #c00 !important;
+                position: absolute;
+                left: -6px;
+                width: 3px;
+                top: 0px;
+                height: 18px;
+            }
+        }
+    </style>
+    
+    <script type="text/javascript">
+        var showDetails = false;
+
+        function toggleButton() {
+            showDetails = !showDetails;
+            showDetailsPanel();
+        }
+
+        function showDetailsPanel() {
+            if( showDetails ) {
+                $('#detailsButton').attr('value', 'Hide Detail');
+                $('#detailsPanel').show();
+            } else {
+                $('#detailsButton').attr('value', 'Show Detail');
+                $('#detailsPanel').hide();
+            }
+        }
+
+        function validateInputs(){
+            var hoursReported = $('[id$=\\:hoursReportedItemId]');
+            var value = hoursReported.val().toString().replace(',','.');
+            hoursReported.val(value);
+        }
+
+        function readOnlyInputs() {
+            $('span.lookupInput input[type="text"]').css('background-color', 'white').css('border', '1px solid gray').css('border', '2px inset');
+            $('span.lookupInput a').contents().unwrap();
+            $('input[type="text"]').attr('readonly', true);
+            $('input[type="button"]').attr('disabled', 'disabled').removeClass('btn').addClass('btnDisabled');
+            $('input[type="submit"]').attr('disabled', 'disabled').removeClass('btn').addClass('btnDisabled');
+        }
+
+        function disableInputs() {
+            $('[id$=\\:submitHoursPanel]').find('input[type="text"]').attr('disabled', 'disabled');
+            $('[id$=\\:submitHoursPanel]').find('textarea[type="text"]').attr('disabled', 'disabled');
+            $('[id$=\\:submitHoursPanel]').find('input[type="button"]').attr('disabled', 'disabled').removeClass('btn').addClass('btnDisabled');
+            $('[id$=\\:submitHoursPanel]').find('input[type="submit"]').attr('disabled', 'disabled').removeClass('btn').addClass('btnDisabled');
+        }
+
+        function disableSubmit() {
+            $('[id$=\\:submitChangeOrderPanel]').find('input[type="text"]').attr('disabled', 'disabled');
+            $('[id$=\\:submitChangeOrderPanel]').find('input[type="button"]').attr('disabled', 'disabled').removeClass('btn').addClass('btnDisabled');
+            $('[id$=\\:submitChangeOrderPanel]').find('input[type="submit"]').attr('disabled', 'disabled').removeClass('btn').addClass('btnDisabled');
+        }
+    </script>
+    
+    <apex:form id="formId" >
+        <apex:pageMessages id="messagesId" />
+        <apex:outputPanel layout="block" styleClass="outputPanleMainBlock">
+            <apex:pageBlock id="showDetailPageBlockId">
+              <apex:pageBlockSection columns="2">
+                  <apex:pageBlockSectionItem >
+                        <apex:outputPanel >
+                            <apex:outputLabel value="{!$ObjectType.Task_Item__c.fields.Consulting_Type__c.Label}"/>
+                        </apex:outputPanel>
+                        <apex:outputPanel >
+                            <apex:outputText value="{!currentTaskItem.Consulting_Type__c}"/>
+                        </apex:outputPanel>
+                  </apex:pageBlockSectionItem>
+                  <apex:pageBlockSectionItem >
+                        <apex:outputPanel >
+                            <apex:outputLabel value="{!$ObjectType.Task_Item__c.fields.Consulting_Hour_Budget__c.Label}"/>
+                        </apex:outputPanel>
+                        <apex:outputPanel >
+                            <apex:outputText value="{!consultingHourBudget}"/>
+                        </apex:outputPanel>
+                  </apex:pageBlockSectionItem>
+                  <apex:pageBlockSectionItem >
+                        <apex:outputPanel >
+                            <apex:outputLabel value="{!$ObjectType.Task_Item__c.fields.Worked_to_Date__c.Label}"/>
+                        </apex:outputPanel>
+                        <apex:outputPanel >
+                            <apex:outputText value="{!workedToDate}"/>
+                        </apex:outputPanel>
+                  </apex:pageBlockSectionItem>
+                  <apex:pageBlockSectionItem >
+                        <apex:outputPanel >
+                            <apex:outputLabel value="{!$ObjectType.Task_Item__c.fields.Hours_Remaining__c.Label}"/>
+                        </apex:outputPanel>
+                        <apex:outputPanel >
+                            <apex:outputText value="{!hoursRemaining}"/>
+                        </apex:outputPanel>
+                  </apex:pageBlockSectionItem>
+              </apex:pageBlockSection>
+            </apex:pageBlock>
+            <apex:outputPanel layout="block" styleClass="outputPanelButton">
+                <input type="button" id="detailsButton" class="btn" onclick="toggleButton();" value="Show Detail"/>
+            </apex:outputPanel>
+
+            <div id="detailsPanel" class="detailsPanel" style="display: none; padding-bottom: 10px;">
+                <apex:pageBlock >
+                    <apex:pageBlockTable value="{!billingLineItemList}" var="item">
+                        <apex:column value="{!item.Milestone_Date__c}" headerValue="Date"/>
+                        <apex:column value="{!item.Quantity__c}" headerValue="Quantity"/>
+                        <apex:column value="{!item.Description__c}" headerValue="Description"/>
+                        <apex:column value="{!item.Owner.FirstName} {!item.Owner.LastName}" headerValue="Hours Reported For"/>
+                    </apex:pageBlockTable>
+                </apex:pageBlock>
+            </div>
+            <script type="text/javascript">
+                showDetailsPanel();
+            </script>
+
+            <apex:outputPanel layout="block" id="submitHoursPanel">
+                <apex:pageBlock id="submitPageBlockId">
+                  <apex:pageBlockSection columns="2">
+                      <apex:pageBlockSectionItem >
+                            <apex:outputPanel layout="block">
+                                <apex:outputLabel value="{!$ObjectType.Task_Item__c.fields.Hours_Reported_Now__c.Label}"/>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="block">
+                                <div class="requiredBlockWrapper"><div class="requiredBlockMarker"></div></div>
+                                <apex:inputField value="{!currentTaskItem.Hours_Reported_Now__c}" id="hoursReportedItemId" />
+                            </apex:outputPanel>
+                      </apex:pageBlockSectionItem>
+                      <apex:pageBlockSectionItem >
+                            <apex:outputPanel layout="block">
+                                <apex:outputLabel value="{!$ObjectType.Task_Item__c.fields.Activity_Date__c.Label}"/>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="block">
+                                <div class="requiredBlockWrapper"><div class="requiredBlockMarker"></div></div>
+                                <apex:inputField value="{!currentTaskItem.Activity_Date__c}" style="margin-left: 2px;"/>
+                            </apex:outputPanel>
+                      </apex:pageBlockSectionItem>
+                      <apex:pageBlockSectionItem >
+                            <apex:outputPanel layout="block">
+                                <apex:outputLabel value="{!$ObjectType.Task_Item__c.fields.Activity_Notes_Long__c.Label}"/>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="block">
+                                <div class="requiredBlockWrapper"><div class="requiredBlockMarker"></div></div>
+                                <apex:inputField style="width: 400px;height: 100px;" value="{!currentTaskItem.Activity_Notes_Long__c}" />
+                            </apex:outputPanel>
+                      </apex:pageBlockSectionItem>
+                      <apex:pageBlockSectionItem rendered="{!isExecutiveAdmin || isStaffAccountant}">
+                            <apex:outputPanel layout="block">
+                                <apex:outputLabel value="{!$ObjectType.Task_Item__c.fields.Hours_Reported_For__c.Label}"/>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="block">
+                                <div class="requiredBlockWrapper"><div class="requiredBlockMarker"></div></div>
+                                <apex:inputField id="Hours_Reported_For__c" value="{!currentTaskItem.Hours_Reported_For__c}" style="margin-left: 2px;"/>
+                            </apex:outputPanel>
+                      </apex:pageBlockSectionItem>
+                  </apex:pageBlockSection>
+                </apex:pageBlock>
+                <apex:outputPanel layout="block" styleClass="outputPanelButton">
+                    <apex:commandButton onclick="readOnlyInputs(); validateInputs();" action="{!submit}" value="Submit" rerender="formId"/>
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <apex:outputPanel layout="block" id="submitChangeOrderPanel">
+                <apex:pageBlock id="submitRequestPageBlockId">
+                  <apex:pageBlockSection columns="2">
+                      <apex:pageBlockSectionItem >
+                            <apex:outputPanel layout="block">
+                                <apex:outputLabel value="{!$ObjectType.Task_Item__c.fields.Request_Billable_Hours__c.Label}"/>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="block">
+                                <div class="requiredBlockWrapper"><div class="requiredBlockMarker"></div></div>
+                                <apex:inputField value="{!currentTaskItem.Request_Billable_Hours__c}"/>
+                            </apex:outputPanel>
+                      </apex:pageBlockSectionItem>
+                      <apex:pageBlockSectionItem >
+                            <apex:outputPanel layout="block">
+                                <apex:outputLabel value="{!$ObjectType.Task_Item__c.fields.Reason_for_Billable_Hours__c.Label}"/>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="block">
+                                <div class="requiredBlockWrapper"><div class="requiredBlockMarker"></div></div>
+                                <apex:inputField value="{!currentTaskItem.Reason_for_Billable_Hours__c}"/>
+                            </apex:outputPanel>
+                      </apex:pageBlockSectionItem>
+                      <apex:pageBlockSectionItem >
+                            <apex:outputPanel layout="block">
+                                <apex:outputLabel value="{!$ObjectType.Task_Item__c.fields.Type_of_Billable_Hours__c.Label}"/>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="block">
+                                <div class="requiredBlockWrapper"><div class="requiredBlockMarker"></div></div>
+                                <apex:inputField value="{!currentTaskItem.Type_of_Billable_Hours__c}"/>
+                            </apex:outputPanel>
+                      </apex:pageBlockSectionItem>
+                  </apex:pageBlockSection>
+                </apex:pageBlock>
+                <apex:outputPanel layout="block" styleClass="outputPanelButton">
+                    <apex:commandButton action="{!submitRequest}" onclick="readOnlyInputs();" value="Submit Request" rerender="formId" oncomplete="if(jQuery('.messageText').length == 0) {window.top.location='/apex/ProposalWizard?Id={!currentTaskItem.Service_Item__r.Proposal__c}&step=3'; }return false;"/>
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <apex:outputPanel layout="block" styleClass="outputPanleMainBlock, detailsPanel">
+                <apex:pageBlock title="Other Hourly Services for this Project">
+                    <apex:pageBlockTable value="{!taskItemList}" var="item">
+                        <apex:column headerValue="Service Name" value="{!item.Service_Item__r.Service_Name_Full__c}"/>
+                        <apex:column headerValue="Task">
+                            <apex:outputLink value="/{!item.id}" target="_blank">{!item.Name}</apex:outputLink>
+                        </apex:column>
+                        <apex:column headerValue="Hours Remaining" value="{!item.Hours_Remaining__c}"/>
+                    </apex:pageBlockTable>
+                </apex:pageBlock>
+             </apex:outputPanel>
+        </apex:outputPanel>
+
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+
+        <script>
+            $('h2.mainTitle').parent().css('width', '80%');
+            if( {!!isValidStatus} ) {
+                disableInputs();
+            }
+            if( {!!isValidSubmitStatus} ) {
+                disableSubmit();
+            }
+            if( {!reRenderParentPage} ) {
+                readOnlyInputs();
+                window.top.location='/{!currentTaskItem.Id}';
+            }
+            $("[id$=Hours_Reported_For__c_mlktp]").hide();
+            
+
+        </script>
+    </apex:form>
+</apex:page>

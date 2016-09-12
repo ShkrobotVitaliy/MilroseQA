@@ -1,0 +1,3 @@
+<apex:page title="Documents" showHeader="false" sidebar="false" standardcontroller="P_M_Non_Billable_Work__c" extensions="LStore.storedDocInline" id="aP">
+    <LStore:storedDocInlinePageComponent componentController="{!customControllerInline}" />
+</apex:page>

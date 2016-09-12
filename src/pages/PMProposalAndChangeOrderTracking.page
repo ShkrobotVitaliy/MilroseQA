@@ -1,0 +1,84 @@
+<apex:page controller="ProjectManagerHomePageController" sidebar="false" showHeader="false">
+    
+    <apex:stylesheet value="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/css/jquery.dataTables.css')}"/>
+    
+    <style> 
+        .sorting {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_both.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_asc {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_asc.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_desc {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_desc.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_asc_disabled {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_asc_disabled.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        .sorting_desc_disabled {
+            background: #f2f3f3 url('{! URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/images/sort_desc_disabled.png') }') no-repeat center right !important;
+            padding-right: 20px !important;
+        }
+        table.dataTable tr.odd,
+        table.dataTable tr.even, 
+        table.dataTable tr.odd td.sorting_1,
+        table.dataTable tr.odd td.sorting_2,
+        table.dataTable tr.odd td.sorting_3,
+        table.dataTable tr.even td.sorting_1, 
+        table.dataTable tr.even td.sorting_2,
+        table.dataTable tr.even td.sorting_3   { background-color: white; }
+        .dataTables_scrollHead,
+        div.dataTables_scrollHeadInner,
+        table.BlogForce9Table  { width: 100% !important; }
+        .tableContainer { height:auto; width: 100%; overflow: auto; }            
+        .floatingStyle  { position:relative; background:#F2F3F3; } 
+        
+    </style>
+    <apex:form id="form">
+    <apex:pageMessages id="msgs"></apex:pageMessages>
+    <apex:pageBlock id="pgblock">
+        <apex:pageBlockSection columns="1">
+          <apex:outputPanel styleClass="tableContainer" layout="block">  
+            <!--<apex:pageBlockTable value="{!proposalAndChangeOrderTracking}" var="item" id="myTableBlogForce9" styleClass="BlogForce9Table dataTable">
+                <apex:column headerValue="Proposal #" >
+                        <apex:outputLink value="/{!proposalAndChangeOrderTracking[item].Id}" target="_blank">{!proposalAndChangeOrderTracking[item].Name}</apex:outputLink>
+                    </apex:column>
+                    <apex:column headerValue="Rev. #" value="{!proposalAndChangeOrderTracking[item].Version__c}" />
+                    <apex:column headerValue="MRC #" >
+                        <apex:outputLink value="/{!proposalAndChangeOrderTracking[item].Project_Profile__c}" target="_blank">{!proposalAndChangeOrderTracking[item].Project_Profile__r.Project_Number__c}</apex:outputLink>
+                    </apex:column>
+                    <apex:column headerValue="Project Name" value="{!proposalAndChangeOrderTracking[item].Project_Profile__r.Name}" />
+                    <apex:column headerValue="Street Address" >
+                        <apex:outputLink value="/{!proposalAndChangeOrderTracking[item].Project_Profile__r.Building__c}" target="_blank">{!proposalAndChangeOrderTracking[item].Project_Profile__r.Building__r.Name}</apex:outputLink>
+                    </apex:column>
+                    <apex:column headerValue="Proposal Status" value="{!proposalAndChangeOrderTracking[item].Status__c}" />
+                    <apex:column headerValue="Change Request Date" value="{!proposalAndChangeOrderTracking[item].Change_Request_Date__c}" />
+                    <apex:column >
+                        <apex:facet name="header">
+                            Last Change<br/>Approved Date
+                        </apex:facet>
+                        <apex:outputField value="{!proposalAndChangeOrderTracking[item].Last_Change_Approved_Date__c}"/>
+                    </apex:column>
+                    <apex:column headerValue="Original Awarded Date" value="{!proposalAndChangeOrderTracking[item].Proposal_Awarded_Date__c}" />
+            </apex:pageBlockTable>-->
+          </apex:outputpanel>
+    </apex:pageBlockSection>
+    </apex:pageBlock>
+    </apex:form>
+<script type="text/javascript" language="javascript" src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.js')}"></script>
+<script type="text/javascript" language="javascript" src="{!URLFOR($Resource.DataTables, 'DataTables-1.9.4/media/js/jquery.dataTables.js')}"></script>
+<script type="text/javascript" language="javascript">
+    var j$ = jQuery.noConflict();
+    j$('table.dataTable').dataTable({
+        sPaginationType: "full_numbers",
+        bLengthChange: false,
+        bScrollCollapse: false,
+        sScrollY: 260
+    }).fnSort( [ [5,'asc'] ]);
+    //j$("div[id$='_filter']").hide();
+</script>      
+</apex:page>

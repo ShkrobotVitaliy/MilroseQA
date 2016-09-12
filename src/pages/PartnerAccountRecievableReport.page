@@ -1,0 +1,14 @@
+<apex:page sidebar="false" controller="ProjectManagerHomePageController" showHeader="false" >
+ 
+    <apex:pageBlock >
+   
+    
+    
+       
+       <apex:iframe src="/00O63000000K3cc?isdtp=nv{!IF(currentUserProfileName == 'A/R Coordinator', '&pv3=' & currentUserName, '')}" height="605px" width="100%" scrolling="true" />
+       
+    </apex:pageBlock>
+    
+    <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+
+</apex:page>

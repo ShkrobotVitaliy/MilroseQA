@@ -1,0 +1,80 @@
+<apex:page standardcontroller="Project_Roster__c"  extensions="ProjectRosterEditExt" showHeader="true" showChat="false" sidebar="false">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+<script src="{!$Resource.jquery_tablednd_js}" />
+    <apex:form >
+        <div class="bPageTitle">
+            <div class="ptBody">
+                <div class="content">
+                    <img src="/s.gif" alt="Custom" class="pageTitleIcon" title="Custom" />
+                    <h1 class="pageType">Project Roster Edit<span class="titleSeparatingColon">:</span></h1>
+                    <h2 class="pageDescription"> {!IF(projectRoster.Id == null, 'New Project Roster', projectRoster.Name)}</h2>
+                    <div class="blank">&nbsp;</div>
+                </div>
+            </div>
+            <div class="ptBreadcrumb" />
+        </div>
+        <apex:pageBlock mode="edit" title="Project Roster Edit">
+            <apex:pageBlockButtons location="both">
+                <apex:commandButton value="Save" action="{!saveAction}" />
+                <apex:commandButton value="Save And New" action="{!saveAndNew}" />
+                <apex:commandButton value="Cancel" action="{!Cancel}" />
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection title="Information Section" columns="2" collapsible="true" rendered="{!projectRoster.RecordTypeId == '012A0000000zcPNIAY' || projectRoster.RecordTypeId == '012A0000000zcPN'}">
+                <apex:inputField id="project" value="{!projectRoster.Project_Profile__c}" required="true" />
+                <apex:inputField id="proposal" value="{!projectRoster.Proposal__c}" />
+                <apex:inputField id="user" value="{!projectRoster.User__c}" required="true" />
+                <!--apex:inputField id="active" value="{!projectRoster.Active__c}"/-->
+                <apex:outputText value="" />
+                <apex:inputField id="usertype" value="{!projectRoster.User_Type__c}"/>
+                <apex:outputText value="" />
+                <!--apex:outputField id="recordType" value="{!projectRoster.RecordTypeId}"/-->
+                <apex:inputField id="role" onfocus="removePicklistValues();" onclick="removePicklistValues();" value="{!projectRoster.Role__c}" required="true" />
+                <apex:outputText value="" />
+                <apex:inputField id="mi3RosterID" value="{!projectRoster.Mi3_Roster_ID__c}"/>
+                <!--apex:outputText value="" />
+                <apex:inputField id="isManuallyAddedRoster" value="{!projectRoster.Is_Manually_Added_Roster__c}" /-->
+            </apex:pageBlockSection>
+            <apex:pageBlockSection title="Information Section" columns="1" collapsible="true" rendered="{!projectRoster.RecordTypeId == '012A0000000zcPMIAY' || projectRoster.RecordTypeId == '012A0000000zcPM'}">
+                <apex:inputField id="project" value="{!projectRoster.Project_Profile__c}" required="true" />
+                <!--apex:inputField id="initiallyAddedRoster" value="{!projectRoster.Initially_Added_Roster__c}"/-->
+                <apex:inputField id="proposal" value="{!projectRoster.Proposal__c}"/>
+                <!--apex:outputField id="recordType" value="{!projectRoster.RecordTypeId}"/-->
+                <apex:inputField id="contact" value="{!projectRoster.Contact__c}" required="true" />
+                <apex:inputField id="usertype" value="{!projectRoster.User_Type__c}"/>
+                <apex:inputField id="role" onfocus="removePicklistValues();" onclick="removePicklistValues();" value="{!projectRoster.Role__c}" required="true" />
+                <apex:inputField id="mi3RosterID" value="{!projectRoster.Mi3_Roster_ID__c}"/>
+                <!--apex:inputField id="isManuallyAddedRoster1" value="{!projectRoster.Is_Manually_Added_Roster__c}" /-->
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+       removePicklistValues();
+    })
+    function removePicklistValues() {
+        var list = document.getElementsByTagName("select");
+        var i;
+        for (i = 0; i < list.length; i++){
+            var x = list[i];
+            if ( x.id != undefined ){
+                if ( x.id.endsWith(":role") ){
+                    var options = x.getElementsByTagName("option");
+                    var j;
+                    for(j = 0; j < options.length; j++){
+                        var option = options[j];
+                        if ( option.value == "Primary Client Contact" ||
+                             option.value == "Billing Client Contact (Bill To)" ||
+                             option.value == "Accounting Contact (Mail To)"){
+                            option.setAttribute("style", "display: none;");
+                        }
+                    }
+                } 
+                if ( x.id.endsWith(":user_mlktp") ){
+//                    x.setAttribute("style", "display: none;");
+                }
+            }
+        }
+    }
+</script>
+</apex:page>

@@ -1,0 +1,66 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="false" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="2">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: 50%;">Application Permit Response</th>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Facility Contact Information</span><br/>
+                    <i>Please provide the designated contact for NJDEP records</i>
+                </td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Facility_Contact_Information_App__c}"/></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Facility Designation of Emission Unit</span><br/>
+                    <i>Please indicate the name by which the generator will be identified. For example, EG-1 or GEN1</i>
+                </td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Facility_Designation_Emission_Unit_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Equipment Information:</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Installation Date</td>
+                <td class="secondColumn"><apex:inputField value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Installation_Date_App__c}" styleClass="dataPicker"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Equipment Make</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Equipment_Make_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Equipment Manufacturer</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Equipment_Manufacturer_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Year Manufactured</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Year_Manufactured_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Model</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Model_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Model Year</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Model_Year_App__c}"/></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Max Rated Heat Input (MMBTU/Hr)</span><br/>
+                    <i>*The violation from the County of Essex states the MMBTU/Hr for the generator on site is 10.1.  Please confirm this is the correct rating for the equipment.</i>
+                </td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Max_Rated_Heat_Input_MMBTU_Hr_App__c}"/></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Estimated Annual Operating Hours for Normal Testing and Maintenance of the Generator </td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_Jersey__r.Estimated_Annual_Operating_Hours_App__c}"/></td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

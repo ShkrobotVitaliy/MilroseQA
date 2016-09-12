@@ -1,0 +1,1164 @@
+<apex:page renderAs="pdf" showheader="false" applyhtmltag="false" controller="ChangeOrderController">
+    <head>
+        <style type="text/css">
+            @page {
+                size: letter portrait;
+                margin: 50.0mm 12.7mm 20.0mm 25.4mm;
+                @top-center {
+                    font: 9pt Arial, Sans-serif;
+                    padding-top: 8.47mm;
+                    content: element(header);
+                }
+                @bottom-center {
+                    padding-bottom: 8.47mm;
+                    content: element(footer);
+                }
+            }
+            #page-header {
+                position: running(header);
+            }
+            #page-footer {
+                position: running(footer);
+            }
+            .page-number:before {
+                content: counter(page);
+            }
+            .page-count:before {
+                content: counter(pages);
+            }
+            body {
+                font: 9pt Calibri, Arial, Sans-serif;
+                <apex:outputPanel layout="none" rendered="{!isPreview && isValid}">background-image: url('{!URLFOR($Resource.Preview)}');</apex:outputPanel>
+            }
+            table.content {
+                /*border-collapse: collapse;*/
+                border-collapse: separate;
+                border-spacing: 0;
+                page-break-after: auto;
+                width: 100%;
+            }
+            .break {
+                page-break-after: always;
+            }
+            table.content thead {
+                display: table-header-group;
+                page-break-inside: avoid;
+            }
+            table.content tbody {
+                display: table-row-group;
+                page-break-after: auto;
+            }
+            table.content tfoot {
+                display: table-footer-group;
+                page-break-after: auto;
+            }
+            table.pageBreakBefore {
+                page-break-before: always;
+            }
+            table.pageBreakAfter {
+                page-break-after: always;
+            }
+            table.content thead tr, table.content tbody tr, table.content tr, .nobreak {
+                page-break-inside: avoid;
+            }
+            table.content td {
+                padding: 2px 4px;
+            }
+            table.content td.header {
+                text-align: center;
+                border-top: 1px solid black;
+                border-right: 1px solid black;
+                border-bottom: 0.5px solid black;
+                border-left: none;
+                background-color: #365F91;
+                color: #FFFFFF;
+                vertical-align: middle;
+            }
+            table.content td.line, table.content td.footer {
+                border-top: 0.5px solid black;
+                border-right: 1px solid black;
+                border-bottom: 0.5px solid black;
+                border-left: none;
+                vertical-align: middle;
+                text-align: center;
+            }
+            .bold {
+                font-weight: bold !important;
+            }
+            .left {
+                text-align: left !important;
+            }
+            .center {
+                text-align: center !important;
+            }
+            .right {
+                text-align: right !important;
+            }
+            .justify {
+                text-align: justify !important;
+            }
+            .smf {
+                font-size: 8pt !important;
+            }
+        </style>
+    </head>
+    <apex:pageMessages id="msgs"/>
+    <apex:outputPanel layout="block" rendered="{!isValid}" style="width: 100%; padding: 0; margin: 0;">
+        <!-- Page Header -->
+        <div id="page-header" style="width: 100%; display: table;">
+            <div style="width: 10%; display: table-cell;">
+                <img src="{!URLFOR($Resource.MilroseLogo)}" style="width: 25mm; padding-left: 2mm;"/>
+            </div>
+            <div class="right" style="width: 90%; display: table-cell; vertical-align: bottom; padding-right: 2mm;">
+                <div><span>Contract No. {!proposal.Name}</span></div>
+                <div><span>REV {!proposal.Version_Text__c}</span></div>
+                <apex:outputPanel rendered="{!proposal.Client_Project__c != null}"><span>Client Project # {!proposal.Client_Project__c}</span></apex:outputPanel>
+                <div><span>{!MONTH(TODAY())}/{!DAY(TODAY())}/{!YEAR(TODAY())}</span></div>
+            </div>
+        </div>
+
+        <!-- Page Footer -->
+        <div id="page-footer" style="width: 100%; display: table;">
+            <div style="width: 100%; display: table;">
+                <div style="width: 50%; display: table-cell;">
+                    <div><span style="display: {!IF(initialCOSendToClientDate == null, 'inline', 'none')};">{!MONTH(TODAY())}/{!DAY(TODAY())}/{!YEAR(TODAY())}</span>
+                    <span style="display: {!IF(initialCOSendToClientDate != null, 'inline', 'none')};">{!MONTH(initialCOSendToClientDate)}/{!DAY(initialCOSendToClientDate)}/{!YEAR(initialCOSendToClientDate)} (Revised - {!MONTH(TODAY())}/{!DAY(TODAY())}/{!YEAR(TODAY())})</span></div>
+                </div>
+                <div class="right" style="width: 50%; display: table-cell;">
+                    Page <span class="page-number"/> of <span class="page-count"/>
+                </div>
+            </div>
+            <br/>
+            <div style="width: 100%;  display: table;">
+                <div class="center" style="width: 100%;">{!officeAddress}</div>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content">
+            <div style="position: absolute; top: 0em; left: 0em; display: {!IF(hasPendingDocusignCo, 'block', 'none')};">
+                <div style="color: #FFF; display: inline-block;">dl.approve.1</div>
+                <div style="color: #FFF; display: inline-block; padding-left: 1.5em;">dl.decline.1</div>
+            </div>
+
+            <div class="bold" style="width: 100%; padding: 0; margin: 0; text-align: center; font-size: 14pt;">CHANGE ORDER{!lightCoNumber}</div>
+            <div class="bold" style="width: 100%; padding: 0; margin: 0; text-align: center; font-size: 14pt;">{!proposal.Project_Profile__r.Name}</div>
+
+            <!-- Company and Building Information -->
+			<div class="bold" style="width: 100%; padding: 0; margin: 0; text-align: left;">Client:</div> <!-- MRS 7460 -->
+            <div style="width: 100%;">
+                <span>{!proposal.Billing_Company_Contact__r.Salutation}</span><span style="display: {!IF(proposal.Billing_Company_Contact__r.Salutation != null && proposal.Billing_Company_Contact__r.Name != null, 'inline', 'none')};"> </span><span>{!proposal.Billing_Company_Contact__r.Name}</span><span style="display: {!IF(proposal.Billing_Company_Contact__r.Suffix__c != null, 'inline', 'none')};">, {!proposal.Billing_Company_Contact__r.Suffix__c}</span><br/>
+                <span>{!proposal.Billing_Company_Name__r.Name}</span><br/>
+                <span>{!proposal.Billing_Company_Contact__r.MailingStreet}</span><br/>
+                <span>{!proposal.Billing_Company_Contact__r.MailingCity}</span><span style="display: {!IF(proposal.Billing_Company_Contact__r.MailingCity != null && proposal.Billing_Company_Contact__r.MailingState != null, 'inline', 'none')};"> </span><span>{!proposal.Billing_Company_Contact__r.MailingState}</span><span style="display: {!IF(proposal.Billing_Company_Contact__r.MailingState != null && proposal.Billing_Company_Contact__r.MailingPostalCode != null, 'inline', 'none')};"> </span><span>{!proposal.Billing_Company_Contact__r.MailingPostalCode}</span><br/>
+                <br/>
+                <div style="display: inline-block; width: 12.5mm;">Re:</div><span>{!address1}</span><br/>
+                <div style="display: inline-block; width: 12.5mm;">&nbsp;</div><span>{!address2}</span><br/>
+                <div style="display: inline-block; width: 12.5mm;">&nbsp;</div><span>{!proposal.Project_Name__c}</span><br/>
+                <!-- MRS-6827 -->
+                <div style="display: inline-block; width: 12.5mm;">Floor:</div>
+                <span>{!proposal.Floor_s__c}</span>
+                <br/>
+                <br/>
+            </div>
+
+            <apex:outputPanel rendered="{!changeOrderContent != null}" layout="none">
+                <apex:repeat value="{!changeOrderContent.tables}" var="table">
+                    <apex:outputPanel layout="block" styleClass="{!IF(!isLightCo, 'break', '')}" style="display: {!IF(!isLightCo || (isLightCo && lightCoId == table.changeOrderRecord.Id), 'block', 'none')};">
+                        <!-- Change Order Services Table -->
+                        <table class="content">
+                            <thead class="nobreak" style="page-break-after: avoid;">
+                                <tr>
+                                    <td class="header bold" colspan="{!IF(changeOrderContent.showFloors, '7', '6')}" style="border-left: 1px solid black; border-bottom: none;">
+                                        Change Order #{!table.name} {!IF(table.awardedDate != null, 'Approved Date', 'Sent Date')}:<apex:outputPanel layout="none" rendered="{!table.awardedDate != null}"> {!MONTH(table.awardedDate)}/{!DAY(table.awardedDate)}/{!YEAR(table.awardedDate)}</apex:outputPanel><apex:outputPanel layout="none" rendered="{!table.awardedDate == null && table.sentDate != null}"> {!MONTH(table.sentDate)}/{!DAY(table.sentDate)}/{!YEAR(table.sentDate)} </apex:outputPanel>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="header" style="border-left: 1px solid black;">PS#</td>
+                                    <td class="header" style="display: {!IF(changeOrderContent.showFloors, 'table-cell', 'none')};">Floors</td>
+                                    <td class="header">Professional&nbsp;Services</td>
+                                    <td class="header">Action</td>
+                                    <td class="header" style="padding-top: 0px;"><img src="{!URLFOR($Resource.Sigma)}" height="0.8em"/></td>
+                                    <td class="header">Fees</td>
+                                    <td class="header">Extended&nbsp;Fee</td>
+                                </tr>
+                            </thead>
+                            <apex:repeat value="{!table.sections}" var="section">
+                                <tbody style="{!IF(section.hasLargeGroup, '', 'page-break-after: avoid;')}">
+                                    <tr>
+                                        <td colspan="{!IF(changeOrderContent.showFloors, '7', '6')}" class="line left" style="border-left: 1px solid black; background-color: #B8CCE4; font-size: 105%; font-weight: bold;">
+                                            {!section.name}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <apex:repeat value="{!section.lines}" var="line">
+                                    <apex:outputPanel rendered="{!!line.isGroup}" layout="none">
+                                        <tbody>
+                                            <tr>
+                                                <td class="line center" style="border-left: 1px solid black;">
+                                                    {!line.name}
+                                                </td>
+                                                <td class="line center" style="display: {!IF(changeOrderContent.showFloors, 'table-cell', 'none')};">
+                                                    <apex:outputText escape="false" value="{!line.floor}"/>
+                                                </td>
+                                                <td class="line left">
+                                                    <b>{!line.fullName}</b>
+                                                    <apex:outputPanel layout="block" rendered="{!line.municipalAgency != ''}">
+                                                        {!line.municipalAgency}
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel layout="block" rendered="{!line.description != ''}">
+                                                        {!line.description}
+                                                    </apex:outputPanel>
+                                                </td>
+                                                <td class="line center">
+                                                    {!line.action}
+                                                </td>
+                                                <td class="line right">
+                                                    <apex:outputText value="{0, number,###,###,##0}">
+                                                         <apex:param value="{!line.quantity}"/>
+                                                    </apex:outputText>
+                                                </td>
+                                                <td class="line right">
+                                                    <apex:outputText value="${0, number,###,###,##0.00}" rendered="{! line.unitPrice != 0}">
+                                                         <apex:param value="{!line.unitPrice}"/>
+                                                    </apex:outputText>
+                                                </td>
+                                                <td class="line right">
+                                                    <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!line.total > 0}">
+                                                         <apex:param value="{!line.total}"/>
+                                                    </apex:outputText>
+                                                    <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!line.total < 0}">
+                                                         <apex:param value="{!line.total * -1}"/>
+                                                    </apex:outputText>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel rendered="{!line.isGroup}" layout="none">
+                                        <tbody class="nobreak">
+                                            <tr class="nobreak">
+                                                <td class="line center" style="border-left: 1px solid black; border-bottom: none;"></td>
+                                                <td class="line center" style="display: {!IF(changeOrderContent.showFloors, 'table-cell', 'none')}; border-bottom: none;"></td>
+                                                <td class="line left" style="border-bottom: none;">
+                                                    <b>{!line.fullName}</b>
+                                                    <apex:outputPanel layout="block" rendered="{!line.description != ''}">
+                                                        {!line.description}
+                                                    </apex:outputPanel>
+                                                </td>
+                                                <td class="line center" rowspan="{!line.names.size + 1}">
+                                                    {!line.action}
+                                                </td>
+                                                <td class="line right" rowspan="{!line.names.size + 1}">
+                                                    <apex:outputText value="{0, number,###,###,##0}">
+                                                         <apex:param value="{!line.quantity}"/>
+                                                    </apex:outputText>
+                                                </td>
+                                                <td class="line right" rowspan="{!line.names.size + 1}">
+                                                    <apex:outputText value="${0, number,###,###,##0.00}">
+                                                         <apex:param value="{!line.unitPrice}"/>
+                                                    </apex:outputText>
+                                                </td>
+                                                <td class="line right" rowspan="{!line.names.size + 1}">
+                                                    <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!line.total > 0}">
+                                                         <apex:param value="{!line.total}"/>
+                                                    </apex:outputText>
+                                                    <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!line.total < 0}">
+                                                         <apex:param value="{!line.total * -1}"/>
+                                                    </apex:outputText>
+                                                </td>
+                                            </tr>
+                                            <apex:repeat value="{!line.serviceGroupLineIndexes}" var="lineIndex">
+                                                <tr class="nobreak">
+                                                    <td class="line center" style="border-left: 1px solid black; border-top: none;{!IF(lineIndex + 1 != line.serviceGroupLineIndexes.size, ' border-bottom: none;', '')}">
+                                                        {!line.names[lineIndex]}
+                                                    </td>
+                                                    <td class="line center" style="display: {!IF(changeOrderContent.showFloors, 'table-cell', 'none')}; border-top: none;{!IF(lineIndex + 1 != line.serviceGroupLineIndexes.size, ' border-bottom: none;', '')}">
+                                                        <apex:outputText escape="false" value="{!line.floors[lineIndex]}"/>
+                                                    </td>
+                                                    <td class="line left" style="border-top: none;{!IF(lineIndex + 1 != line.serviceGroupLineIndexes.size, ' border-bottom: none;', '')}">
+                                                        <div style="display: {!IF(line.municipalAgencies[lineIndex] != null, 'block', 'none')}">
+                                                            {!line.municipalAgencies[lineIndex]}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </apex:repeat>
+                                        </tbody>
+                                    </apex:outputPanel>
+                                </apex:repeat>
+                            </apex:repeat>
+                            <tbody>
+                                <apex:repeat value="{!table.phaseNumbers}" var="phaseNumber">
+                                    <tr>
+                                        <td colspan="{!IF(changeOrderContent.showFloors, '6', '5')}" class="line right" style="border-left: 1px solid black;">
+                                            <span class="bold">Phase:</span> {!table.phaseNumberToPhaseName[phaseNumber]}
+                                        </td>
+                                        <td class="line bold right">
+                                            <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!table.phaseNumberToPhaseTotal[phaseNumber] >= 0}">
+                                                 <apex:param value="{!table.phaseNumberToPhaseTotal[phaseNumber]}"/>
+                                            </apex:outputText>
+                                            <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!table.phaseNumberToPhaseTotal[phaseNumber] < 0}">
+                                                 <apex:param value="{!table.phaseNumberToPhaseTotal[phaseNumber] * -1}"/>
+                                            </apex:outputText>
+                                        </td>
+                                    </tr>
+                                </apex:repeat>
+                                <tr style="display: {!IF(table.applyDiscount && table.discountPercentage > 0, 'table-row', 'none')};">
+                                    <td colspan="{!IF(changeOrderContent.showFloors, '6', '5')}" class="line bold right" style="border-left: 1px solid black;">{!table.discountPercentage}% Discount Applied</td>
+                                    <td class="line bold right">
+                                        <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!table.discount >= 0}">
+                                             <apex:param value="{!table.discount}"/>
+                                        </apex:outputText>
+                                        <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!table.discount < 0}">
+                                             <apex:param value="{!table.discount * -1}"/>
+                                        </apex:outputText>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td colspan="{!IF(changeOrderContent.showFloors, '6', '5')}" class="line bold right" style="border-left: 1px solid black;">
+                                        &nbsp;&nbsp;Sales Tax
+                                    </td>
+                                    <td class="line bold right" style="">
+                                        <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!table.salesTax >= 0}">
+                                             <apex:param value="{!table.salesTax}"/>
+                                        </apex:outputText>
+                                        <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!table.salesTax < 0}">
+                                             <apex:param value="{!table.salesTax * -1}"/>
+                                        </apex:outputText>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="{!IF(changeOrderContent.showFloors, '6', '5')}" class="line bold right" style="border-left: 1px solid black;">
+                                        &nbsp;&nbsp;Reimbursable Estimated:&nbsp;
+                                        <apex:outputText value="{0, number,###,###,##0}%">
+                                             <apex:param value="{!table.reimbursablePercentage}"/>
+                                        </apex:outputText>
+                                    </td>
+                                    <td class="line bold right" style="">
+                                        <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!table.reimbursable >= 0}">
+                                             <apex:param value="{!table.reimbursable}"/>
+                                        </apex:outputText>
+                                        <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!table.reimbursable < 0}">
+                                             <apex:param value="{!table.reimbursable * -1}"/>
+                                        </apex:outputText>
+                                    </td>
+                                </tr>
+                                <apex:repeat value="{!table.reimbursableList}" var="reimbursableRecord">
+                                    <tr>
+                                        <td colspan="{!IF(changeOrderContent.showFloors, '6', '5')}" class="line bold right" style="border-left: 1px solid black;">{!reimbursableRecord.Description__c}</td>
+                                        <td class="line bold right">
+                                            <apex:outputText value="${0, number,###,###,##0.00}">
+                                                 <apex:param value="{!reimbursableRecord.Amount__c}"/>
+                                            </apex:outputText>
+                                        </td>
+                                    </tr>
+                                </apex:repeat>
+                                <tr>
+                                    <td colspan="{!IF(changeOrderContent.showFloors, '6', '5')}" class="line bold right" style="border-bottom: 1px solid black; border-left: 1px solid black;">
+                                        &nbsp;&nbsp;Change Order Services Total
+                                    </td>
+                                    <td class="line bold right" style="border-bottom: 1px solid black;">
+                                        <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!table.grandTotal >= 0}">
+                                             <apex:param value="{!table.grandTotal}"/>
+                                        </apex:outputText>
+                                        <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!table.grandTotal < 0}">
+                                             <apex:param value="{!table.grandTotal * -1}"/>
+                                        </apex:outputText>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- General Change Order Notes -->
+                        <apex:outputPanel rendered="{!table.changeOrderRecord.General_Change_Order_Notes__c != null}" layout="none">
+                            <br/><br/>
+                            <table class="content" style="page-break-inside: avoid;">
+                                <thead>
+                                    <tr>
+                                        <td class="header bold" style="border-left: 1px solid black; border-bottom: 1px solid black;">General Change Order Notes</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="display: table-row;">
+                                        <td class="line left" style="border-bottom: 1px solid black; border-top: none; border-right: none;">
+                                            <div>
+                                                <apex:outputField value="{!table.changeOrderRecord.General_Change_Order_Notes__c}" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </apex:outputPanel>
+
+                        <!-- Change Order Municipal Authority Fees Notes -->
+                        <apex:outputPanel rendered="{!table.changeOrderRecord.Municipal_Authority_Fees__c != null}" layout="none">
+                            <br/><br/>
+                            <table class="content" style="page-break-inside: avoid;">
+                                <thead>
+                                    <tr>
+                                        <td class="header bold" style="border-left: 1px solid black; border-bottom: 1px solid black;">Municipal Authority Fees Notes</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="display: {!IF(CONTAINS(table.changeOrderRecord.Municipal_Authority_Fees__c, 'DOB Filing Fees (Filings)'), 'table-row', 'none')};">
+                                        <td class="line left" style="border-bottom: 1px solid black; border-top: none; border-right: none;">
+                                            <div class="bold" style="font-size: 16pt; line-height: 1.5;">DOB Filing Fees</div>
+                                            <div>DOB fees are approximately 1% of the estimated cost of construction.</div>
+                                            <div style="font-style: italic;">EG: If the construction cost is $500,000, the fees will be approximately $5,000.</div>
+                                            <div class="bold">Please note: these fees are not listed in the above cost summary.</div>
+                                            <div class="bold"><span style="text-decoration:underline;">Payment of these fees will be the responsibility of the client prior to filing.</span> A check payable to the DOB for the full filing fees is required at the time of filing.</div>
+                                            <div class="bold" style="font-style: italic;">There is a 2.49% convenience fee to all credit card payments for filing fees made on behalf of our clients.  This 2.49% fee will be added to filing fees that Milrose pays on your behalf via credit card.</div>
+                                            <br/>
+                                        </td>
+                                    </tr>
+                                    <tr style="display: {!IF(CONTAINS(table.changeOrderRecord.Municipal_Authority_Fees__c, 'DOB Filing Fees (Amendment)'), 'table-row', 'none')};">
+                                        <td class="line left" style="border-bottom: 1px solid black; border-top: none; border-right: none;">
+                                            <div class="bold" style="font-size: 16pt; line-height: 1.5;">DOB Filing Fees (Amendment)</div> <!-- MRS-6886 -->
+                                            <div>DOB fees are $100.00 per amendment plus approximately 1% of any increase of construction costs.<br/>In the case of the reinstatement of an application, full filing fees may be required.</div>
+                                            <div class="bold">Please note: these fees are not listed in the above cost summary.</div>
+                                            <div class="bold"><span style="text-decoration:underline;">Payment of these fees will be the responsibility of the client prior to filing.</span> A check payable to the DOB for the full filing fees is required at the time of filing.</div>
+                                            <div class="bold" style="font-style: italic;">There is a 2.49% convenience fee to all credit card payments for filing fees made on behalf of our clients.  This 2.49% fee will be added to filing fees that Milrose pays on your behalf via credit card.</div>
+                                            <br/>
+                                        </td>
+                                    </tr>
+                                    <tr style="display: {!IF(CONTAINS(table.changeOrderRecord.Municipal_Authority_Fees__c, 'DOB Filing Fees (New Building)'), 'table-row', 'none')};">
+                                        <td class="line left" style="border-bottom: 1px solid black; border-top: none; border-right: none;">
+                                            <div class="bold" style="font-size: 16pt; line-height: 1.5;">DOB Filing Fees (New Building)</div> <!-- MRS-6886 -->
+                                            <div>DOB filing fees for a New Building are 0.256 cents per square foot.</div>
+                                            <div class="bold">Please note: these fees are not listed in the above cost summary.</div>
+                                            <div class="bold"><span style="text-decoration:underline;">Payment of these fees will be the responsibility of the client prior to filing.</span> A check payable to the DOB for the full filing fees is required at the time of filing.</div>
+                                            <div class="bold" style="font-style: italic;">There is a 2.49% convenience fee to all credit card payments for filing fees made on behalf of our clients.  This 2.49% fee will be added to filing fees that Milrose pays on your behalf via credit card.</div>
+                                            <br/>
+                                        </td>
+                                    </tr>
+                                    <tr style="display: {!IF(CONTAINS(table.changeOrderRecord.Municipal_Authority_Fees__c, 'DOB Variance Fees (Projected)'), 'table-row', 'none')};">
+                                        <td class="line left" style="border-bottom: 1px solid black; border-top: none; border-right: none;">
+                                            <div class="bold" style="font-size: 16pt; line-height: 1.5;">DOB After Hour Variance (AHV) Fees</div>
+                                            <div class="center" style="width: 100%;">
+                                                <table class="content" style="width: 100%; margin: 0 auto;">
+                                                    <tr>
+                                                        <td class="line center" style="font-size: 11pt; border-top: 1px solid black; border-left: 1px solid black;">City Fee - Per Variance*</td> <!-- MRS-6886 -->
+                                                        <td class="line center" style="font-size: 11pt; border-top: 1px solid black;">City Fee – Per Day</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="line center" style="font-size: 11pt; border-left: 1px solid black; border-bottom: 1px solid black;">$100.00 per variance*</td> <!-- MRS-6886 -->
+                                                        <td class="line center" style="font-size: 11pt; border-bottom: 1px solid black;">$80.00 per day</td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                            <div style="padding-left: 12.5mm;">*Variances can be granted for up to 14 consecutive days. AHV fees vary based on total number of days.</div>
+                                            <div class="bold">Please note: these fees are not listed in the above cost summary.</div>
+                                            <div class="bold">Payment of these fees will be the responsibility of the client prior to filing of AHV permit.</div>
+                                            <div class="bold">
+                                                Milrose must receive filing fees prior to services being performed. We offer three payment methods:
+                                                <br/>- Milrose directly through our credit card system (link will be provided)**
+                                                <br/>- Setup an escrow account **
+                                                <br/>- Send us filing check payable to Milrose and we will made the payment on your behalf.**
+                                                <br/>
+                                            </div>
+                                            <div class="bold" style="font-style: italic;">**There is a 2.49% convenience fee to all credit card payments for filing fees made on behalf of our clients.  This 2.49% fee will be added to filing fees that Milrose pays on your behalf via credit card.</div>
+                                            <br/>
+                                        </td>
+                                    </tr>
+                                    <tr style="display: {!IF(CONTAINS(table.changeOrderRecord.Municipal_Authority_Fees__c, 'DOB Variance Fees (Determined)'), 'table-row', 'none')};">
+                                        <td class="line left" style="border-bottom: 1px solid black; border-top: none; border-right: none;">
+                                            <div class="bold" style="font-size: 16pt; line-height: 1.5;">DOB After Hour Variance (AHV) Fees</div>
+                                            <div class="center" style="width: 100%;">
+                                                <table class="content" style="width: 100%; margin: 0 auto;">
+                                                    <tr>
+                                                        <td class="line center" style="font-size: 11pt; border-top: 1px solid black; border-left: 1px solid black;">City Fee - Per Variance*</td> <!-- MRS-6886 -->
+                                                        <td class="line center" style="font-size: 11pt; border-top: 1px solid black;">City Fee – Per Day</td>
+                                                        <td class="line center bold" style="font-size: 11pt; border-top: 1px solid black;">DOB Fee</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="line center" style="font-size: 11pt; border-left: 1px solid black; border-bottom: 1px solid black;">$100.00 per variance*</td> <!-- MRS-6886 -->
+                                                        <td class="line center" style="font-size: 11pt; border-bottom: 1px solid black;">$80.00 per day</td>
+                                                        <td class="line center" style="font-size: 11pt; border-bottom: 1px solid black;">
+                                                            <apex:outputText rendered="{!table.changeOrderRecord.Projected_DOB_Fee__c != null}" value="${0, number,###,###,##0.00}">
+                                                                 <apex:param value="{!table.changeOrderRecord.Projected_DOB_Fee__c}"/>
+                                                            </apex:outputText>
+                                                            <apex:outputText rendered="{!table.changeOrderRecord.Projected_DOB_Fee__c == null}">
+                                                                $0.00
+                                                            </apex:outputText>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                            <div style="padding-left: 12.5mm;">*Variances can be granted for up to 14 consecutive days. AHV fees vary based on total number of days.</div>
+                                            <div class="bold">Please note: these fees may be listed in the above cost summary.</div>
+                                            <div class="bold">Payment of these fees will be the responsibility of the client prior to filing of AHV permit.</div>
+                                            <div class="bold">
+                                                Milrose must receive filing fees prior to services being performed. We offer three payment methods:
+                                                <br/>- Milrose directly through our credit card system (link will be provided)**
+                                                <br/>- Setup an escrow account **
+                                                <br/>- Send us filing check payable to Milrose and we will made the payment on your behalf.**
+                                                <br/>
+                                            </div>
+                                            <div class="bold" style="font-style: italic;">**There is a 2.49% convenience fee to all credit card payments for filing fees made on behalf of our clients.  This 2.49% fee will be added to filing fees that Milrose pays on your behalf via credit card.</div>
+                                            <br/>
+                                        </td>
+                                    </tr>
+                                    <tr style="display: {!IF(CONTAINS(table.changeOrderRecord.Municipal_Authority_Fees__c, 'DOT Fees'), 'table-row', 'none')};">
+                                        <td class="line left" style="border-bottom: 1px solid black; border-top: none; border-right: none;">
+                                            <div class="bold" style="font-size: 16pt; line-height: 1.5;">Department of Transportation (DOT) Fees*</div>
+                                            <div class="center" style="width: 100%;">
+                                                <table class="content" style="width: 100%; margin: 0 auto;">
+                                                    <tr>
+                                                        <td class="line center" style="font-size: 11pt; border-top: 1px solid black; border-left: 1px solid black;">DOT Fees per Permit</td>
+                                                        <td class="line center" style="font-size: 11pt; border-top: 1px solid black;">$50.00 - $380.00</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="line center" style="font-size: 11pt; border-left: 1px solid black; border-bottom: 1px solid black;">Messenger Fees</td>
+                                                        <td class="line center" style="font-size: 11pt; border-bottom: 1px solid black;">At Cost (If Applicable)</td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                            <div>* These costs are approximations and may differ.</div>
+                                            <div class="bold">Please note: these fees are not listed in the above cost summary.</div>
+                                            <div class="bold">
+                                                <span style="text-decoration:underline;">Payment of these fees will be the responsibility of the client prior to filing of DOT permit.</span>
+                                            </div>
+                                            <div class="bold">
+                                                Milrose must receive filing fees prior to services being performed. We offer three payment methods:
+                                                <br/>- Pay Milrose directly through our credit card system (link will be provided)**
+                                                <br/>- Setup an escrow account **
+                                                <br/>- Send us filing check payable to Milrose and we will made the payment on your behalf.**
+                                            </div>
+                                            <div class="bold" style="font-style: italic;">**There is a 2.49% convenience fee to all credit card payments for filing fees made on behalf of our clients.  This 2.49% fee will be added to filing fees that Milrose pays on your behalf via credit card.</div>
+                                            <br/>
+                                        </td>
+                                    </tr>
+                                    <tr style="display: {!IF(CONTAINS(table.changeOrderRecord.Municipal_Authority_Fees__c, 'TCO Fees'), 'table-row', 'none')};">
+                                        <td class="line left" style="border-bottom: 1px solid black; border-top: none; border-right: none;">
+                                            <div class="bold" style="font-size: 16pt; line-height: 1.5;">Temporary Certificate of Occupancy (TCO) Fees*</div>
+                                            <div class="center" style="width: 100%;">
+                                                <table class="content" style="width: 100%; margin: 0 auto;">
+                                                    <tr>
+                                                        <td class="line center" style="font-size: 11pt; border-top: 1px solid black; border-left: 1px solid black;">Standard fee</td>
+                                                        <td class="line center" style="font-size: 11pt; border-top: 1px solid black;">$100.00 per TCO</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="line center" style="font-size: 11pt; border-left: 1px solid black; border-bottom: 1px solid black;">Core &amp; Shell fee</td>
+                                                        <td class="line center" style="font-size: 11pt; border-bottom: 1px solid black;">$200.00 per TCO</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="line center" style="font-size: 11pt; border-left: 1px solid black; border-bottom: 1px solid black;">Messenger Fees</td>
+                                                        <td class="line center" style="font-size: 11pt; border-bottom: 1px solid black;">At Cost (If Applicable)</td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                            <div class="bold">Please note: these fees are not listed in the above cost summary.</div>
+                                            <div class="bold">
+                                                <span style="text-decoration:underline;">Payment of these fees will be the responsibility of the client prior to filing for TCO.</span>
+                                            </div>
+                                            <div class="bold">
+                                                Milrose must receive TCO filing fees prior to services being performed. We offer three payment methods:
+                                                <br/>- Pay Milrose directly through our credit card system (link will be provided)**
+                                                <br/>- Setup an escrow account **
+                                                <br/>- Send us filing check payable to Milrose and we will made the payment on your behalf.**
+                                            </div>
+                                            <div class="bold" style="font-style: italic;">**There is a 2.49% convenience fee to all credit card payments for filing fees made on behalf of our clients.  This 2.49% fee will be added to filing fees that Milrose pays on your behalf via credit card.</div>
+                                            <br/>
+                                        </td>
+                                    </tr>
+									<tr style="display: {!IF(CONTAINS(table.changeOrderRecord.Municipal_Authority_Fees__c, 'FDNY Filing Fees'), 'table-row', 'none')};"> <!-- MRS 7213 -->
+		                                <td class="line left" style="border-bottom: 1px solid black; border-top: none; border-right: none;">
+		                                    <div class="bold" style="font-size: 16pt; line-height: 1.5;">Fire Department City of New York (FDNY) Filing Fees</div>
+											<div>FDNY fees usually cost $420.00 per submission. The types of FDNY filing fees include, but are not limited to:</div>
+											<br/>•	Fire Alarm Plan Review
+											<br/>•	Fire Alarm Duplicated Certified Approved Plan(s)
+											<br/>•	Fire Alarm Post Approval Amendment (PAA)
+											<br/>•	Fire Alarm Application Withdrawal
+											<br/>•	Fire Suppression Plan Review
+											<br/>•	Rooftop Access Variance
+											<br/>•	Technical Management Variance
+											<br/><br/>
+											<div class="bold" style="font-style: italic;">*Ordinary exception applies to Fire Safety &amp; Evacuation Plan Reviews, which are $210.00 per building or occupancy.</div>
+		                                    <br/>
+											<div class="bold" style="font-style: italic;">The client is required to provide payment for FDNY fees prior to filing. Please provide a check for the filing fees in full payable to the New York City Fire Department. Please be aware there is a 2.49% convenience fee added to all credit card payments for filing fees.</div>
+		                                </td>
+		                            </tr>
+                                </tbody>
+                            </table>
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                </apex:repeat>
+            </apex:outputPanel>
+
+            <!-- Original Proposal Services -->
+            <apex:outputPanel rendered="{!originalContent != null}" layout="none">
+                <apex:repeat value="{!originalContent.tables}" var="table">
+                    <table class="content" style="display: {!IF(!isLightCo, 'table', 'none')};">
+                        <thead class="nobreak" style="page-break-after: avoid;">
+                            <tr>
+                                <td class="header bold" colspan="{!IF(changeOrderContent.showFloors, '6', '5')}" style="border-left: 1px solid black; border-bottom: none;">
+                                    Original Proposal Services #{!table.name} Awarded Date:<apex:outputPanel rendered="{!table.awardedDate != null}"> {!MONTH(table.awardedDate)}/{!DAY(table.awardedDate)}/{!YEAR(table.awardedDate)}</apex:outputPanel>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="header" style="border-left: 1px solid black;">PS#</td>
+                                <td class="header" style="display: {!IF(changeOrderContent.showFloors, 'table-cell', 'none')};">Floors</td>
+                                <td class="header">Professional&nbsp;Services</td>
+                                <td class="header" style="padding-top: 0px;"><img src="{!URLFOR($Resource.Sigma)}" height="0.8em"/></td>
+                                <td class="header">Fees</td>
+                                <td class="header">Extended&nbsp;Fee</td>
+                            </tr>
+                        </thead>
+                        <apex:repeat value="{!table.sections}" var="section">
+                            <tbody style="{!IF(section.hasLargeGroup, '', 'page-break-after: avoid;')}">
+                                <tr>
+                                    <td colspan="{!IF(changeOrderContent.showFloors, '6', '5')}" class="line left" style="border-left: 1px solid black; background-color: #B8CCE4; font-size: 105%; font-weight: bold;">
+                                        {!section.name}
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <apex:repeat value="{!section.lines}" var="line">
+                                <apex:outputPanel rendered="{!!line.isGroup}" layout="none">
+                                    <tbody>
+                                        <tr>
+                                            <td class="line center" style="border-left: 1px solid black;">
+                                                {!line.name}
+                                            </td>
+                                            <td class="line center" style="display: {!IF(changeOrderContent.showFloors, 'table-cell', 'none')};">
+                                                <apex:outputText escape="false" value="{!line.floor}"/>
+                                            </td>
+                                            <td class="line left">
+                                                <b>{!line.fullName}</b>
+                                                <apex:outputPanel layout="block" rendered="{!line.municipalAgency != ''}">
+                                                    {!line.municipalAgency}
+                                                </apex:outputPanel>
+                                                <apex:outputPanel layout="block" rendered="{!line.description != ''}">
+                                                    {!line.description}
+                                                </apex:outputPanel>
+                                            </td>
+                                            <td class="line right">
+                                                <apex:outputText value="{0, number,###,###,##0}">
+                                                     <apex:param value="{!line.quantity}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="line right">
+                                                <apex:outputText value="${0, number,###,###,##0.00}">
+                                                     <apex:param value="{!line.unitPrice}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="line right">
+                                                <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!line.total >= 0}">
+                                                     <apex:param value="{!line.total}"/>
+                                                </apex:outputText>
+                                                <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!line.total < 0}">
+                                                     <apex:param value="{!line.total * -1}"/>
+                                                </apex:outputText>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!line.isGroup}" layout="none">
+                                    <tbody class="nobreak">
+                                        <tr class="nobreak">
+                                            <td class="line center" style="border-left: 1px solid black; border-bottom: none;"></td>
+                                            <td class="line center" style="display: {!IF(changeOrderContent.showFloors, 'table-cell', 'none')}; border-bottom: none;"></td>
+                                            <td class="line left" style="border-bottom: none;">
+                                                <b>{!line.fullName}</b>
+                                                <apex:outputPanel layout="block" rendered="{!line.description != ''}">
+                                                    {!line.description}
+                                                </apex:outputPanel>
+                                            </td>
+                                            <td class="line right" rowspan="{!line.names.size + 1}">
+                                                <apex:outputText value="{0, number,###,###,##0}">
+                                                     <apex:param value="{!line.quantity}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="line right" rowspan="{!line.names.size + 1}">
+                                                <apex:outputText value="${0, number,###,###,##0.00}">
+                                                     <apex:param value="{!line.unitPrice}"/>
+                                                </apex:outputText>
+                                            </td>
+                                            <td class="line right" rowspan="{!line.names.size + 1}">
+                                                <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!line.total >= 0}">
+                                                     <apex:param value="{!line.total}"/>
+                                                </apex:outputText>
+                                                <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!line.total < 0}">
+                                                     <apex:param value="{!line.total * -1}"/>
+                                                </apex:outputText>
+                                            </td>
+                                        </tr>
+                                        <apex:repeat value="{!line.serviceGroupLineIndexes}" var="lineIndex">
+                                            <tr class="nobreak">
+                                                <td class="line center" style="border-left: 1px solid black; border-top: none;{!IF(lineIndex + 1 != line.serviceGroupLineIndexes.size, ' border-bottom: none;', '')}">
+                                                    {!line.names[lineIndex]}
+                                                </td>
+                                                <td class="line center" style="display: {!IF(changeOrderContent.showFloors, 'table-cell', 'none')}; border-top: none;{!IF(lineIndex + 1 != line.serviceGroupLineIndexes.size, ' border-bottom: none;', '')}">
+                                                    <apex:outputText escape="false" value="{!line.floors[lineIndex]}"/>
+                                                </td>
+                                                <td class="line left" style="border-top: none;{!IF(lineIndex + 1 != line.serviceGroupLineIndexes.size, ' border-bottom: none;', '')}">
+                                                    <div style="display: {!IF(line.municipalAgencies[lineIndex] != null, 'block', 'none')}">
+                                                        {!line.municipalAgencies[lineIndex]}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </apex:repeat>
+                                    </tbody>
+                                </apex:outputPanel>
+                            </apex:repeat>
+                        </apex:repeat>
+                        <tbody>
+                            <!-- <tr>
+                                <td colspan="{!IF(changeOrderContent.showFloors, '5', '4')}" class="line bold right" style="border-bottom: 1px solid black; border-left: 1px solid black;">
+                                    Proposal:
+                                </td>
+                                <td class="line bold right" style="border-bottom: 1px solid black;">
+                                    <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!table.total >= 0}">
+                                         <apex:param value="{!table.total}"/>
+                                    </apex:outputText>
+                                    <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!table.total < 0}">
+                                         <apex:param value="{!table.total * -1}"/>
+                                    </apex:outputText>
+                                </td>
+                            </tr> -->
+                            <apex:repeat value="{!table.phaseNumbers}" var="phaseNumber">
+                                <tr>
+                                    <td colspan="{!IF(changeOrderContent.showFloors, '5', '4')}" class="line right" style="border-left: 1px solid black;">
+                                        <span class="bold">Phase:</span> {!table.phaseNumberToPhaseName[phaseNumber]}
+                                    </td>
+                                    <td class="line bold right">
+                                        <apex:outputText value="${0, number,###,###,##0.00}">
+                                             <apex:param value="{!table.phaseNumberToPhaseTotal[phaseNumber]}"/>
+                                        </apex:outputText>
+                                    </td>
+                                </tr>
+                            </apex:repeat>
+                            <tr style="display: {!IF(table.applyDiscount == true && table.discountPercentage > 0, 'table-row', 'none')};">
+                                <td colspan="{!IF(changeOrderContent.showFloors, '5', '4')}" class="line bold right" style="border-left: 1px solid black;">{!table.discountPercentage}% Discount Applied</td>
+                                <td class="line bold right">
+                                    <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!table.discount >= 0}">
+                                         <apex:param value="{!table.discount}"/>
+                                    </apex:outputText>
+                                    <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!table.discount < 0}">
+                                         <apex:param value="{!table.discount * -1}"/>
+                                    </apex:outputText>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="{!IF(changeOrderContent.showFloors, '5', '4')}" class="line bold right" style="border-left: 1px solid black;">
+                                    &nbsp;&nbsp;Sales Tax
+                                </td>
+                                <td class="line bold right" style="">
+                                    <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!table.salesTax >= 0}">
+                                         <apex:param value="{!table.salesTax}"/>
+                                    </apex:outputText>
+                                    <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!table.salesTax < 0}">
+                                         <apex:param value="{!table.salesTax * -1}"/>
+                                    </apex:outputText>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="{!IF(changeOrderContent.showFloors, '5', '4')}" class="line bold right" style="border-left: 1px solid black;">
+                                    &nbsp;&nbsp;Reimbursable Estimated:&nbsp;<!--
+                                    --><apex:outputText value="{0, number,###,###,##0}%">
+                                         <apex:param value="{!table.reimbursablePercentage}"/>
+                                    </apex:outputText>
+                                </td>
+                                <td class="line bold right" style="">
+                                    <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!table.reimbursable >= 0}">
+                                         <apex:param value="{!table.reimbursable}"/>
+                                    </apex:outputText>
+                                    <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!table.reimbursable < 0}">
+                                         <apex:param value="{!table.reimbursable * -1}"/>
+                                    </apex:outputText>
+                                </td>
+                            </tr>
+                            <apex:repeat value="{!table.reimbursableList}" var="reimbursableRecord">
+                                <tr>
+                                    <td colspan="{!IF(changeOrderContent.showFloors, '5', '4')}" class="line bold right" style="border-left: 1px solid black;">{!reimbursableRecord.Description__c}</td>
+                                    <td class="line bold right">
+                                        <apex:outputText value="${0, number,###,###,##0.00}">
+                                             <apex:param value="{!reimbursableRecord.Amount__c}"/>
+                                        </apex:outputText>
+                                    </td>
+                                </tr>
+                            </apex:repeat>
+                            <tr>
+                                <td colspan="{!IF(changeOrderContent.showFloors, '5', '4')}" class="line bold right" style="border-bottom: 1px solid black; border-left: 1px solid black;">
+                                    &nbsp;&nbsp;Proposal Total
+                                </td>
+                                <td class="line bold right" style="border-bottom: 1px solid black;">
+                                    <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!table.grandTotal >= 0}">
+                                         <apex:param value="{!table.grandTotal}"/>
+                                    </apex:outputText>
+                                    <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!table.grandTotal < 0}">
+                                         <apex:param value="{!table.grandTotal * -1}"/>
+                                    </apex:outputText>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </apex:repeat>
+            </apex:outputPanel>
+
+            <!-- General Proposal Notes -->
+            <apex:outputPanel rendered="{!proposal.General_Proposal_Notes__c != null && !isLightCo}" layout="none">
+                <br/><br/>
+                <table class="content" style="page-break-inside: avoid;">
+                    <thead>
+                        <tr>
+                            <td class="header bold" style="border-left: 1px solid black; border-bottom: 1px solid black;">General Proposal Notes</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="display: table-row;">
+                            <td class="line left" style="border-bottom: 1px solid black; border-top: none; border-right: none;">
+                                <div>
+                                    <apex:outputField value="{!proposal.General_Proposal_Notes__c}" />
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </apex:outputPanel>
+
+            <!-- Municipal Authority Fees Notes -->
+            <apex:outputPanel rendered="{!proposal.Municipal_Authority_Fees__c != null && !isLightCo}" layout="none">
+                <br/><br/>
+                <table class="content" style="page-break-inside: avoid;">
+                    <thead>
+                        <tr>
+                            <td class="header bold" style="border-left: 1px solid black; border-bottom: 1px solid black;">Municipal Authority Fees Notes</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="display: {!IF(CONTAINS(proposal.Municipal_Authority_Fees__c, 'DOB Filing Fees (Filings)'), 'table-row', 'none')};">
+                            <td class="line left" style="border-bottom: 1px solid black; border-top: none; border-right: none;">
+                                <div class="bold" style="font-size: 16pt; line-height: 1.5;">DOB Filing Fees</div>
+                                <div>DOB fees are approximately 1% of the estimated cost of construction.</div>
+                                <div style="font-style: italic;">EG: If the construction cost is $500,000, the fees will be approximately $5,000.</div>
+                                <div class="bold">Please note: these fees are not listed in the above cost summary.</div>
+                                <div class="bold"><span style="text-decoration:underline;">Payment of these fees will be the responsibility of the client prior to filing.</span> A check payable to the DOB for the full filing fees is required at the time of filing.</div>
+                                <div class="bold" style="font-style: italic;">There is a 2.49% convenience fee to all credit card payments for filing fees made on behalf of our clients.  This 2.49% fee will be added to filing fees that Milrose pays on your behalf via credit card.</div>
+                                <br/>
+                            </td>
+                        </tr>
+                        <tr style="display: {!IF(CONTAINS(proposal.Municipal_Authority_Fees__c, 'DOB Filing Fees (Amendment)'), 'table-row', 'none')};">
+                            <td class="line left" style="border-bottom: 1px solid black; border-top: none; border-right: none;">
+                                <div class="bold" style="font-size: 16pt; line-height: 1.5;">DOB Filing Fees (Amendment)</div> <!-- MRS-6886 -->
+                                <div>DOB fees are $100.00 per amendment plus approximately 1% of any increase of construction costs.<br/>In the case of the reinstatement of an application, full filing fees may be required.</div>
+                                <div class="bold">Please note: these fees are not listed in the above cost summary.</div>
+                                <div class="bold"><span style="text-decoration:underline;">Payment of these fees will be the responsibility of the client prior to filing.</span> A check payable to the DOB for the full filing fees is required at the time of filing.</div>
+                                <div class="bold" style="font-style: italic;">There is a 2.49% convenience fee to all credit card payments for filing fees made on behalf of our clients.  This 2.49% fee will be added to filing fees that Milrose pays on your behalf via credit card.</div>
+                                <br/>
+                            </td>
+                        </tr>
+                        <tr style="display: {!IF(CONTAINS(proposal.Municipal_Authority_Fees__c, 'DOB Filing Fees (New Building)'), 'table-row', 'none')};">
+                            <td class="line left" style="border-bottom: 1px solid black; border-top: none; border-right: none;">
+                                <div class="bold" style="font-size: 16pt; line-height: 1.5;">DOB Filing Fees (New Building)</div> <!-- MRS-6886 -->
+                                <div>DOB filing fees for a New Building are 0.256 cents per square foot.</div>
+                                <div class="bold">Please note: these fees are not listed in the above cost summary.</div>
+                                <div class="bold"><span style="text-decoration:underline;">Payment of these fees will be the responsibility of the client prior to filing.</span> A check payable to the DOB for the full filing fees is required at the time of filing.</div>
+                                <div class="bold" style="font-style: italic;">There is a 2.49% convenience fee to all credit card payments for filing fees made on behalf of our clients.  This 2.49% fee will be added to filing fees that Milrose pays on your behalf via credit card.</div>
+                                <br/>
+                            </td>
+                        </tr>
+                        <tr style="display: {!IF(CONTAINS(proposal.Municipal_Authority_Fees__c, 'DOB Variance Fees (Projected)'), 'table-row', 'none')};">
+                            <td class="line left" style="border-bottom: 1px solid black; border-top: none; border-right: none;">
+                                <div class="bold" style="font-size: 16pt; line-height: 1.5;">DOB After Hour Variance (AHV) Fees</div>
+                                <div class="center" style="width: 100%;">
+                                    <table class="content" style="width: 100%; margin: 0 auto;">
+                                        <tr>
+                                            <td class="line center" style="font-size: 11pt; border-top: 1px solid black; border-left: 1px solid black;">City Fee - Per Variance*</td> <!-- MRS-6886 -->
+                                            <td class="line center" style="font-size: 11pt; border-top: 1px solid black; ">City Fee – Per Day</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="line center" style="font-size: 11pt; border-left: 1px solid black; border-bottom: 1px solid black;">$100.00 per variance*</td> <!-- MRS-6886 -->
+                                            <td class="line center" style="font-size: 11pt; border-bottom: 1px solid black;">$80.00 per day</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div style="padding-left: 12.5mm;">*Variances can be granted for up to five weekdays or two weekend days or a combination of both for up to three days.</div>
+                                <div class="bold">Please note: these fees are not listed in the above cost summary.</div>
+                                <div class="bold"><span style="text-decoration:underline;">Payment of these fees will be the responsibility of the client prior to filing.</span> A check payable to the DOB for the full filing fees is required at the time of filing.</div>
+                                <div class="bold" style="font-style: italic;">There is a 2.49% convenience fee to all credit card payments for filing fees made on behalf of our clients.  This 2.49% fee will be added to filing fees that Milrose pays on your behalf via credit card.</div>
+                                <br/>
+                            </td>
+                        </tr>
+                        <tr style="display: {!IF(CONTAINS(proposal.Municipal_Authority_Fees__c, 'DOB Variance Fees (Determined)'), 'table-row', 'none')};">
+                            <td class="line left" style="border-bottom: 1px solid black; border-top: none; border-right: none;">
+                                <div class="bold" style="font-size: 16pt; line-height: 1.5;">DOB After Hour Variance (AHV) Fees</div>
+                                <div class="center" style="width: 100%;">
+                                    <table class="content" style="width: 100%; margin: 0 auto;">
+                                        <tr>
+                                            <td class="line center" style="font-size: 11pt; border-top: 1px solid black; border-left: 1px solid black;">City Fee - Per Variance*</td> <!-- MRS-6886 -->
+                                            <td class="line center" style="font-size: 11pt; border-top: 1px solid black;">City Fee – Per Day</td>
+                                            <td class="line center" style="font-size: 11pt; border-top: 1px solid black; bold;">DOB Fee</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="line center" style="font-size: 11pt; border-left: 1px solid black; border-bottom: 1px solid black;">$100.00 per variance*</td> <!-- MRS-6886 -->
+                                            <td class="line center" style="font-size: 11pt; border-bottom: 1px solid black;">$80.00 per day</td>
+                                            <td class="line center" style="font-size: 11pt; border-bottom: 1px solid black;">
+                                                <apex:outputText rendered="{!proposal.Projected_DOB_Fee__c != null}" value="${0, number,###,###,##0.00}">
+                                                     <apex:param value="{!proposal.Projected_DOB_Fee__c}"/>
+                                                </apex:outputText>
+                                                <apex:outputText rendered="{!proposal.Projected_DOB_Fee__c == null}">
+                                                    $0.00
+                                                </apex:outputText>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div style="padding-left: 12.5mm;">*Variances can be granted for up to five weekdays or two weekend days or a combination of both for up to three days.</div>
+                                <div class="bold">Please note: these fees may be listed in the above cost summary.</div>
+                                <div class="bold"><span style="text-decoration:underline;">Payment of these fees will be the responsibility of the client prior to filing.</span> A check payable to the DOB for the full filing fees is required at the time of filing.</div>
+                                <div class="bold" style="font-style: italic;">There is a 2.49% convenience fee to all credit card payments for filing fees made on behalf of our clients.  This 2.49% fee will be added to filing fees that Milrose pays on your behalf via credit card.</div>
+                                <br/>
+                            </td>
+                        </tr>
+                        <tr style="display: {!IF(CONTAINS(proposal.Municipal_Authority_Fees__c, 'DOT Fees'), 'table-row', 'none')};">
+                            <td class="line left" style="border-bottom: 1px solid black; border-top: none; border-right: none;">
+                                <div class="bold" style="font-size: 16pt; line-height: 1.5;">DOT Fees*</div>
+                                <div class="center" style="width: 100%;">
+                                    <table class="content" style="width: 100%; margin: 0 auto;">
+                                        <tr>
+                                            <td class="line center" style="font-size: 11pt; border-top: 1px solid black; border-left: 1px solid black;">DOT Fees per Permit</td>
+                                            <td class="line center" style="font-size: 11pt; border-top: 1px solid black;">$50.00 - $380.00</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="line center" style="font-size: 11pt; border-left: 1px solid black; border-bottom: 1px solid black;">Messenger Fees</td>
+                                            <td class="line center" style="font-size: 11pt; border-bottom: 1px solid black;">At Cost (If Applicable)</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div>* These costs are approximations and may differ.</div>
+                                <div class="bold">Please note: these fees are not listed in the above cost summary.</div>
+                                <div class="bold">
+                                    <span style="text-decoration:underline;">Payment of these fees will be the responsibility of the client prior to filing.</span>
+                                </div>
+                                <div class="bold" style="font-style: italic;">There is a 2.49% convenience fee to all credit card payments for filing fees made on behalf of our clients.  This 2.49% fee will be added to filing fees that Milrose pays on your behalf via credit card.</div>
+                                <br/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </apex:outputPanel>
+
+            <!-- Summary of Fees -->
+            <br/><br/>
+            <table class="content nobreak" style="page-break-inside: avoid;">
+                <thead>
+                    <tr>
+                        <td class="header bold" style="border-left: 1px solid black;">Summary of Fees</td>
+                        <td class="header bold">Total</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="line bold left" style="border-left: 1px solid black;">
+                            Proposal Services Total
+                        </td>
+                        <td class="line bold right">
+                            <apex:outputText value="${0, number,###,###,##0.00}">
+                                 <apex:param value="{!originalContent.total}"/>
+                            </apex:outputText>
+                        </td>
+                    </tr>
+                    <!-- <apex:repeat value="{!phaseNumbers}" var="phaseNumber">
+                        <tr>
+                            <td class="line left" style="border-left: 1px solid black;">
+                                <span class="bold">Phase:</span> {!phaseNumberToPhaseName[phaseNumber]}
+                            </td>
+                            <td class="line bold right">
+                                <apex:outputText value="${0, number,###,###,##0.00}">
+                                     <apex:param value="{!phaseNumberToPhaseTotal[phaseNumber]}"/>
+                                </apex:outputText>
+                            </td>
+                        </tr>
+                    </apex:repeat> -->
+					<apex:outputPanel layout="none" rendered="{!allChangeOrdersList.size > 0}"> <!-- MRS 7178 -->
+						<apex:repeat value="{!allChangeOrdersList}" var="co">
+                            <tr style="display: {!IF(!co.isRejectedOrCancelled, 'table-row', 'none')}">
+                                <td class="line left" style="border-left: 1px solid black;">
+                                    <span class="bold">Change Order #{!co.name} {!IF(co.awardedDate != null, ' - Awarded ' & TEXT(MONTH(co.awardedDate)) & '/' & TEXT(DAY(co.awardedDate)) & '/' & TEXT(YEAR(co.awardedDate)), '')}</span>
+                                </td>
+                                <td class="line bold right" style="">
+                                    <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!co.total >= 0}">
+                                         <apex:param value="{!co.total}"/>
+                                    </apex:outputText>
+                                    <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!co.total < 0}">
+                                         <apex:param value="{!co.total * -1}"/>
+                                    </apex:outputText>
+                                </td>
+                            </tr>
+							<tr style="display: {!IF(co.isRejectedOrCancelled, 'table-row', 'none')}">
+                                <td class="line left" style="border-left: 1px solid black;">
+                                    <span class="bold">Change Order #{!co.name} - {!co.status} {!TEXT(MONTH(co.sentDate)) & '/' & TEXT(DAY(co.sentDate)) & '/' & TEXT(YEAR(co.sentDate))}</span>
+                                </td>
+                                <td class="line bold right" style="">
+                                    $0.00
+                                </td>
+                            </tr>
+                        </apex:repeat>
+                    </apex:outputPanel>
+                    <tr style="display: {!IF(discount != 0, 'table-row', 'none')};">
+                        <td class="line bold left" style="border-left: 1px solid black;">Total Discount Applied</td>
+                        <td class="line bold right">
+                            <apex:outputText value="${0, number,###,###,##0.00}" rendered="{!discount >= 0}">
+                                 <apex:param value="{!discount}"/>
+                            </apex:outputText>
+                            <apex:outputText value="-${0, number,###,###,##0.00}" rendered="{!discount < 0}">
+                                 <apex:param value="{!discount * -1}"/>
+                            </apex:outputText>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="line bold left" style="border-left: 1px solid black;">
+                            Sales Tax
+                        </td>
+                        <td class="line bold right" style="">
+                            <apex:outputText value="${0, number,###,###,##0.00}">
+                                 <apex:param value="{!salesTax}"/>
+                            </apex:outputText>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="line bold left" style="border-left: 1px solid black;">
+                            Reimbursable Estimated
+                            <apex:outputText rendered="{!showReimbursablePercentage}">:&nbsp;
+                                <apex:outputText value="{0, number,###,###,##0}%">
+                                     <apex:param value="{!reimbursablePercentage}"/>
+                                </apex:outputText>
+                            </apex:outputText>
+                        </td>
+                        <td class="line bold right">
+                            <apex:outputText value="${0, number,###,###,##0.00}">
+                                 <apex:param value="{!reimbursable}"/> <!--proposal.Reimbursable_Estimated__c-->
+                            </apex:outputText>
+                        </td>
+                    </tr>
+                    <apex:repeat value="{!reimbursableList}" var="reimbursableRecord">
+                        <tr>
+                            <td class="line bold left" style="border-left: 1px solid black;">
+                                {!reimbursableRecord.Description__c}
+                            </td>
+                            <td class="line bold right">
+                                <apex:outputText value="${0, number,###,###,##0.00}">
+                                     <apex:param value="{!reimbursableRecord.Amount__c}"/>
+                                </apex:outputText>
+                            </td>
+                        </tr>
+                    </apex:repeat>
+                    <tr>
+                        <td class="line bold left" style="border-left: 1px solid black; border-bottom: 1px solid black;">
+                            Cumulative Total
+                        </td>
+                        <td class="line bold right" style="border-bottom: 1px solid black;">
+                            <apex:outputText value="${0, number,###,###,##0.00}">
+                                 <apex:param value="{!grandTotal}"/> <!--proposal.Cost__c-->
+                            </apex:outputText>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+
+            <div class="bold" style="padding-top: 12pt; ">Progress Billing</div> <!-- MRS 6953 -->
+            <div class="justify">Milrose bills certain services in installments upon the completion of key milestones for that service. Services subject to installment billing are: New Building Applications; Alteration Type 1 Applications; Applications related to Fire Alarm, Sprinkler, Standpipe, Fire Protection Plan, and Place of Assembly; Certificate of Occupancy Services; and Letters of Completion.</div>
+
+            <!-- Signature Section -->
+            <table class="content pageBreakBefore">
+                <tr>
+                    <td>
+                        <div class="bold">CLIENT:</div>
+                        <br/>
+                        <br/>
+                        <div style="width: 100%;">
+                            <div style="position: absolute; width: 6.50cm; height: 2.50cm; vertical-align: middle; margin-left: auto; margin-right: auto; text-align: left;">
+                                <div style="position: relative; top: 0.0cm; left: 1.8cm; z-index: -100; width: 100%; height: 100%;">
+                                    <span style="color: #FFF; display: {!IF(hasPendingDocusignCo, 'inline', 'none')};">dl.signhere.2</span>
+                                </div>
+                            </div><!--
+                            --><div style="display: inline-block; width: 7.0%;">By:</div><!--
+                            --><div  style="display: inline-block; width: 42.5%; border-bottom: 1px solid black;">&nbsp;</div><!--
+                            --><div style="display: inline-block; width: 8.0%;">&nbsp;&nbsp;Date:</div><!--
+                            --><div  style="display: inline-block; width: 42.5%; border-bottom: 1px solid black;">&nbsp; <span style="color: #FFF; font: 9pt Arial, Sans-serif; display: {!IF(hasPendingDocusignCo, 'inline', 'none')};">dl.datesign.2</span></div>
+                        </div>
+                        <span class="bold">{!proposal.Billing_Company_Contact__r.Name}</span><!--
+                        --><span class="bold" style="display: {!IF(proposal.Billing_Company_Contact__r.Suffix__c != null, 'inline', 'none')};">, </span><!--
+                        --><span class="bold">{!proposal.Billing_Company_Contact__r.Suffix__c}</span><!--
+                        --><span class="bold" style="display: {!IF(proposal.Billing_Company_Contact__r.Name != null || proposal.Billing_Company_Contact__r.Suffix__c != null, 'inline', 'none')};">, </span><!--
+                        --><span class="bold">{!proposal.Billing_Company_Contact__r.Title}</span><!--
+                        --><span class="bold" style="display: {!IF(proposal.Billing_Company_Contact__r.Name != null || proposal.Billing_Company_Contact__r.Title != null || proposal.Billing_Company_Contact__r.Suffix__c != null, 'inline', 'none')};"> </span><!--
+                        --><span class="bold">for</span><br/>
+                        <span class="bold">{!proposal.Billing_Company_Name__r.Name}</span><br/>
+                        <br/><br/><br/>
+                        <div class="bold">MILROSE CONSULTANTS, INC.</div>
+                        <br/>
+                        <br/>
+                        <div style="width: 100%;">
+                            <div style="position: absolute; width: 6.50cm; height: 2.50cm; vertical-align: middle; margin-left: auto; margin-right: auto;">
+                                <div style="position: relative; top: -1.5cm; left: 1.8cm; z-index: -100; width: 100%; height: 100%;">
+                                    <img src="{!URLFOR($Resource.Signatures, partnerImage)}" style="width: 100%;"/>
+                                </div>
+                            </div><!--
+                            --><div style="display: inline-block; width: 7.0%;">By:</div><!--
+                            --><div  style="display: inline-block; width: 42.5%; border-bottom: 1px solid black;">&nbsp;</div><!--
+                            --><div style="display: inline-block; width: 8.0%;">&nbsp;&nbsp;Date:</div><!--
+                            --><div  style="display: inline-block; width: 42.5%; border-bottom: 1px solid black;">&nbsp; {!MONTH(TODAY())}/{!DAY(TODAY())}/{!YEAR(TODAY())}</div>
+                        </div>
+                        <span class="bold">{!IF(proposal.Partner__r.Name != null, proposal.Partner__r.Name, 'Dominic Maurillo, ')}</span><!--
+                        --><span class="bold" style="display: {!IF(proposal.Partner__r.Title != null, 'inline', 'none')};">, </span><!--
+                        --><span class="bold">{!IF(proposal.Partner__r.Title != null, proposal.Partner__r.Title, 'Chief Operating Officer ')}</span><!--
+                        --><span class="bold" style="display: {!IF(proposal.Partner__r.Title != null || proposal.Partner__r.Name != null, 'inline', 'none')};"> </span><!--
+                        --><span class="bold">for</span><br/>
+                        <div class="bold">Milrose Consultants, Inc.</div>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <div>Please verify invoicing instructions:</div>
+                        <br/>
+                        <table style="width: 100%; border-collapse: collapse; border-spacing: 0;">
+                            <tr>
+                                <td style="width: 50%; vertical-align: top; padding: 0px;">
+                                    <div>
+                                        <span class="bold left">Mail invoices to:</span><br/>
+                                        <apex:outputPanel layout="none" rendered="{!proposal.Accounting_Contact_Company__r.Name != null}">
+                                            <span>{!proposal.Accounting_Contact_Company__r.Name}</span><br/>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel layout="none" rendered="{!proposal.Accounting_Contact__r.MailingStreet != null}">
+                                            <span>{!proposal.Accounting_Contact__r.MailingStreet}</span><br/>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel layout="none" rendered="{!proposal.Accounting_Contact__r.MailingCity != null || proposal.Accounting_Contact__r.MailingState != null || proposal.Accounting_Contact__r.MailingPostalCode != null}">
+                                            <span>{!proposal.Accounting_Contact__r.MailingCity} {!proposal.Accounting_Contact__r.MailingState} {!proposal.Accounting_Contact__r.MailingPostalCode}</span><br/>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel layout="none" rendered="{!proposal.Accounting_Contact__r.Name != null}">
+                                            <span>Attn: {!proposal.Accounting_Contact__r.Salutation} {!proposal.Accounting_Contact__r.Name}</span>
+                                        </apex:outputPanel>
+                                        <br/>
+                                        <br/>
+                                    </div>
+                                    <div class="left"><span class="bold">Delivery method:</span>&nbsp;{!proposal.Delivery_Method__c}</div>
+                                    <apex:outputPanel layout="none" rendered="{!proposal.Delivery_Method__c == 'Email'}">
+                                        <div>{!proposal.Accounting_Contact__r.Email}</div>
+                                    </apex:outputPanel>
+                                </td>
+                                <td style="width: 50%; vertical-align: top; padding: 0px;">
+                                    <div>
+                                        <span class="bold left">Party to be billed:</span><br/>
+                                        <apex:outputPanel layout="none" rendered="{!proposal.Billing_Company_Name__r.Name != null}">
+                                            <span>{!proposal.Billing_Company_Name__r.Name}</span><br/>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel layout="none" rendered="{!proposal.Billing_Company_Contact__r.MailingStreet != null}">
+                                            <span>{!proposal.Billing_Company_Contact__r.MailingStreet}</span><br/>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel layout="none" rendered="{!proposal.Billing_Company_Contact__r.MailingCity != null || proposal.Billing_Company_Contact__r.MailingState != null || proposal.Billing_Company_Contact__r.MailingPostalCode != null}">
+                                            <span>{!proposal.Billing_Company_Contact__r.MailingCity} {!proposal.Billing_Company_Contact__r.MailingState} {!proposal.Billing_Company_Contact__r.MailingPostalCode}</span><br/>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel layout="none" rendered="{!proposal.Billing_Company_Contact__r.Name != null}">
+                                            <span>Attn: {!proposal.Billing_Company_Contact__r.Salutation} {!proposal.Billing_Company_Contact__r.Name}</span>
+                                        </apex:outputPanel>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </apex:outputPanel>
+</apex:page>

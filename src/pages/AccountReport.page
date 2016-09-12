@@ -1,0 +1,487 @@
+<apex:page sidebar="{!isRunningSeparately}" showHeader="{!isRunningSeparately}" showChat="{!isRunningSeparately}" controller="AccountReportController" title="Account Management Reports" action="{!autorun}">
+    <script>function setFocusOnLoad() {}</script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script type="text/javascript">
+        function showAllPanelsOverlay() {
+            $('#overlayContent').show().fadeTo('slow', 1.0);
+            $('#AllPannelOverlay').show().fadeTo('slow', 0.7);
+        }
+        function hideAllPanelsOverlay() {
+            $('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });
+            $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });
+        }
+        var asrrRenderas = {!asrrRenderas} == true ? 'xls' : 'pdf';
+        var asrrDocStyle = {!asrrDocStyle} == true ? 'new' : 'old';
+        var asrrLineDetail = {!asrrLineDetail} == true ? 'new' : 'old';
+        var soaRenderas = {!soaRenderas} == true ? 'xls' : 'pdf';
+        var soaCombine = {!soaCombine} == true ? true : false;
+        var printAmName = {!printAmName} == true ? true : false;
+        var reportids = '';
+        var reportnames = '';
+
+        function redrawSoaSearchResult() {
+            if( soaCombine ) {
+                $('#soaSingleAccountReport').hide();
+                $('#soaCombinedAccountReport').show();
+            } else {
+                $('#soaSingleAccountReport').show();
+                $('#soaCombinedAccountReport').hide();
+            }
+        }
+        
+        function getParams( url ) {
+            var paramsStart = url.indexOf('?');
+            var params = null;
+            //no params available
+            if(paramsStart != -1){
+                var paramsString = url.substring(url.indexOf('?') + 1, url.length);
+                //only '?' available
+                if(paramsString != ""){
+                    var paramsPairs = paramsString.split('&');
+                    //preparing
+                    params = {};
+                    var empty = true;
+                    var index  = 0;
+                    var key = "";
+                    var val = "";
+                    for(i = 0, len = paramsPairs.length; i < len; i++){
+                        index = paramsPairs[i].indexOf('=');
+                        //if assignment symbol found
+                        if(index != -1){
+                            key = paramsPairs[i].substring(0, index);
+                            val = paramsPairs[i].substring(index + 1, paramsPairs[i].length);
+                            if(key != "" && val != ""){
+                                //extend here for decoding, integer parsing, whatever...
+                                params[key] = val;
+                                if(empty){
+                                    empty = false;
+                                }
+                            }                    
+                        }
+                    }
+                    if(empty){
+                        params = null;
+                    }
+                }
+            }
+            return params;
+        }
+
+        function isIe() {
+            var ua = window.navigator.userAgent;
+            var msie = ua.indexOf('MSIE ') > 0;
+            var ie11 = ua.indexOf('Trident/') > 0;
+            var ie12 = ua.indexOf('Edge/') > 0;
+            return msie || ie11 || ie12;
+        }
+
+        var downloadFrameIdEnding = 'FileDownloadIframe';
+        function downloadFile( url, fileIndex, isSingleFile ) {
+            console.log( 'url: ' + url );
+            var downloadFrameId = 'a' + ( isSingleFile ? 'Single' : fileIndex ) + downloadFrameIdEnding;
+            var downloadFrame = document.createElement('iframe');
+            downloadFrame.src = url;
+            downloadFrame.id = downloadFrameId;
+            downloadFrame.style.display = 'none';
+            document.body.appendChild(downloadFrame);
+            $('#' + downloadFrameId).load( function() { hideAllPanelsOverlay(); } );
+        }
+
+        function downloadFiles( partialUrls, fileIndex, isSingleFile ) {
+            downloadFile( partialUrls[0], fileIndex, isSingleFile );
+            fileIndex++;
+            if( partialUrls.length > 1 ) {
+                window.setTimeout( function () { downloadFiles( partialUrls.slice(1), fileIndex, isSingleFile ) }, 8000 );
+            }
+        }
+
+        function getPartialUrls( fullUrl ) {
+            var maxAccountsLength = isIe() ? 100 : 350;
+            $('[id$=' + downloadFrameIdEnding + ']').remove();
+            var urlParams = getParams( fullUrl );
+            var accounts = [];
+            if( urlParams.p ) {
+                accounts = urlParams.p.split(',');
+            }
+            var partialUrls = [];
+            if( fullUrl.indexOf('/apex/SOA') === 0 && accounts.length > maxAccountsLength ) { //only for soa if account count is high
+                var partNumber = 1;
+                var currentAccountNumber = 1;
+                var partialAccounts = [];
+                for( accountIndex in accounts ) {
+                    currentAccountNumber++;
+                    partialAccounts.push( accounts[accountIndex] );
+                    if( currentAccountNumber > maxAccountsLength || accountIndex == accounts.length - 1 ) {
+                        currentAccountNumber = 1;
+                        var partialUrl = '/apex/SOA?p=' + partialAccounts;
+                        for( urlParam in urlParams ) {
+                            if( urlParam != 'p' ) {
+                                partialUrl += '&' + urlParam + '=' + urlParams[urlParam];
+                            }
+                        }
+                        partialUrl += '&part=' + partNumber;
+                        partNumber++;
+                        partialAccounts = [];
+                        partialUrls.push( partialUrl );
+                    }
+                }
+            } else { //for the rest
+                partialUrls.push( fullUrl );
+            }
+            return partialUrls;
+        }
+
+        function performDownload( fullUrl ) {
+            var partialUrls = getPartialUrls( fullUrl );
+            if( partialUrls.length > 1 ) {
+                createCombinedFileDownloadLinks( partialUrls );
+            }
+            if( isIe() && partialUrls.length > 1 ) { //workaround for many files and ie
+                downloadFiles( partialUrls, 1, partialUrls.length == 1 );
+            } else {
+                for( partialUrlIndex in partialUrls ) { //all other cases
+                    var partNumber = partialUrlIndex;
+                    partNumber++;
+                    downloadFile( partialUrls[partialUrlIndex], partNumber, partialUrls.length == 1 );
+                }
+            }
+        }
+
+        function createCombinedFileDownloadLinks( partialUrls ) {
+            var $parent = $('#soaCombinedLinks');
+            $parent.empty();
+            console.log( 'sadf ' + partialUrls );
+            for( partialUrlIndex in partialUrls ) {
+                console.log( 'partialUrlIndex ' + partialUrlIndex );
+                console.log( 'partialUrls[partialUrlIndex] ' + partialUrls[partialUrlIndex] );
+                var partNumber = partialUrlIndex;
+                partNumber++;
+                $parent.append('<a href="#" onclick="performDownload(\'' + partialUrls[partialUrlIndex] + '\');">Statement Of Accounts - Combined Report - Part ' + partNumber + '</a>&nbsp;&nbsp;&nbsp;');
+            }
+            $('#soaCombinedLinksPanel').show();
+        }
+
+        function hideCombinedLinksPanel() {
+            $('#soaCombinedLinksPanel').hide();
+        }
+    </script>
+    <style type="text/css">
+        .pbSubheader {
+            background-color: gray !important;
+            color: white !important;
+        }
+        .bPageBlock .pbHeader .btnDisabled {
+            margin-left: 3px;
+            margin-right: 3px;
+        }
+    </style>
+    <apex:form >
+        <apex:pageMessages id="msgs" />
+
+        <apex:actionFunction name="generateAsrReport" action="{!generateAsr}" reRender="msgs, resultsAsrReport" oncomplete="$('.asrReportButton, .soaReportButton').removeAttr('disabled').addClass('btn').removeClass('btnDisabled');" status="inlineStatusAsr"/>
+        <apex:actionFunction name="generateSoaReport" action="{!generateSoa}" reRender="msgs, resultsSoaReport" oncomplete="if( $('.message').length == 0 && {!sendStatement} ) { sendLoopRequestsSOA(); } else { $('.soaReportButton, .asrReportButton').removeAttr('disabled').addClass('btn').removeClass('btnDisabled'); }" status="inlineStatusSoa"/>
+
+        <apex:actionFunction name="sendLoopRequestsSOA" action="{!sendEmail}" reRender="msgs" oncomplete="$('.soaReportButton').removeAttr('disabled').addClass('btn').removeClass('btnDisabled'); $('.asrReportButton').removeAttr('disabled').addClass('btn').removeClass('btnDisabled');"/>
+        <apex:actionFunction name="refreshfileDownloadIframePanel" reRender="msgs, fileDownloadIframePanel" status="allPanelsOverlay" oncomplete="showAllPanelsOverlay();">
+            <apex:param assignTo="{!fileDownloadIframeSrc}" value="" name="fileDownloadIframeSrc"/>
+        </apex:actionFunction>
+
+        <apex:actionStatus id="inlineStatusAsr" onstart="$('.inlineStatusAsr').css('display', 'inline-block');" onstop="$('.inlineStatusAsr').css('display', 'none');"/> 
+        <apex:actionStatus id="inlineStatusSoa" onstart="$('.inlineStatusSoa').css('display', 'inline-block');" onstop="$('.inlineStatusSoa').css('display', 'none');"/> 
+        <apex:actionStatus id="allPanelsOverlay" onstart="showAllPanelsOverlay();" onstop="hideAllPanelsOverlay();"/>
+        <div class="AllInfoPanelHolder" style="position: relative; overflow: auto; -webkit-overflow-scrolling: touch;">
+            <div id="AllPannelOverlay" style="display: none; opacity: 0.2; filter:alpha(opacity=20); width: 100%; height: 100%; position: absolute; text-align: center; z-index: 1000; padding: 0; margin: 0; background-color: #F7FAFF; font-family: Arial; font-size: 24px; color: #000077; opacity:0.8;"></div>
+            <div id="overlayContent" style="display: none; opacity:0.2; filter:alpha(opacity=20); position: absolute; top: 35%; left: 40%; padding: 15px 30px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF;">
+                <div style="text-align: center;">
+                    <img src="{!URLFOR($Resource.ProposalWizardResources, 'img/WaitAnimation.gif')}" />
+                    <div style="color: #038; margin-bottom: 0px; font-size: 24px; padding-top: 10px; cursor: default;">Please wait</div>
+                </div>
+            </div>
+            <apex:pageBlock title="Account Summary Recap Report" rendered="{!isRunningSeparately}">
+                <apex:pageBlockButtons location="top"><!--
+                    --><apex:commandButton disabled="{!!isAllowedProfile}" styleClass="asrReportButton" value="Search" onclick="$('.soaReportButton, .asrReportButton').attr('disabled', 'disabled').addClass('btnDisabled').removeClass('btn'); $('[id$='+downloadFrameIdEnding+']').css('display', 'none'); generateAsrReport(); return false;" reRender="" /><!--
+                    --><div style="display: inline-block; vertical-align: middle; width: 80px;">
+                        <div class="inlineStatusAsr" style="display: none;">
+                            <div style="display: inline-block; float: left;">
+                                <img src="/img/loading32.gif" width="16" height="16"/>
+                            </div>
+                            &nbsp;
+                            <span class="boldText" style="color: #808080;">Working...</span>
+                        </div>
+                    </div><!--
+                    --><apex:outputPanel layout="none">
+                        <div style="display: inline-block; padding-left: 0px;">
+                            <apex:inputCheckbox id="asrrDocStyle" value="{!asrrDocStyle}" title="When checked, the removed services do not appear on the report, otherwise removed services appear twice" onchange="asrrDocStyle = this.checked == true ? 'new' : 'old';"/>
+                            <apex:outputLabel value="Exclude Services Removed by CO" for="asrrDocStyle" style="color: #4a4a56; font-size: 91%; font-weight: bold;"/>
+                        </div>
+                        <div style="display: inline-block; padding-left: 10px;">
+                            <apex:inputCheckbox id="asrrLineDetail" value="{!asrrLineDetail}" title="Show individual billed, paid and due amounts for each BLI" onchange="asrrLineDetail = this.checked == true ? true : false;"/>
+                            <apex:outputLabel value="Line Detail" for="asrrLineDetail" style="color: #4a4a56; font-size: 91%; font-weight: bold;"/>
+                        </div>
+                    </apex:outputPanel>
+                </apex:pageBlockButtons>
+                <apex:pageBlockSection title="Filter By:" collapsible="false" columns="{!IF(showProjectProfileBillingCompanyFiltersOnly, 1, 2)}" id="generateAsrReportFilter">
+                    <apex:inputField value="{!asrHelper.Project_Profile__c}" styleClass="disableJQ" label="Project Profile"/>
+                    <apex:pageBlockSectionItem rendered="{!!showProjectProfileBillingCompanyFiltersOnly}"/>
+                    <apex:inputField value="{!asrHelper.Billing_Company__c}" styleClass="disableJQ" label="Billing Company"/>
+                    <apex:inputField value="{!asrHelper.Billing_Company_Contact__c}" styleClass="disableJQ" label="Billing Company Contact" rendered="{!!showProjectProfileBillingCompanyFiltersOnly}"/>
+                    <apex:inputField value="{!asrHelper.Accounting_Company__c}" styleClass="disableJQ" label="Accounting Company" rendered="{!!showProjectProfileBillingCompanyFiltersOnly}"/>
+                    <apex:inputField value="{!asrHelper.Accounting_Company_Contact__c}" styleClass="disableJQ" label="Accounting Company Contact" rendered="{!!showProjectProfileBillingCompanyFiltersOnly}"/>
+                </apex:pageBlockSection>
+                <apex:pageBlockSection title="Results{!IF(foundAsrrReportsProjectNameToIds != null, ' (click will generate a report)', '')}:" collapsible="false" columns="1" id="resultsAsrReport" rendered="{!!sendStatement}">
+                    <apex:outputPanel rendered="{!foundAsrrReportsProjectNameToIds != null}" layout="block" style="max-height: 270px; overflow: auto;">
+                        <apex:repeat value="{!foundAsrrProjectNames}" var="projectName">
+                            <apex:repeat value="{!foundAsrrReportsProjectNameToIds[projectName]}" var="reportId">
+                                <a href="#" onclick="refreshfileDownloadIframePanel('/apex/ASRR?p={!reportId}{!IF( asrHelper.Project_Profile__c != null, '&ppr=' + asrHelper.Project_Profile__c, '')}{!IF( asrHelper.Billing_Company__c != null, '&bc=' + asrHelper.Billing_Company__c, '')}&type='+asrrDocStyle+'&detail='+asrrLineDetail); return false;">{!projectName}</a>&nbsp;
+                            </apex:repeat>
+                        </apex:repeat>
+                    </apex:outputPanel>
+                </apex:pageBlockSection>
+            </apex:pageBlock>
+
+            <div class="apexp">
+                <div class="bPageBlock brandSecondaryBrd apexDefaultPageBlock secondaryPalette">
+                    <div class="pbHeader">
+                        <table border="0" cellpadding="0" cellspacing="0">
+                            <tbody>
+                                <tr>
+                                    <td class="pbTitle">
+                                        <h2 class="mainTitle">Statement of Accounts</h2>
+                                    </td>
+                                    <td class="pbButton"><!--
+                                        --><apex:commandButton disabled="{!!isAllowedProfile}" styleClass="soaReportButton" value="{!IF(sendStatement, 'Generate Statements', 'Search')}" onclick="$('.soaReportButton, .asrReportButton').attr('disabled', 'disabled').addClass('btnDisabled').removeClass('btn'); $('[id$='+downloadFrameIdEnding+']').css('display', 'none'); generateSoaReport(); return false;" reRender=""/><!--
+                                        --><apex:commandButton id="goBack" value="Go Back" action="{!goBack}" rendered="{!!isRunningSeparately}"/><!--
+                                        --><div style="display: inline-block; vertical-align: middle; width: 80px;">
+                                            <div class="inlineStatusSoa" style="display: none;">
+                                                <div style="display: inline-block; float: left;">
+                                                    <img src="/img/loading32.gif" width="16" height="16"/>
+                                                </div>
+                                                &nbsp;
+                                                <span class="boldText" style="color: #808080;">Working...</span>
+                                            </div>
+                                        </div><!--
+                                        --><apex:outputPanel rendered="{!isRunningSeparately}" layout="none">
+                                            <div style="display: inline-block; padding-left: 0px;">
+                                                <apex:inputCheckbox id="soaRenderas" value="{!soaRenderas}" title="Will create XLS if checked, and PDF if unchecked" onchange="soaRenderas = this.checked == true ? 'xls' : 'pdf'; hideCombinedLinksPanel();"/>
+                                                <apex:outputLabel value="Export as Excel" for="soaRenderas" style="color: #4a4a56; font-size: 91%; font-weight: bold;"/>
+                                            </div>
+                                            <div style="display: inline-block; padding-left: 10px;">
+                                                <apex:inputCheckbox id="soaCombine" value="{!soaCombine}" title="Will combine search resutls into one document" onchange="soaCombine = this.checked == true ? true : false; redrawSoaSearchResult(); hideCombinedLinksPanel();"/>
+                                                <apex:outputLabel value="Combine Statements" for="soaCombine" style="color: #4a4a56; font-size: 91%; font-weight: bold;"/>
+                                            </div>
+                                            <div style="display: inline-block; padding-left: 10px;">
+                                                <apex:inputCheckbox id="printAmName" value="{!printAmName}" title="Print AM Name" onchange="printAmName = this.checked == true ? true : false; hideCombinedLinksPanel();"/>
+                                                <apex:outputLabel value="Print AM Name" for="printAmName" style="color: #4a4a56; font-size: 91%; font-weight: bold;"/>
+                                            </div>
+                                        </apex:outputPanel>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pbBody">
+                        <div>
+                            <div class="pbSubheader brandTertiaryBgr first tertiaryPalette">
+                                <h3>Filter By:</h3>
+                            </div>
+                            <div class="pbSubsection">
+                                <table class="detailList" border="0" cellpadding="0" cellspacing="0">
+                                    <tbody>
+                                        <apex:outputPanel layout="none" rendered="{!showProjectProfileBillingCompanyFiltersOnly}">
+                                            <tr>
+                                                <th class="labelCol vfLabelColTextWrap first" scope="row">
+                                                    <apex:outputLabel value="Project Profile" for="Project_Profile_Home_Page__c"/>
+                                                </th>
+                                                <td class="data2Col first">
+                                                    <apex:inputField value="{!soaHelper.Project_Profile__c}" styleClass="disableJQ" id="Project_Profile_Home_Page__c"/>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <th class="labelCol vfLabelColTextWrap last" scope="row">
+                                                    <apex:outputLabel value="Billing Company" for="Billing_Company_Home_Page__c"/>
+                                                </th>
+                                                <td class="data2Col last">
+                                                    <apex:inputField value="{!soaHelper.Billing_Company__c}" styleClass="disableJQ" id="Billing_Company_Home_Page__c"/>
+                                                </td>
+                                            </tr>
+                                        </apex:outputPanel>
+
+                                        <apex:outputPanel layout="none" rendered="{!!showProjectProfileBillingCompanyFiltersOnly}">
+                                            <tr>
+                                                <th class="labelCol vfLabelColTextWrap first" scope="row">
+                                                    <apex:outputLabel value="Project Profile" for="Project_Profile__c"/>
+                                                </th>
+                                                <td class="dataCol first">
+                                                    <apex:inputField value="{!soaHelper.Project_Profile__c}" styleClass="disableJQ" id="Project_Profile__c"/>
+                                                </td>
+                                                <th class="labelCol vfLabelColTextWrap first" scope="row">
+                                                    <apex:outputLabel value="Account Manager" for="Account_Manager__c"/>
+                                                </th>
+                                                <td class="dataCol labelCol first">
+                                                    <div style="display: inline-block;">
+                                                        <apex:inputField value="{!soaHelper.Account_Manager__c}" styleClass="disableJQ" id="Account_Manager__c"/>
+                                                    </div>
+                                                    <div style="display: inline-block;">
+                                                        <apex:inputCheckbox value="{!noAccountManager}" id="NoAccountManager" onclick="if( this.checked ) { $('[id$=Account_Manager__c]').val('').css( 'margin-right', '23px' ).css( 'margin-bottom', '2px' ).attr( 'disabled', 'disabled' ); $('[id$=Account_Manager__c]').parent().find('a').hide(); } else { $('[id$=Account_Manager__c]').removeAttr( 'disabled' ).css( 'margin-right', 'auto' ).css( 'margin-bottom', 'auto' ); $('[id$=Account_Manager__c]').parent().find('a').show(); }"/>
+                                                        <apex:outputLabel value="No Account Manager" for="NoAccountManager"/>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <th class="labelCol vfLabelColTextWrap" scope="row">
+                                                    <apex:outputLabel value="Billing Company" for="Billing_Company__c"/>
+                                                </th>
+                                                <td class="dataCol">
+                                                    <apex:inputField value="{!soaHelper.Billing_Company__c}" styleClass="disableJQ" id="Billing_Company__c"/>
+                                                </td>
+                                                <th class="labelCol vfLabelColTextWrap" scope="row">
+                                                    <apex:outputLabel value="Billing Company Contact" for="Billing_Company_Contact__c"/>
+                                                </th>
+                                                <td class="dataCol">
+                                                    <apex:inputField value="{!soaHelper.Billing_Company_Contact__c}" styleClass="disableJQ" label="Billing Company Contact" id="Billing_Company_Contact__c"/>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <th class="labelCol vfLabelColTextWrap" scope="row">
+                                                    <apex:outputLabel value="Accounting Company" for="Accounting_Company__c"/>
+                                                </th>
+                                                <td class="dataCol">
+                                                    <apex:inputField value="{!soaHelper.Accounting_Company__c}" styleClass="disableJQ" rendered="{!ISBLANK(runningAccount.Id)}" id="Accounting_Company__c"/>
+                                                    <apex:inputText value="{!runningAccount.Name}" rendered="{!!ISBLANK(runningAccount.Id)}" disabled="True"/>
+                                                </td>
+                                                <th class="labelCol vfLabelColTextWrap" scope="row">
+                                                    <apex:outputLabel value="Accounting Company Contact" for="Accounting_Company_Contact__c"/>
+                                                </th>
+                                                <td class="dataCol">
+                                                    <apex:inputField value="{!soaHelper.Accounting_Company_Contact__c}" styleClass="disableJQ" rendered="{!ISBLANK(runningContact.Id)}" id="Accounting_Company_Contact__c"/>
+                                                    <apex:inputText value="{!runningContact.Name}" rendered="{!!ISBLANK(runningContact.Id)}" disabled="True"/>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <th class="labelCol vfLabelColTextWrap" scope="row">
+                                                    <apex:outputLabel value="A/R Coordinator" for="A_R_Coordinator__c"/>
+                                                </th>
+                                                <td class="dataCol">
+                                                    <apex:inputField value="{!soaHelper.A_R_Coordinator__c}" styleClass="disableJQ" id="A_R_Coordinator__c"/>
+                                                </td>
+                                                <th class="labelCol vfLabelColTextWrap" scope="row">
+                                                    <apex:outputLabel value="Fulfillment Office" for="Fulfillment_Office__c"/>
+                                                </th>
+                                                <td class="dataCol">
+                                                    <apex:selectList value="{!soaFulfillmentOffice}" styleClass="disableJQ" size="1" id="Fulfillment_Office__c" style="margin: 2px; width: 12.8em;">
+                                                        <apex:selectOptions value="{!fulfillmentOfficeOption}"/>
+                                                    </apex:selectList>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <th class="labelCol vfLabelColTextWrap last" scope="row">
+                                                    <apex:outputLabel value="Partner" for="Partner__c"/>
+                                                </th>
+                                                <td class="dataCol labelCol last">
+                                                    <div style="display: inline-block;">
+                                                        <apex:selectList value="{!soaPartner}" styleClass="disableJQ" size="1" id="Partner__c" style="margin: 2px; width: 12.8em;">
+                                                            <apex:selectOptions value="{!partners}"/>
+                                                        </apex:selectList>
+                                                    </div>
+                                                    <div style="display: inline-block;">
+                                                        <apex:inputCheckbox value="{!noPartner}" id="NoPartner" onclick="if( this.checked ) { $('[id$=Partner__c] option').eq(0).prop('selected', true); $('[id$=Partner__c]').attr( 'disabled', 'disabled' ); } else { $('[id$=Partner__c]').removeAttr( 'disabled' ); }"/>
+                                                        <apex:outputLabel value="No Partner" for="NoPartner"/>
+                                                    </div>
+                                                </td>
+                                                <th class="labelCol empty" scope="row">
+                                                    <apex:outputLabel value="" for=""/>
+                                                </th>
+                                                <td class="dataCol empty">
+                                                </td>
+                                            </tr>
+                                        </apex:outputPanel>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <apex:outputPanel layout="block" id="resultsSoaReport" rendered="{!!sendStatement}">
+                            <div id="soaCombinedLinksPanel" style="display: none">
+                                <div class="pbSubheader brandTertiaryBgr tertiaryPalette">
+                                    <h3>Combined files (click will generate a report):</h3>
+                                </div>
+                                <div class="pbSubsection">
+                                    <apex:outputPanel layout="block" style="">
+                                        <table class="detailList" border="0" cellpadding="0" cellspacing="0">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="data2Col first last" colspan="2" style="padding-bottom: 0px;">
+                                                        <div style="color: #33A;">The system will start to automatically download the files in a while. If it hasn't started in a minute, or you missed to download some files, click these links to do it manually for each part you need:</div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="data2Col first last" colspan="2" style="padding-bottom: 0px;">
+                                                        <div id="soaCombinedLinks">
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </apex:outputPanel>
+                                </div>
+                            </div>
+                            <div class="pbSubheader brandTertiaryBgr tertiaryPalette">
+                                <h3>Results{!IF(foundSoaReportsAccountNameToIds != null, ' (click will generate a report)', '')}:</h3>
+                            </div>
+                            <div class="pbSubsection">
+                                <apex:outputPanel rendered="{!foundSoaReportsAccountNameToIds != null}" layout="block" style="max-height: 270px; overflow: auto;">
+                                    <table class="detailList" border="0" cellpadding="0" cellspacing="0">
+                                        <tbody>
+                                            <tr>
+                                                <td class="data2Col first last" colspan="2">
+                                                    <div id="soaSingleAccountReport" style="display: {!IF(!soaCombine, 'block', 'none')};">
+                                                        <apex:repeat value="{!foundSoaReportAccountNamesSplit}" var="reportNamesSplitByThousand">
+                                                            <apex:repeat value="{!reportNamesSplitByThousand}" var="accountName">
+                                                                <apex:repeat value="{!foundSoaReportsAccountNameToIds[accountName]}" var="accountId">
+                                                                    <a href="#" onclick="refreshfileDownloadIframePanel('{!foundSoaReportsAccountIdToSingleLink[accountId]}&renderas='+soaRenderas+'&printam='+printAmName); return false;">{!accountName}</a>&nbsp;
+                                                                </apex:repeat>
+                                                            </apex:repeat>
+                                                        </apex:repeat>
+                                                    </div>
+                                                    <div id="soaCombinedAccountReport" style="display: {!IF(soaCombine, 'block', 'none')};">
+                                                        <a id="combinedlink" href="#" onclick="refreshfileDownloadIframePanel('{!foundSoaReportsGroupLink}&renderas='+soaRenderas+'&printam='+printAmName); return false;">{!foundSoaReportsGroupNames}</a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </apex:outputPanel>
+                            </div>
+                        </apex:outputPanel>
+                    </div>
+                    <div class="pbFooter secondaryPalette">
+                        <div class="bg">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <apex:outputPanel rendered="{!!sendStatement}" id="fileDownloadIframePanel">
+                <apex:outputPanel rendered="{!fileDownloadIframeSrc != null && fileDownloadIframeSrc != ''}">
+                    <script type="text/javascript">
+                        performDownload( '{!fileDownloadIframeSrc}' );
+                    </script>
+                </apex:outputPanel>
+            </apex:outputPanel>
+            <script>
+                $('select[title="Search scope"]').hide();
+            </script>
+            <script>
+                if( {!!isAllowedProfile} ) {
+                    $('.disableJQ').attr('disabled','disabled');
+                    $('a.disableJQ').contents().unwrap();
+                }
+            </script>
+        </div>
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+    </apex:form>
+</apex:page>

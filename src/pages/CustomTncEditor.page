@@ -1,0 +1,337 @@
+<apex:page showHeader="true" sidebar="true" standardController="Account" extensions="CustomTncEditor">
+    <script type="text/javascript" src="{!URLFOR($Resource.CKEditor, 'ckeditor.js')}"></script>
+    <script src="{!URLFOR($Resource.jquery_162)}"></script>
+    <script type="text/javascript">
+        function setFocusOnLoad() {}
+        function disableFields( isEditable ) {
+            if( !isEditable ) {
+                $('input.dateInputJQ').attr('disabled','disabled');
+                $('input.dateInputJQ').parent().find('a').contents().unwrap();
+            }
+        }
+        function populateSubmitTextAreas() {
+            for( var i in CKEDITOR.instances ) {
+                var name = CKEDITOR.instances[i].name;
+                if( $( 'div#' + name + '_wrapper' + ' .postTextAreaJQ' ).length > 0 ) {
+                    $( 'div#' + name + '_wrapper' + ' .postTextAreaJQ' ).val( CKEDITOR.instances[i].getData() ); //copy values from ckeditor to input fields that are submitted
+                } else {
+                    CKEDITOR.instances[i].destroy(false); //not needed, but just in case
+                }
+            }
+        }
+        function destroyRelatedEditors( pageNumberToDelete ) {
+            CKEDITOR.instances['tnc_' + String( pageNumberToDelete ) + '_text1_editor'].destroy(false);
+            CKEDITOR.instances['tnc_' + String( pageNumberToDelete ) + '_text2_editor'].destroy(false);
+        }
+        function checkIfDatesRequired( checkAllInstances, ev ) {
+            if( checkAllInstances ) {
+                var hasData = false;
+                for( var i in CKEDITOR.instances ) {
+                    if( CKEDITOR.instances[i].getData() ) {
+                        hasData = true;
+                        break;
+                    }
+                }
+                if( hasData ) {
+                    $('.requiredElement').css('display', 'inline-block');
+                } else {
+                    $('.requiredElement').hide();
+                }
+            } else {
+                if( $('.requiredElement').eq(0).css('display') == 'none' ) {
+                    if( ev.editor.getData() ) {
+                        $('.requiredElement').css('display', 'inline-block');
+                    }
+                }
+            }
+        }
+        function previewPdf() {
+            var targetUrl = "/apex/proposal?type=previewtnc&previewacc={!account.Id}";
+            var win = window.open( targetUrl, "_blank", "width=800" );
+            win.focus();
+        }
+        function showOverlay() {
+            $('#overlayContent').show().css({ 'opacity': '1.0', 'filter': 'alpha(opacity=100)' });
+            $('#transparentOverlay').show().css({ 'opacity': '0.7', 'filter': 'alpha(opacity=70)' });
+        }
+        function hideOverlay() {
+          $('#transparentOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });
+          $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });
+          resizeFrame();
+        }
+    </script>
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    <style type="text/css">
+        body {
+            overflow: auto !important;
+        }
+        .cceditor {
+            width: 704px;
+            margin: 0 auto;
+        }
+        .endofccpage {
+            position: relative;
+            height: 3px;
+            top: 670px;
+            left: 0px;
+            background-color: red;
+            margin: 0 auto;
+            z-index: 10000;
+        }
+        .endofccpage:before, .endofccpage:after {
+            content: "End Of Page (Estimated)";
+            color: red;
+            top: 3px;
+            position: absolute;
+            font-size: 11px;
+        }
+        .endofccpage:before {
+            left: 7px;
+        }
+        .endofccpage:after {
+            right: 24px;
+        }
+        .endoftncpage{
+            position: relative;
+            height: 3px;
+            top: 954px;
+            left: 0px;
+            background-color: red;
+            z-index: 10000;
+        }
+        .endoftncpage:before, .endoftncpage:after {
+            content: "End Of Page (Estimated)";
+            color: red;
+            top: 3px;
+            position: absolute;
+            font-size: 11px;
+        }
+        .endoftncpage:before {
+            left: 7px;
+        }
+        .endoftncpage:after {
+            right: 24px;
+        }
+        .quickJump {
+            background-color: #E4ECF2;
+            padding: 8px 12px;
+            font-weight: bold;
+            text-align: center;
+            border-left: 1px solid #3887A8;
+            border-right: 1px solid #3887A8;
+            border-bottom: 1px solid #3887A8;
+            display: block;
+        }
+        .quickJump:hover {
+            background-color: #D8E0E6;
+        }
+        div.tnceditor > div.cke, div.cceditor > div > div.cke {
+            padding-bottom: 3px;
+        }
+        div.requiredElementWrapper {
+            position: relative;
+        }
+        div.requiredElement {
+            display: inline-block;
+            width: 3px;
+            height: 20px;
+            position: absolute;
+            background-color: #FF0000;
+            left: -5px;
+            top: 0px;
+        }
+    </style>
+    <apex:form id="form">
+        <apex:actionFunction name="save" action="{!save}" reRender="form" status="overlay"/>
+        <apex:actionFunction name="populateDefault" action="{!populateDefault}" reRender="form" status="overlay"/>
+        <apex:actionFunction name="addPage" action="{!addPage}" reRender="form" status="overlay"/>
+        <apex:actionFunction name="deletePage" action="{!deletePage}" reRender="form" status="overlay">
+            <apex:param name="pageNumberToDelete" assignTo="{!pageNumberToDelete}" value=""/>
+        </apex:actionFunction>
+        <apex:actionFunction name="goBack" action="{!goBack}" status="overlay"/>
+        <apex:actionFunction name="preview" action="{!preview}" reRender="form" oncomplete="previewPdf();" status="overlay"/>
+        <apex:actionStatus id="overlay" onstart="showOverlay();" onstop="hideOverlay();"/>
+        <div class="overlayHolder" style="position: relative; overflow: initial; -webkit-overflow-scrolling: touch;">
+            <div class="overlay" id="transparentOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"></div>
+            <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 15px 30px; border-radius: 10px; border: 2px solid #24A; z-index: 12000; background-color: #E0F2FF; top: 45%; position: fixed;">
+                <div style="text-align: center;">
+                    <img src="{!URLFOR($Resource.ProposalWizardResources, 'img/WaitAnimation.gif')}" />
+                    <div style="color: #038; margin-bottom: 0px; font-size: 24px; padding-top: 10px; cursor: default;">Please wait</div>
+                </div>
+            </div>
+            <apex:pageMessages id="msgs"/>
+            <table style="padding: 0px; border-collapse: collapse;">
+                <tr>
+                    <td colspan="2" style="background-color: #DDD;">
+                        <apex:outputPanel layout="none" rendered="{!isEditable || isReadable}">
+                            <div style="position: fixed; right: 30px; top: 125px; box-shadow: 5px 5px 15px 0px rgba(0,0,0,0.5); border-radius: 8px; z-index: 11000;">
+                                <div class="quickJump" style="background-color: #3887A8; color: #FFF; border-top-left-radius: 8px; border-top-right-radius: 8px; border-top: 1px solid #3887A8;">Jump to:</div>
+                                <a href="#" class="quickJump">Top Of The Page</a>
+                                <a href="#time" class="quickJump">Date Settings</a>
+                                <a href="#cc" class="quickJump">Contract Clauses</a>
+                                <apex:repeat value="{!termsAndConditions}" var="termsAndConditionsItem">
+                                    <a href="#tnc{!termsAndConditionsItem.record.Page_Number__c}" class="quickJump">T&amp;Cs Page {!termsAndConditionsItem.record.Page_Number__c}</a>
+                                </apex:repeat>
+                                <a href="#bottom" class="quickJump" style="border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; border-bottom: 1px solid #3887A8;">Bottom Of The Page</a>
+                            </div>
+                        </apex:outputPanel>
+                        <div style="padding: 10px;">
+                            <apex:commandButton styleClass="milroseBtnStyle saveBtn" onclick="populateSubmitTextAreas(); save(); return false;" value="Save" disabled="{!!isEditable}" rendered="{!isEditable || isReadable}"/>
+                            <apex:commandButton styleClass="milroseBtnStyle" onclick="populateSubmitTextAreas(); populateDefault(); return false;" value="Set Default Text" disabled="{!!isEditable}" rendered="{!isEditable || isReadable}"/>
+                            <apex:commandButton styleClass="milroseBtnStyle" onclick="populateSubmitTextAreas(); addPage(); return false;" value="Add New Page" disabled="{!!isEditable}" rendered="{!isEditable || isReadable}"/>
+                            <apex:commandButton styleClass="milroseBtnStyle savePreview" onclick="populateSubmitTextAreas(); preview(); return false;" value="Save and Review" rendered="{!isEditable || isReadable}"/>
+                            <apex:commandButton styleClass="milroseBtnStyle" onclick="goBack(); return false;" value="Return To Account"/>
+                        </div>
+                    </td>
+                </tr>
+                <apex:outputPanel layout="none" rendered="{!isEditable || isReadable}">
+                    <tr>
+                        <td style="background-color: #E4ECF2; border-top: 2px solid #3887A8;">
+                            <a name="time"></a>
+                            <div style="padding: 10px;">
+                                <div style="font-weight: bold;">Custom T&amp;Cs Start Date:</div>
+                                <div class="requiredElementWrapper">
+                                    <div class="requiredElement" style="display: none;"></div>
+                                    <apex:inputField styleClass="dateInputJQ" value="{!account.TncStartDate__c}"/>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="background-color: #E4ECF2; border-top: 2px solid #3887A8;">
+                            <div style="padding: 10px;">
+                                <div style="font-weight: bold;">Custom T&amp;Cs End Date:</div>
+                                <div class="requiredElementWrapper">
+                                    <div class="requiredElement" style="display: none;"></div>
+                                    <apex:inputField styleClass="dateInputJQ" value="{!account.TncEndDate__c}"/>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="background-color: #E4ECF2; border-top: 2px solid #3887A8;">
+                            <a name="cc"></a>
+                            <div style="font-weight: bold; text-align: center; background-color: #E4ECF2; font-size: 1.3em; padding: 5px;">Contract Clauses</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="position: relative; background-color: #F6F6F6; padding-bottom: 4px; border-bottom: 2px solid #DDD;">
+                            <div id="cc_editor_wrapper" class="cceditor">
+                                <div>
+                                    <div class="endofccpage"></div>
+                                    <apex:inputTextarea styleClass="postTextAreaJQ" value="{!contractClauses.record.Text_1__c}" style="display: none;"/>
+                                    <textarea name="cc_editor">{!contractClauses.record.Text_1__c}</textarea>
+                                    <script type="text/javascript">
+                                        CKEDITOR.replace( 'cc_editor', {
+                                            width: 696,
+                                            height: 700,
+                                            enterMode: CKEDITOR.ENTER_DIV, //CKEDITOR.ENTER_P, CKEDITOR.ENTER_BR, CKEDITOR.ENTER_DIV
+                                            readOnly: {!!isEditable},
+                                            on: {
+                                                blur: function( ev ) {
+                                                    checkIfDatesRequired( true, ev );
+                                                },
+                                                instanceReady: function( ev ) {
+                                                    checkIfDatesRequired( false, ev );
+                                                }
+                                            }
+                                        });
+                                    </script>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <apex:repeat value="{!termsAndConditions}" var="termsAndConditionsItem">
+                        <tr>
+                            <td colspan="2">&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="position:relative; background-color: #E4ECF2; border-top: 2px solid #3887A8;">
+                                <a name="tnc{!termsAndConditionsItem.record.Page_Number__c}"></a>
+                                <div style="top: 3px; position: absolute;">
+                                    <apex:commandButton styleClass="milroseBtnStyle" value="Remove This Page" onclick="destroyRelatedEditors( {!TEXT(termsAndConditionsItem.record.Page_Number__c)} ); populateSubmitTextAreas(); deletePage( {!TEXT(termsAndConditionsItem.record.Page_Number__c)} ); return false;" action="{!deletePage}" rendered="{!termsAndConditionsItem.record.Page_Number__c != 1}" disabled="{!!isEditable}"/>
+                                </div>
+                                <div style="font-weight: bold; text-align: center; font-size: 1.3em; padding: 5px;">Terms And Conditions Page {!termsAndConditionsItem.record.Page_Number__c}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="background-color: #E4ECF2;">
+                                <div style="font-weight: bold; text-align: center; font-size: 1.3em; padding: 5px;">Column 1</div>
+                            </td>
+                            <td style="background-color: #E4ECF2;">
+                                <div style="font-weight: bold; text-align: center; font-size: 1.3em; padding: 5px;">Column 2</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="position: relative; background-color: #F6F6F6; padding-bottom: 4px; border-bottom: 2px solid #DDD;">
+                                <div id="tnc_{!termsAndConditionsItem.record.Page_Number__c}_text1_editor_wrapper" class="tnceditor">
+                                    <div class="endoftncpage"></div>
+                                    <apex:inputTextarea styleClass="postTextAreaJQ" value="{!termsAndConditionsItem.record.Text_1__c}" style="display: none;"/>
+                                    <textarea name="tnc_{!termsAndConditionsItem.record.Page_Number__c}_text1_editor">{!termsAndConditionsItem.record.Text_1__c}</textarea>
+                                    <script type="text/javascript">
+                                        CKEDITOR.replace( 'tnc_{!termsAndConditionsItem.record.Page_Number__c}_text1_editor', {
+                                            width: 374,
+                                            height: 970,
+                                            enterMode: CKEDITOR.ENTER_DIV, //CKEDITOR.ENTER_P, CKEDITOR.ENTER_BR, CKEDITOR.ENTER_DIV
+                                            readOnly: {!!isEditable},
+                                            on: {
+                                                blur: function( ev ) {
+                                                    checkIfDatesRequired( true, ev );
+                                                },
+                                                instanceReady: function( ev ) {
+                                                    checkIfDatesRequired( false, ev );
+                                                }
+                                            }
+                                        });
+                                    </script>
+                                </div>
+                            </td>
+                            <td style="position: relative; background-color: #F6F6F6; padding-bottom: 4px; border-bottom: 2px solid #DDD;">
+                                <div id="tnc_{!termsAndConditionsItem.record.Page_Number__c}_text2_editor_wrapper" class="tnceditor">
+                                    <div class="endoftncpage"></div>
+                                    <apex:inputTextarea styleClass="postTextAreaJQ" value="{!termsAndConditionsItem.record.Text_2__c}" style="display: none;"/>
+                                    <textarea name="tnc_{!termsAndConditionsItem.record.Page_Number__c}_text2_editor">{!termsAndConditionsItem.record.Text_2__c}</textarea>
+                                    <script type="text/javascript">
+                                        CKEDITOR.replace( 'tnc_{!termsAndConditionsItem.record.Page_Number__c}_text2_editor', {
+                                            width: 374,
+                                            height: 970,
+                                            enterMode: CKEDITOR.ENTER_DIV, //CKEDITOR.ENTER_P, CKEDITOR.ENTER_BR, CKEDITOR.ENTER_DIV
+                                            readOnly: {!!isEditable},
+                                            on: {
+                                                blur: function( ev ) {
+                                                    checkIfDatesRequired( true, ev );
+                                                },
+                                                instanceReady: function( ev ) {
+                                                    checkIfDatesRequired( false, ev );
+                                                }
+                                            }
+                                        });
+                                    </script>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">&nbsp;</td>
+                        </tr>
+                    </apex:repeat>
+                    <tr>
+                        <td colspan="2" style="background-color: #DDD;">
+                            <div style="padding: 10px;">
+                                <apex:commandButton styleClass="milroseBtnStyle saveBtn" onclick="populateSubmitTextAreas(); save(); return false;" value="Save" disabled="{!!isEditable}" rendered="{!isEditable || isReadable}"/>
+                                <apex:commandButton styleClass="milroseBtnStyle" onclick="populateSubmitTextAreas(); populateDefault(); return false;" value="Set Default Text" disabled="{!!isEditable}" rendered="{!isEditable || isReadable}"/>
+                                <apex:commandButton styleClass="milroseBtnStyle" onclick="populateSubmitTextAreas(); addPage(); return false;" value="Add New Page" disabled="{!!isEditable}" rendered="{!isEditable || isReadable}"/>
+                                <apex:commandButton styleClass="milroseBtnStyle savePreview" onclick="populateSubmitTextAreas(); preview(); return false;" value="Save And Review" rendered="{!isEditable || isReadable}"/>
+                                <apex:commandButton styleClass="milroseBtnStyle" onclick="goBack(); return false;" value="Return To Account"/>
+                            </div>
+                        </td>
+                    </tr>
+                </apex:outputPanel>
+            </table>
+            <a name="bottom"></a>
+        </div>
+        <script type="text/javascript">
+            disableFields( {!isEditable} );
+        </script>
+    </apex:form>
+</apex:page>

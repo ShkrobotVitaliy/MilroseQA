@@ -1,0 +1,290 @@
+<apex:page renderAs="pdf" showheader="false" applyhtmltag="false" standardcontroller="Pro_forma_Invoice__c" extensions="AmericanExpressCheckController">
+    <html>
+        <head>
+            <style type="text/css">
+                @page {
+                    size: letter portrait;
+                    margin: 50.0mm 12.7mm 20.0mm 25.4mm;
+                    @top-center {
+                        font: 9pt Arial, Sans-serif;
+                        padding-top: 8.47mm;
+                        content: element(header);
+                    }
+                    @bottom-center {
+                        padding-bottom: 8.47mm;
+                        content: element(footer);
+                    }
+                }
+                body {
+                    padding: 0;
+                    margin: 0;
+                }
+                #page-header {
+                    position: running(header);
+                }
+                #page-footer {
+                    position: running(footer);
+                }
+                .page-number:before {
+                    content: counter(page);
+                }
+                .page-count:before {
+                    content: counter(pages);
+                }
+                body {
+                    font: 9pt Calibri, Arial, Sans-serif;
+                }
+                table.content {
+                    /*border-collapse: collapse;*/
+                    border-collapse: separate;
+                    border-spacing: 0;
+                    page-break-after: auto;
+                    width: 100%;
+                }
+                table.content thead {
+                    display: table-header-group;
+                    page-break-inside: avoid;
+                }
+                table.content tbody {
+                    display: table-row-group;
+                    page-break-after: auto;
+                }
+                table.content tfoot {
+                    display: table-footer-group;
+                    page-break-after: auto;
+                }
+                table.pageBreakAfter {
+                    page-break-after: always;
+                }
+                table.pageBreakBefore {
+                    page-break-before: always;
+                }
+                table.content thead tr {
+                    page-break-inside: avoid;
+                }
+                table.content tr {
+                    page-break-inside: avoid;
+                }
+                table.content td {
+                    padding: 2px 8px;
+                }
+                table.content td.header {
+                    text-align: center;
+                    border-top: 1px solid black;
+                    border-right: 1px solid black;
+                    border-bottom: none;
+                    border-left: none;
+                    background-color: #365F91;
+                    color: #FFFFFF;
+                    vertical-align: middle;
+                }
+                table.content td.line, table.content td.footer {
+                    border-top: 1px solid black;
+                    border-right: 1px solid black;
+                    border-bottom: none;
+                    border-left: none;
+                    vertical-align: middle;
+                    text-align: center;
+                }
+                td.bottomline {
+                    border-bottom: 1px solid black !important;;
+                }
+                td.leftline {
+                    border-left: 1px solid black !important;;
+                }
+                .leftpadhalf {
+                    padding-left: 0.5em !important;
+                }
+                .bold {
+                    font-weight: bold !important;
+                }
+                .left {
+                    text-align: left !important;
+                }
+                .center {
+                    text-align: center !important;
+                }
+                .right {
+                    text-align: right !important;
+                }
+                .justify {
+                    text-align: justify !important;
+                }
+                .smf {
+                    font-size: 8pt !important;
+                }
+            </style>
+        </head>
+        <body>
+            <apex:pageMessages id="msgs"/>
+            <apex:outputPanel layout="block" rendered="{!isValid}" style="width: 100%;">
+                <div id="page-header" style="width: 100%; display: table;">
+                    <div class="left" style="width: 100%; display: table;">
+                        <div class="left" style="width: 10%; display: table-cell;">
+                            {!MONTH(pfi.Invoice_Date__c)}/{!DAY(pfi.Invoice_Date__c)}/{!YEAR(pfi.Invoice_Date__c)}
+                        </div>
+                        <div class="center" style="width: 90%; display: table-cell; vertical-align: top;">
+                            American Express US: Manage Your Card Account: Online Statement
+                        </div>
+                    </div>
+                    <br/><br/>
+                    <div style="width: 100%; display: table;">
+                        <div style="width: 10%; display: table-cell;">
+                            <img src="{!URLFOR($Resource.Amex)}" style="width: 16mm;"/>
+                        </div>
+                        <div style="width: 90%; display: table-cell; vertical-align: top;">
+                            <div><span class="leftpadhalf">Transaction Details Prepared for</span></div>
+                            <div><span class="leftpadhalf bold">Louis S Milo</span></div>
+                            <div><span class="leftpadhalf">Account Number</span></div>
+                            <div><span class="leftpadhalf bold">XXXX-XXXXXX-73003</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="page-footer" style="width: 100%; display: table;">
+                    <div style="width: 100%; display: table;">
+                        <div class="left" style="width: 90%;">
+                            <div class="" style="display: table-cell; padding-right: 1cm; color: black;"><span class="smf"><a href="https://online.americanexpress.com/myca/estmt/us/list.do?request_type=authreg_Statement&amp;sorted_index=0&amp;Face=en_US">https://online.americanexpress.com/myca/estmt/us/list.do?request_type=authreg_Statement&amp;sorted_index=0&amp;Face=en_US</a></span></div>
+                        </div>
+                        <div class="right" style="width: 10%; display: table-cell;">
+                            1/1
+                            <!--<span class="page-number"/>/<span class="page-count"/>-->
+                        </div>
+                    </div>
+                </div>
+                <div id="page-content" style="width: 100%;">
+                    <apex:repeat value="{!invoices}" var="invoice">
+                        <table class="content{!IF(invoices[0].invoiceId != invoice.invoiceId, ' pageBreakBefore', '')}">
+                            <thead>
+                                <tr>
+                                    <td class="header center bold leftline" style="width: 15%;">
+                                        <div style="padding-top: 1.0mm; padding-bottom: 1.0mm;">Date</div>
+                                    </td>
+                                    <td class="header left bold" style="width: 40%;">
+                                        <div style="padding-top: 1.0mm; padding-bottom: 1.0mm;">Description</div>
+                                    </td>
+                                    <td class="header left bold" style="width: 30%;">
+                                        <div style="padding-top: 1.0mm; padding-bottom: 1.0mm;">Card Member</div>
+                                    </td>
+                                    <td class="header right bold" style="width: 15%;">
+                                        <div style="padding-top: 1.0mm; padding-bottom: 1.0mm;">Amount</div>
+                                    </td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="line center leftline" style="vertical-align: top; border-right: none;">
+                                        <div style="padding-top: 1.0mm; padding-bottom: 1.0mm;">
+                                            <apex:outputPanel layout="none" rendered="{!invoice.milestoneDate != null}">
+                                                {!MONTH(invoice.milestoneDate)}/<span class="bold">{!DAY(invoice.milestoneDate)}</span>/{!YEAR(invoice.milestoneDate)}
+                                           </apex:outputPanel>
+                                        </div>
+                                    </td>
+                                    <td class="line left" style="vertical-align: top; border-right: none;">
+                                        <div style="padding-top: 1.0mm; padding-bottom: 1.0mm;">
+                                            <span class="bold">{!IF( invoice.accountName == 'New York City Department of Buildings', 'DOB/ELECTRONIC FILINNEW YORK NY', IF( invoice.accountName == 'New York City Department of Transportation', 'DOT CONSTRUCT PERMITNEW YORK NY', invoice.accountName & invoice.accountCity & ' ' & invoice.accountStateProvID ) )}</span>
+                                        </div>
+                                    </td>
+                                    <td class="line left" style="vertical-align: top; border-right: none;">
+                                        <div style="padding-top: 1.0mm; padding-bottom: 1.0mm;">
+                                            {!invoice.checkOwnerName}
+                                        </div>
+                                    </td>
+                                    <td class="line right" style="vertical-align: top;">
+                                        <div style="padding-top: 1.0mm; padding-bottom: 1.0mm;">
+                                            ${!invoice.bliAmount}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="line left leftline bottomline" style="border-right: none; vertical-align: top;" colspan="2">
+                                        <div style="padding-top: 1.0mm; padding-bottom: 1.0mm;">Doing business as:</div>
+                                        <apex:outputPanel layout="block" style="padding-top: 1.0mm;" rendered="{!invoice.accountName == 'New York City Department of Buildings'}">
+                                            <div style="padding-bottom: 2.0mm;">
+                                                <span class="bold">DOB ELECTRIC FILING</span>
+                                            </div>
+                                            <div style="padding-bottom: 2.0mm;">
+                                                280 BROADWAY
+                                            </div>
+                                            <div style="padding-bottom: 2.0mm;">
+                                                STE 542
+                                            </div>
+                                            <div style="padding-bottom: 2.0mm;">
+                                                NEW YORK
+                                            </div>
+                                            <div style="padding-bottom: 2.0mm;">
+                                                NY
+                                            </div>
+                                            <div style="padding-bottom: 2.0mm;">
+                                                10007-1868
+                                            </div>
+                                            <div style="padding-bottom: 1.0mm;">
+                                                UNITED STATES
+                                            </div>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel layout="block" style="padding-top: 1.0mm;" rendered="{!invoice.accountName == 'New York City Department of Transportation'}">
+                                            <div style="padding-bottom: 2.0mm;">
+                                                <span class="bold">DOT CONSTRUCT PERMIT</span>
+                                            </div>
+                                            <div style="padding-bottom: 2.0mm;">
+                                                55 WATER ST 7TH FLOOR
+                                            </div>
+                                            <div style="padding-bottom: 2.0mm;">
+                                                NEW YORK
+                                            </div>
+                                            <div style="padding-bottom: 2.0mm;">
+                                                NY
+                                            </div>
+                                            <div style="padding-bottom: 2.0mm;">
+                                                10041
+                                            </div>
+                                            <div style="padding-bottom: 1.0mm;">
+                                                UNITED STATES
+                                            </div>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel layout="block" style="padding-top: 1.0mm;" rendered="{!invoice.accountName != 'New York City Department of Buildings' && invoice.accountName != 'New York City Department of Transportation'}">
+                                            <div style="padding-bottom: 2.0mm;">
+                                                <span class="bold">{!invoice.accountName}</span>
+                                            </div>
+                                            <div style="padding-bottom: 2.0mm;">
+                                                {!invoice.accountBillingStreet}
+                                            </div>
+                                            <div style="padding-bottom: 2.0mm;">
+                                                {!invoice.accountBillingCity}
+                                            </div>
+                                            <div style="padding-bottom: 2.0mm;">
+                                                {!invoice.accountBillingState}
+                                            </div>
+                                            <div style="padding-bottom: 2.0mm;">
+                                                {!invoice.accountBillingPostalCode}
+                                            </div>
+                                            <div style="padding-bottom: 1.0mm;">
+                                                {!invoice.accountBillingCountry}
+                                            </div>
+                                        </apex:outputPanel>
+                                        <div style="padding-top: 3.0mm; padding-bottom: 2.0mm;">
+                                            Additional Information: {!invoice.shortUniqueNumber}&nbsp;{!IF( invoice.accountName == 'New York City Department of Buildings', '212-393-2550', IF( invoice.accountName == 'New York City Department of Transportation', '212-839-9604', invoice.accountPhone ) )}
+                                        </div>
+                                        <div style="padding-bottom: 2.0mm;">
+                                            {!IF( invoice.accountName == 'New York City Department of Buildings', '212-393-2550', IF( invoice.accountName == 'New York City Department of Transportation', '212-839-9604', invoice.accountPhone ) )}
+                                        </div>
+                                        <div style="padding-bottom: 2.0mm;">
+                                            Reference: {!invoice.longUniqueNumber}
+                                        </div>
+                                        <div style="padding-bottom: 1.0mm;">
+                                            Category: Other - Government Services
+                                        </div>
+                                    </td>
+                                    <td class="line left bottomline" style="vertical-align: top; padding-top: 1.0mm;" colspan="2">
+                                        <div class="bold" style="padding-bottom: 2.0mm;">Transaction Details</div>
+                                        <div class="bold" style="padding-bottom: 2.0mm;">Description</div>
+                                        <div class="" style="padding-bottom: 1.0mm;">{!IF( invoice.accountName == 'New York City Department of Buildings', 'NYC DOB ELECTRONICF', IF( invoice.accountName == 'New York City Department of Transportation', 'DOT CONSTRUCT PERMI', invoice.accountName ) )}</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </apex:repeat>
+                </div>
+            </apex:outputPanel>
+        </body>
+    </html>
+</apex:page>

@@ -1,0 +1,88 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="2" style="text-align: left;">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: 50%;">Application Permit Response</th>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader"><apex:outputText value="Contractor  Signing & DOB Registration/Tracking #"/></span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Contractor_Signing_DOB_Reg_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Primary Contact/Project Manager</span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Primary_Project_Manager_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Construction Start Date</span></td>
+                <td class="secondColumn"><apex:inputField value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Construction_Start_Date_App__c}" styleClass="dataPicker"/></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Construction End Date</span></td>
+                <td class="secondColumn"><apex:inputField value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Construction_End_Date_App__c}" styleClass="dataPicker"/></td>
+            </tr>
+            <tr>
+                <td class="sectionTitle"><span class="mainRequestHeader">Work will be performed After-Hours/Weekends </span><br></br><i>If yes, please provide the work schedule for a <b>AHV</b> proposal</i></td>
+                <td class="secondColumn"><!--<apex:inputCheckbox value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.After_Hours_Work_App__c}" onclick="$('.ahvSectionRow').toggle();" styleClass="avhSectionCheckbox"/>--></td>
+            </tr>
+            <tr class="ahvSectionRow">
+                <td class="titleDescription"><span class="mainRequestHeader">AHV Work Schedule Details</span></td>
+                <td></td>
+            </tr>
+            <tr class="ahvSectionRow">
+                <td class="t-italic">Note: The hours that will be granted for AHV work will range from 6pm-12am weeknights and 9am-5pm on weekends.</td>
+                <td></td>
+            </tr>
+            <tr class="ahvSectionRow">
+                <td><apex:outputText value="Contractor  Signing/Sealing & License #"/></td>
+                <td class="secondColumn" ><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.AHV_Contractor_Signing_License_App__c}" /></td>
+            </tr>
+            <tr class="ahvSectionRow">
+                <td>Description Of Work</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.AHV_Description_Of_Work_App__c}" /></td>
+            </tr>
+            <tr class="ahvSectionRow">
+                <td>Dates Desired</td>
+                <td class="secondColumn"><apex:inputField value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Dates_Desired_App__c}" styleClass="dataPicker" /></td>
+            </tr>
+            <tr class="ahvSectionRow">
+                <td><span class="mainRequestHeader">Billing client </span>- If different from the billing client on the existing contract</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Billing_Client_App__c}" /></td>
+            </tr>
+            <tr>
+                <td class="sectionTitle"><span class="mainRequestHeader">Sidewalk Work will be performed </span><br></br><i>If yes, please provide the work schedule  for a <b>DOT</b> proposal</i></td>
+                <td class="secondColumn"><!--<apex:inputCheckbox value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Sidewalk_Work_App__c}" onclick="$('.dotSectionRow').toggle();" styleClass="dotSectionCheckbox"/>--></td>
+            </tr>
+            <tr class="dotSectionRow">
+                <td class="titleDescription"><span class="mainRequestHeader">DOT Work Schedule Details</span></td>
+                <td></td>
+            </tr>
+            <tr class="dotSectionRow">
+                <td><apex:outputText value="Contractor  Signing/Sealing & License #"/></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.DOT_Contractor_Signing_App__c}" /></td>
+            </tr>
+            <tr class="dotSectionRow">
+                <td>Description Of Work</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.DOT_Description_Of_Work_App__c}" /></td>
+            </tr>
+            <tr class="dotSectionRow">
+                <td>Duration for permit(1-90 days)</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Duration_for_Permit_App__c}" styleClass="dataPicker"/></td>
+            </tr>
+            <tr class="dotSectionRow">
+                <td>What street is being affected by this permit, if not the street of the house address</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Street_to_be_Affected_App__c}" /></td>
+            </tr>
+        </table><!--
+        <script type="text/javascript">
+            if(!$('.avhSectionCheckbox').is(':checked')) $('.ahvSectionRow').hide();
+            if(!$('.dotSectionCheckbox').is(':checked')) $('.dotSectionRow').hide();
+        </script>-->
+    </apex:outputPanel>
+</apex:component>

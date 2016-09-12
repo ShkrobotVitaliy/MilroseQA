@@ -1,0 +1,73 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:variable var="display2Column" value="{!IF(OR(projectView, AND(!projectView, show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="display3Column" value="{!IF(OR(projectView, AND(!projectView, !show2column)), 'table-cell', 'none')}"/>
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="{!IF(projectView, 3, 2)}">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th colspan="{!IF(projectView, 3, 2)}" class="sectionHint">Note: Each sign is filed with the municipal agency as a separate application. If the scope of work involves multiple signs, please provide *sign information for each sign.</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width:50%;">Application Permit Response</th>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Design Signing/Sealing &amp; License #</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Design_Signing_Sealing_License_App__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Sign Hanger name/license#/Tax ID#</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Sign_Hanger_Name_License_Tax_Id_App__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">Project Manager:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Project_Manager_App__c}" /></td>
+            </tr>
+            <tr>
+                <td class="mainRequestHeader">*Sign Information:</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Square Footage of Sign</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Square_Footage_Of_Sign_App__c}"/></td>
+            </tr>
+            <tr>
+                <td>Height of Sign:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Height_Of_Sign_App__c}" /></td>
+            </tr>
+            <tr>
+                <td>Advertising or Business Sign:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Advertising_Or_Business_Sign_App__c}" /></td>
+            </tr>
+            <tr>
+                <td>Is the sign designed for a changeable copy:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Is_The_Sign_Designed_For_Changeable_App__c}" /></td>
+            </tr>
+            <tr>
+                <td>Do the sign project over a building line? If yes, provide distance</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Do_Sign_Project_Over_Building_Line_App__c}" /></td>
+            </tr>
+            <tr>
+                <td>Is the sign within 900 ft and within view of an arterial highway? If yes, provide distance:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Is_The_Sign_Within_900_Ft_App__c}" /></td>
+            </tr>
+            <tr>
+                <td>Is the sign within 200 ft and within view of a park a ½ an acre or more? If yes, provide distance:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Is_The_Sign_Within_200_Ft_App__c}" /></td>
+            </tr>
+            <tr>
+                <td>If the answer is yes to either of the two preceding questions, provide OAC Sign number:</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.provide_OAC_Sign_number_App__c}" /></td>
+            </tr>
+            <tr>
+                <td>Required Architectural Inspections</td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_CT__r.Required_Architectural_Inspections_App__c}" /></td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

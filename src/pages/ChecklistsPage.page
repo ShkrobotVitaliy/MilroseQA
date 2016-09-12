@@ -1,0 +1,16 @@
+<apex:page standardController="Storage_Area__c" showHeader="false" standardStylesheets="false" sidebar="false">
+<style type="text/css">
+html, body, #documentsFrame {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    overflow: hidden;
+}
+</style>
+<!--
+Specify the record id of the folder to be displayed as the value for the "fid" parameter
+-->
+<iframe id="documentsFrame" src="{!$Page.StoredDocsArea}?eid=a5ZA0000000PCkU"></iframe>
+</apex:page>

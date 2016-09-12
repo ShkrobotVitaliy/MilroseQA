@@ -1,0 +1,59 @@
+<apex:component controller="RFIComponentController">
+    <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+    <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+    <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+    <apex:variable var="display2Column" value="{!IF(OR(projectView, AND(!projectView, show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="display3Column" value="{!IF(OR(projectView, AND(!projectView, !show2column)), 'table-cell', 'none')}"/>
+    <apex:variable var="colspanValue" value="{!IF(projectView, 2, 1)}"/>
+    <apex:outputPanel layout="block">
+        <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <th class="component-name" colspan="{!IF(projectView, 3, 2)}" style="text-align: left;">{!rfiScopeRecord.RFI_Section__c}:</th>
+            </tr>
+            <tr>
+                <th>Request</th>
+                <th style="width: 50%;" >Application Permit Response</th>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader"><apex:outputText value="Architect Signing/Sealing & License #:"/></span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Architect_Signing_Sealing_License_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Architect Project Manager:</span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Architect_Project_Manager_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Place of Assembly Emergency Lighting Special Inspection Firm &amp; Applicant:</span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Place_of_Assembly_Emergency_Lighting_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Emergency Lighting Electrical Contractor</span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Emergency_Light_Electric_Contractor_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Testing Lab for Flame Spread/Fabric Letter (if applicable)</span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Testing_Lab_for_Flame_Spread_Fabric_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Square Footage of Assembly Space:</span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Square_Footage_of_Assembly_Space_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Name of Assembly Space:</span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Name_of_Assembly_Space_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Number of Persons per Layout:</span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Number_of_Persons_per_Layout_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">Individual Responsible for Annual Permit Renewal:</span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.Individual_Responsible_Annual_Permit_App__c}" /></td>
+            </tr>
+            <tr>
+                <td><span class="mainRequestHeader">If an existing Place of Assembly space, provide previous DOB application  number</span></td>
+                <td class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_New_York__r.If_existing_Place_of_Assembly_space_App__c}" /></td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+</apex:component>

@@ -1,0 +1,57 @@
+<apex:page controller="sendEmailFromEntityLevelExtention" sidebar="false" action="{!clearEmailAddress}">
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}" />
+    <style>
+        #emailTemplateEditor{
+            margin: 10px;
+        }
+    </style>
+    
+    <script type="text/javascript">
+        function showOverlay(){
+            $('#overlayContent').show().fadeTo('slow', 1.0); 
+            $('#AllPannelOverlay').show().fadeTo('slow', 0.7);
+        }
+        function hideOverlay(){
+            $('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); 
+            $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });
+        }
+        function containerPerformAfterSaveAction(){
+            showOverlay();
+            doFinalActions();
+        }
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+
+    <apex:form >
+        <apex:actionStatus id="allPanelsOverlay" onstart="showOverlay();" onstop="hideOverlay();"/>
+        <div class="overlay" id="AllPannelOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"/>
+        <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+            <div style="text-align: center;">
+                <img src="{!$Resource.loading_bar}" />
+                <p style="color: #000; margin-bottom: 0px; font-size: 24px;">Please wait</p>
+            </div>
+        </div>
+
+        <apex:actionFunction name="containerUpdateParentRecordTO" action="{!updateRecordTOField}" reRender="" status="allPanelsOverlay">
+            <apex:param name="emailTO" value="" assignTo="{!emailsToDDP}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="containerUpdateParentRecordCC" action="{!updateRecordCCField}" reRender="" status="allPanelsOverlay">
+            <apex:param name="emailCC" value="" assignTo="{!emailsCCDDP}"/>
+        </apex:actionFunction>
+        <!--<apex:actionFunction name="doFinalActions" action="{!doFinalActions}" oncomplete="hideOverlay(); location.reload();" reRender="pageMessages, formsTableOutputPanel"/>-->
+        <apex:actionFunction name="doFinalActions" action="{!doFinalActions}"/>
+
+        <apex:pageMessages id="pageMessages" />
+        <apex:outputPanel layout="block" style="padding: 10px;" rendered="{!allowToSendEmail}">
+            <div style="font-size: 130%; font-weight: bold;">Send Email</div>
+            <apex:outputPanel id="previewEmailArea" style="margin: 10px;" rendered="{!showSendEmailComponent}">
+                <c:PreviewAndSendEmail parentDDPRecordId="{!project.Id}" DDPRecordName="{!DDPName}" emailTemplate="{!emailTemplateName}" draftTemplate="{!draftTemplateName}" sendAddressTo="" projectProfileRecord="{!project}" attachIds="{!recordsForAttachmentsIds}" emailTypeRecord="{!emailTypeRecord}" selectRecipient="true" contactId="" sendEmailEntityLevel="true"/>
+            </apex:outputPanel>
+        </apex:outputPanel>
+        <apex:commandButton value="Close" action="{!cancelAction}" style="margin-left: 22px !important;"/>
+
+        <apex:outputPanel rendered="{!showCopyrightInfo}">
+            <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+        </apex:outputPanel>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,108 @@
+<apex:page standardController="Project_Profile__c" extensions="MilstoneRelatedListController">
+    <script src="{!$Resource.jquery_tablednd_js}"></script>
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}"/>
+    <script src="{!URLFOR($Resource.jquery_vfFloatingHeaders)}"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('.BlogForce9Table').vfFloatingHeaders();
+            });
+    </script>
+    
+    <style> 
+        .tableContainer
+            {
+                height:150px; 
+                width: 100%;
+                overflow: scroll;
+            }            
+        .floatingStyle 
+        { 
+            position:relative;
+            background:#F2F3F3;
+        } 
+    </style>
+
+    <style type="text/css" height="100">
+        .actionColumn {
+            display     : none; 
+            visibility  : hidden
+        }
+        .presence_chat_widget {
+            display     : none; 
+            visibility  : hidden
+        } 
+        .pbHeader {
+            display     : none; 
+            visibility  : hidden
+        }
+        body {
+            margin: 0px !important;
+        }
+        .addedAmendedServive {
+            color: green; 
+            font-weight:bold;
+        }
+        .removedAmendedServive {
+            color:red; 
+            font-weight:bold;
+        }
+        .removedAmendedServiveTR {
+            background-color: #FEE;
+        }
+        .addedAmendedServiveTR {
+            background-color: #EFE;
+        }
+    </style>
+    <apex:pageMessages id="message"/>
+    <apex:form >
+        <apex:actionFunction name="AddNewMilestone" action="{!creatingActionOn}" reRender="addMilestoneOutputPanel"/>
+        <apex:outputPanel layout="block" id="addMilestoneOutputPanel" style="display:inline-block;">
+            <apex:commandButton value="Add new Milestone" onclick="AddNewMilestone(); return false;"/>
+            <apex:inputText id="addMilestoneInput" value="{!newMilestone.Name}" rendered="{!creatingOn}" alt="Milestone Name"/>
+            <apex:commandButton id="addMilestoneSave" value="Save" rendered="{!creatingOn}" action="{!saveNewMilestoneAction}"/>
+            <apex:commandButton id="addMilestoneSaveAndNew" value="Save & New" rendered="{!creatingOn}" action="{!saveAndNewMilestoneAction}"/>
+            <apex:commandButton id="addMilestoneCancel" value="Cancel" rendered="{!creatingOn}" action="{!cancelNewMilestoneAction}"/>
+        </apex:outputPanel>
+        <div style="width: 100%; margin: 0px; height: 150px; overflow: scroll;" id="taskTableDiv" class="tableContainer">
+            <table id="myTableBlogForce9" class="BlogForce9Table generalTableStyle" style="/*width:100%; 0px; margin: 0px; border-collapse: collapse; border: none;*/">
+                <thead class="rich-table-thead">
+                    <tr class="headerRow">
+                        <th class="headerRow   floatingStyle"><div>Action</div></th>
+                        <th class="headerRow   floatingStyle">Milestone Name</th>
+                        <th class="headerRow   floatingStyle">Planned Date</th>
+                        <th class="headerRow   floatingStyle">Expected Date</th>
+                        <th class="headerRow   floatingStyle">Actual Date</th>
+                    </tr>
+                    </thead>
+                <apex:repeat value="{!milestonesWraperList}" var="item">
+                    <tr id="{!item.milestone.Id}">
+                        <td align="left" class="name dragHandle" style="width:2%;">
+                            <apex:commandLink action="{!setEditbeValue}" rendered="{!item.isDisabled}">
+                                <apex:param name="taskIdToEdit" value="{!item.milestone.Id}" assignTo="{!taskIdToUpdate}"/>
+                                <img src="/img/icon/custom51_100/pencil16.png" alt="edit" title="Edit" class="deleteItemImage" onmouseover="this.src='/img/icon/custom51_100/pencil16.png'" onmouseout="this.src='/img/icon/custom51_100/pencil16.png'"/>
+                            </apex:commandLink>
+                            <apex:commandLink action="{!deleteMilestoneAction}" rendered="{!item.isDisabled}">
+                                <apex:param name="taskIdToEdit" value="{!item.milestone.Id}" assignTo="{!taskIdToUpdate}"/>
+                                <img src="/img/func_icons/remove12_on.gif" alt="delete" title="Delete" class="deleteItemImage" onmouseover="this.src='/img/func_icons/remove12_on.gif'" onmouseout="this.src='/img/func_icons/remove12_on.gif'"/>
+                            </apex:commandLink>
+                            <apex:commandLink action="{!updateNameAction}" rendered="{!!item.isDisabled}">
+                                <apex:param name="taskIdToEdit" value="{!item.milestone.Id}" assignTo="{!taskIdToUpdate}"/>
+                                <img src="/img/permissions_confirm16.gif" alt="apply" title="Apply" class="deleteItemImage" onmouseover="this.src='/img/permissions_confirm16.gif'" onmouseout="this.src='/img/permissions_confirm16.gif'"/>
+                            </apex:commandLink>
+                            <apex:commandLink action="{!unSetEditbeValue}" rendered="{!!item.isDisabled}">
+                                <apex:param name="taskIdToEdit" value="{!item.milestone.Id}" assignTo="{!taskIdToUpdate}"/>
+                                <img src="/img/permissions_deny16.gif" alt="cancel" title="Cancel" class="deleteItemImage" onmouseover="this.src='/img/permissions_deny16.gif'" onmouseout="this.src='/img/permissions_deny16.gif'"/>
+                            </apex:commandLink>
+                        </td>
+                        <td class="name dragHandle" style="width:50%;"><apex:inputText value="{!item.milestone.Name}" disabled="{!item.isDisabled}" styleClass="generalTableStyle"/></td>
+                        <td class="name dragHandle" style="width:16%;"><apex:outputText value="{!item.planedDate}"/></td>
+                        <td class="name dragHandle" style="width:16%;"><apex:outputText value="{!item.expectedDate}"/></td>
+                        <td class="name dragHandle" style="width:16%;"><apex:outputText value="{!item.actualDate}"/></td>
+                    </tr>
+                </apex:repeat>
+            </table>
+        </div>
+    </apex:form>
+</apex:page>

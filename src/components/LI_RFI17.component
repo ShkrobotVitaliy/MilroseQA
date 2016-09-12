@@ -1,0 +1,207 @@
+<apex:component controller="RFIComponentController">
+  <apex:attribute name="recordId" description="Id of RFI Scope Record" type="String" required="true" assignTo="{!rfiScopeRecordId}"/>
+  <apex:attribute name="projectView" description="Indicates that component is shown on Project page" type="Boolean" required="true" />
+  <apex:attribute name="show2column" description="true/false - 2/3 column is shown" type="Boolean" required="false" />
+  <apex:variable var="display2Column" value="{!IF(OR(projectView, AND(!projectView, show2column)), 'table-cell', 'none')}"/>
+  <apex:variable var="display3Column" value="{!IF(OR(projectView, AND(!projectView, !show2column)), 'table-cell', 'none')}"/>
+  <apex:variable var="colspanValue" value="{!IF(projectView, 2, 1)}"/>
+  <apex:outputPanel layout="block">
+    <table class="generalTableStyle" border="0" cellpadding="0" cellspacing="0">
+      <colgroup width="34%"></colgroup>
+      <colgroup width="{!IF(projectView, '33', '67')}%"></colgroup>
+      <tr>
+        <th class="component-name" colspan="{!IF(projectView, 3, 2)}">{!rfiScopeRecord.RFI_Section__c}:</th>
+      </tr>
+      <tr>
+        <th style="width: 33%">Request</th>
+        <th style="width: {!IF(projectView, '33', '50')}%; display:{!display2Column}">Application Permit Response</th>
+        <th style="width: {!IF(projectView, '33', '50')}%; display:{!display3Column}">Application Sign Off Response</th>
+      </tr>
+      <tr>
+        <td class="mainRequestHeader">Signing/Sealing &amp; License #</td>
+        <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Signing_Sealing_License_App__c}" /></td>
+        <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Signing_Sealing_License_Off__c}" /></td>
+      </tr>
+      <tr>
+        <td class="mainRequestHeader">Project Manager</td>
+        <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Project_Manager_App__c}" /></td>
+        <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Project_Manager_Off__c}" /></td>
+      </tr>
+      <tr>
+        <td class="mainRequestHeader">Description of work to be completed (Boiler, Burner or Fuel Storage etc.):</td>
+        <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Description_Of_Work_To_Be_Completed_App__c}" /></td>
+        <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Description_Of_Work_To_Be_Completed_Off__c}" /></td>
+      </tr>
+      <tr>
+        <td class="mainRequestHeader">Number of boilers to be installed</td>
+        <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Number_Of_Boilers_To_Be_Installed_App__c}" /></td>
+        <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Number_Of_Boilers_To_Be_Installed_Off__c}" /></td>
+      </tr>
+      <tr>
+        <td class="mainRequestHeader">If Modular, Number of Units</td>
+        <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.If_Modular_Number_Of_Units_App__c}" /></td>
+        <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.If_Modular_Number_Of_Units_Off__c}" /></td>
+      </tr>
+      <tr>
+        <td class="mainRequestHeader">Operating Gauge Pressure</td>
+        <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Operating_Gauge_Pressure_App__c}" /></td>
+        <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Operating_Gauge_Pressure_Off__c}" /></td>
+      </tr>
+      <tr>
+        <td class="mainRequestHeader">Pressure Setting of Relief Valves</td>
+        <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Pressure_Setting_Of_Relief_Valves_App__c}" /></td>
+        <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Pressure_Setting_Of_Relief_Valves_Off__c}" /></td>
+      </tr>
+      <tr>
+        <td class="mainRequestHeader">Operating Weight of Boiler</td>
+        <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Operating_Weight_Of_Boiler_App__c}" /></td>
+        <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Operating_Weight_Of_Boiler_Off__c}" /></td>
+      </tr>
+      <tr>
+        <td class="td-table" colspan="{!IF(projectView, '3', '2')}">
+          <table style="width: 100%;" class="classBoiler">
+            <colgroup width="34%"></colgroup>
+            <colgroup span="4" width="{!IF(projectView, '8.3', '17.5')}%"></colgroup>
+              <tr>
+                <td style="background: #E4E4E4;" class="mainRequestHeader">Boiler Information</td>
+                <td style="display:{!display2Column};" class="secondColumn">Boiler # 1</td>
+                <td style="display:{!display2Column};" class="secondColumn">Boiler # 2</td>
+                <td style="display:{!display2Column};" class="secondColumn">Boiler # 3</td>
+                <td style="display:{!display2Column};" class="secondColumn">Boiler # 4</td>
+                <td style="display:{!display3Column};" class="secondColumn">Boiler # 1</td>
+                <td style="display:{!display3Column};" class="secondColumn">Boiler # 2</td>
+                <td style="display:{!display3Column};" class="secondColumn">Boiler # 3</td>
+                <td style="display:{!display3Column};" class="secondColumn">Boiler # 4</td>
+              </tr>
+              <tr>
+                <td>
+                  <b>Boiler Type</b>
+                  (fill-in all that apply):
+                  <br>High Pressure, Lower Pressure, Water Tube, Fire Tube, Case Iron, Steam, Hot Water</br>
+                  <b>Fuel Used</b>: Oil, Gas, Electric
+                </td>
+                <td style="display:{!display2Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_1_1_App__c}" /></td>
+                <td style="display:{!display2Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_1_2_App__c}" /></td>
+                <td style="display:{!display2Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_1_3_App__c}" /></td>
+                <td style="display:{!display2Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_1_4_App__c}" /></td>
+                <td style="display:{!display3Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_1_1_Off__c}" /></td>
+                <td style="display:{!display3Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_1_2_Off__c}" /></td>
+                <td style="display:{!display3Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_1_3_Off__c}" /></td>
+                <td style="display:{!display3Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_1_4_Off__c}" /></td>
+             </tr>
+             <tr>
+                <td>Manufacture/ Trade Name</td>
+                <td style="display:{!display2Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_2_1_App__c}" /></td>
+                <td style="display:{!display2Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_2_2_App__c}" /></td>
+                <td style="display:{!display2Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_2_3_App__c}" /></td>
+                <td style="display:{!display2Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_2_4_App__c}" /></td>
+
+                <td style="display:{!display3Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_2_1_Off__c}" /></td>
+                <td style="display:{!display3Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_2_2_Off__c}" /></td>
+                <td style="display:{!display3Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_2_3_Off__c}" /></td>
+                <td style="display:{!display3Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_2_4_Off__c}" /></td>
+             </tr>
+             <tr>
+                <td>MEA/BSA #</td>
+                <td style="display:{!display2Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_3_1_App__c}" /></td>
+                <td style="display:{!display2Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_3_2_App__c}" /></td>
+                <td style="display:{!display2Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_3_3_App__c}" /></td>
+                <td style="display:{!display2Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_3_4_App__c}" /></td>
+
+                <td style="display:{!display3Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_3_1_Off__c}" /></td>
+                <td style="display:{!display3Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_3_2_Off__c}" /></td>
+                <td style="display:{!display3Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_3_3_Off__c}" /></td>
+                <td style="display:{!display3Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_3_4_Off__c}" /></td>
+             </tr>
+             <tr>
+                <td>Model Number</td>
+                <td style="display:{!display2Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_4_1_App__c}" /></td>
+                <td style="display:{!display2Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_4_2_App__c}" /></td>
+                <td style="display:{!display2Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_4_3_App__c}" /></td>
+                <td style="display:{!display2Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_4_4_App__c}" /></td>
+
+                <td style="display:{!display3Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_4_1_Off__c}" /></td>
+                <td style="display:{!display3Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_4_2_Off__c}" /></td>
+                <td style="display:{!display3Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_4_3_Off__c}" /></td>
+                <td style="display:{!display3Column};" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Boiler_4_4_Off__c}" /></td>
+             </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td style="background: #E4E4E4;" class="mainRequestHeader">Burner Specifications</td>
+        <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Burner_Specifications_App__c}" /></td>
+        <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Burner_Specifications_Off__c}" /></td>
+      </tr>
+      <tr>
+        <td>Manufacture/ Trade  Name</td>
+        <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Manufacture_Trade_Name_App__c}" /></td>
+        <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Manufacture_Trade_Name_Off__c}" /></td>
+      </tr>
+      <tr>
+        <td>MEA/BSA #</td>
+        <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.MEA_BSA_App__c}" /></td>
+        <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.MEA_BSA_Off__c}" /></td>
+      </tr>
+      <tr>
+        <td>Model Number</td>
+        <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Model_Number_App__c}" /></td>
+        <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Model_Number_Off__c}" /></td>
+      </tr>
+      <tr>
+        <td>Gross Firing Rate of Oil Burners (BTU / GPH)</td>
+        <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Gross_Firing_Rate_Of_Oil_Burners_App__c}" /></td>
+        <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Gross_Firing_Rate_Of_Oil_Burners_Off__c}" /></td>
+      </tr>
+      <tr>
+        <td class="td-table" colspan="{!IF(projectView, '3', '2')}">
+          <table style="width: 100%;" class="classTank">
+            <colgroup width="34%"></colgroup>
+            <colgroup span="4" width="{!IF(projectView, '8.3', '17.5')}%"></colgroup>
+            <tr>
+              <td style="background: #E4E4E4;" class="mainRequestHeader">Fuel Storage Specifications</td>
+              <td style="display:{!display2Column}" class="secondColumn">Tank # 1</td>
+              <td style="display:{!display2Column}" class="secondColumn">Tank # 2</td>
+              <td style="display:{!display2Column}" class="secondColumn">Tank # 3</td>
+              <td style="display:{!display2Column}" class="secondColumn">Tank # 4</td>
+              <td style="display:{!display3Column}" class="secondColumn">Tank # 1</td>
+              <td style="display:{!display3Column}" class="secondColumn">Tank # 2</td>
+              <td style="display:{!display3Column}" class="secondColumn">Tank # 3</td>
+              <td style="display:{!display3Column}" class="secondColumn">Tank # 4</td>
+            </tr>
+            <tr>
+              <td>Oil Grade:
+                <ul>
+                  <li>Grade #1 -Kerosene</li>
+                  <li>Grade #2 -Diesel/Bio Diesel</li>
+                  <li>Grade #4</li>
+                  <li>Grade #5</li>
+                  <li>Grade #6</li>
+                </ul>
+                </td>
+              <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Tank_1_1_App__c}" /></td>
+              <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Tank_2_1_App__c}" /></td>
+              <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Tank_3_1_App__c}" /></td>
+              <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Tank_4_1_App__c}" /></td>
+              <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Tank_1_1_Off__c}" /></td>
+              <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Tank_2_1_Off__c}" /></td>
+              <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Tank_3_1_Off__c}" /></td>
+              <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Tank_4_1_Off__c}" /></td>
+            </tr>
+            <tr>
+              <td>Capacity (gal) per tank</td>
+              <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Tank_1_2_App__c}" /></td>
+              <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Tank_2_2_App__c}" /></td>
+              <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Tank_3_2_App__c}" /></td>
+              <td style="display:{!display2Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Tank_4_2_App__c}" /></td>
+              <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Tank_1_2_Off__c}" /></td>
+              <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Tank_2_2_Off__c}" /></td>
+              <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Tank_3_2_Off__c}" /></td>
+              <td style="display:{!display3Column}" class="secondColumn"><apex:inputTextarea value="{!rfiScopeRecord.RFI_Scope_Description_Long_Island__r.Tank_4_2_Off__c}" /></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </apex:outputPanel>
+</apex:component>

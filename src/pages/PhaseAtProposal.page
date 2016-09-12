@@ -1,0 +1,21 @@
+<apex:page standardController="Proposal__c" extensions="PhaseAtProposalController">
+    <apex:form >
+       <apex:inputField rendered="false" value="{!Proposal__c.Name}" />
+       <apex:inputField rendered="false" value="{!Proposal__c.Id}" />
+       <apex:pageMessages id="msgs"></apex:pageMessages>
+        <apex:pageBlock >
+           <apex:outputPanel layout="block" style="height: 200px;overflow-y: auto;" id="phaseOutputPanel">
+             <apex:pageBlockTable value="{!phaseList}" var="child">
+                 <apex:column >
+                   <apex:facet name="header">
+                        <apex:commandLink action="{!sortAction}" value="Name {!IF(sortAssignmentExtension.sortExpression == 'Name__c', IF(sortAssignmentExtension.sortDirection == 'ASC', '▼', '▲'), '')}" rerender="phaseOutputPanel, msgs">
+                            <apex:param value="Name__c" name="column" assignTo="{!sortAssignmentExtension.sortExpression}" />
+                        </apex:commandLink>
+                   </apex:facet>
+                   <apex:outputLink target="_blank" value="/{!child.Id}">{!child.Name__c}</apex:outputLink>
+                 </apex:column>
+             </apex:pageBlockTable>
+           </apex:outputPanel>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

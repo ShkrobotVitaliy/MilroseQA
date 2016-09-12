@@ -1,0 +1,102 @@
+<apex:page standardController="Project_Profile__c" extensions="ServiceItemsExtensionMi3">
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script type="text/javascript">
+        function setFocusOnLoad() {
+        }
+        function disableTerminateTasksButton() {
+            $('.terminateTasksButtonJQ').attr('disabled', 'disabled').removeClass('btn').addClass('btnDisabled');
+        }
+    </script>
+
+    <apex:form >
+        <apex:pageMessages id="msgs"/>
+        <apex:actionStatus id="inlineStatus" onstart="$('.serviceSelectBlock select').css('width', '100%'); $('.inlineStatus').css('display', 'inline-block');" onstop="$('.inlineStatus').css('display', 'none');"/>
+        <apex:actionFunction name="calcutateDates" action="{!calcutateDates}" reRender="msgs, terminateTasksButton" status="inlineStatus" oncomplete="if( $('.errorM3[role=alert] span').length == 0 ) { disableTerminateTasksButton(); window.top.location='/{!project.Id}'; } return false;"/>
+        <apex:actionFunction name="reRenderStatuses" action="{!setStatus}" reRender="msgs, statuses, dates, terminateTasksButton" status="inlineStatus">
+            <apex:param name="currentServiceId" value="" assignTo="{!currentServiceId}"/>
+            <apex:param name="currentTaskId" value="" assignTo="{!currentTaskId}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="reRenderTable" reRender="msgs, statuses, dates, terminateTasksButton" status="inlineStatus"/>
+        <apex:outputPanel id="table" layout="block" style="display: block;max-height: 800px;overflow-y: auto;">
+            <table class="generalTableStyle">
+                <tr>
+                    <td class="header">Service Number</td>
+                    <td class="header">Service Group</td>
+                    <td class="header">Service Name</td>
+                    <td class="header">Municipal Agency ID#</td>
+                    <td class="header">Last Complete Task</td>
+                    <td class="header">Completion Status</td>
+                    <td class="header">Date Last Task Completed</td>
+                </tr>
+                <apex:repeat var="serviceItemWrapper" value="{!serviceItemWrappers}">
+                    <tr>
+                        <td class="data" style="vertical-align: middle; ">
+                            <apex:outputLink target="_blank" value="/{!serviceItemWrapper.record.Id}">
+                                <span style="white-space: nowrap;">
+                                    <apex:outputText value="{!serviceItemWrapper.record.Name}"/>
+                                </span>
+                            </apex:outputLink>
+                        </td>
+                        <td class="data" style="vertical-align: middle;">
+                            <span style="white-space: nowrap;">
+                                {!serviceItemWrapper.record.Service_Group__c}
+                            </span>
+                        </td>
+                        <td class="name" style="vertical-align: middle;">
+                            {!serviceItemWrapper.record.Service_Name_Full__c}
+                        </td>
+                        <td class="data" style="vertical-align: middle;">
+                            <span style="white-space: nowrap;">
+                                {!serviceItemWrapper.record.Municipal_Agency_ID__c}
+                            </span>
+                        </td>
+                        <td class="data" style="vertical-align: middle;">
+                            <apex:selectList multiselect="false" size="1" style="width: 100%; min-width: 180px;" value="{!serviceItemWrapper.selectedTaskItemId}" onchange="disableTerminateTasksButton(); reRenderStatuses( '{!serviceItemWrapper.record.Id}', this.value ); return false;">
+                                <apex:selectOptions value="{!serviceItemWrapper.taskItemsOptions}"/>
+                            </apex:selectList>
+                        </td>
+                        <td class="data" style="vertical-align: middle;">
+                            <apex:outputPanel id="statuses">
+                                <apex:selectList multiselect="false" size="1" style="width: 100%; min-width: 90px;" value="{!serviceItemWrapper.currentTaskItemWrapper.newStatus}">
+                                    <apex:selectOptions value="{!serviceItemWrapper.currentTaskItemWrapper.completeStatuses}"/>
+                                </apex:selectList>
+                            </apex:outputPanel>
+                        </td>
+                        <td class="data" style="vertical-align: middle;">
+                            <apex:outputPanel id="dates" styleClass="dateInputJQ">
+                                <apex:inputField value="{!serviceItemWrapper.taskItemForDate.Actual_End_Date__c}" onchange="disableTerminateTasksButton(); reRenderTable();"/>
+                                <apex:outputPanel layout="block" rendered="{!serviceItemWrapper.taskItemForDate.Actual_End_Date__c == null && serviceItemWrapper.selectedTaskItemId != null}">
+                                    <div style="color: red; text-align: left; font-size: 90%; font-weight: bold;">Set a date for this service!</div>
+                                </apex:outputPanel>
+                                <script type="text/javascript">
+                                    $('.dateInputJQ .dateInput input').attr('size', '16');
+                                </script>
+                            </apex:outputPanel>
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </table>
+            <script type="text/javascript">
+                //$('.dateInput input').attr('size', '16');
+                //$('.dateInput input').css('display', 'block');
+            </script>
+        </apex:outputPanel>
+            <div style="width: 100%; text-align: right; display: table;">
+                <div style="width: 100%; text-align: right; display: table-cell;">
+                    <div style="display: inline-block; vertical-align: middle;">
+                        <div class="inlineStatus" style="display: none;">
+                            <img src="/img/loading32.gif" width="16" height="16"/>&nbsp;
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align: right; display: table-cell;">
+                    <apex:outputPanel id="terminateTasksButton">
+                        <apex:commandButton styleClass="milroseBtnStyle terminateTasksButtonJQ" disabled="{!!isTerminateTasksButtonValid}" value="Terminate Tasks!" onclick="disableTerminateTasksButton(); calcutateDates(); return false;"/>
+                    </apex:outputPanel>
+                </div>
+            </div>
+        <apex:inputField value="{!Project_Profile__c.Project_Start_Date__c}" rendered="false"/>
+    </apex:form>
+
+</apex:page>

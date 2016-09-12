@@ -1,0 +1,72 @@
+<apex:page standardStylesheets="false" showHeader="false" sidebar="false" standardController="Sub_Task__c" recordSetVar="tasks"> 
+<apex:stylesheet value="{!URLFOR($Resource.Styles, 'styles.css')}" />
+<h1>Sub Task Items</h1>
+<apex:form >
+<apex:dataTable value="{!tasks}" var="pitem" rowClasses="odd,even"> 
+<apex:column headerValue="Tasks">
+            <apex:outputText value="{!pitem.name}"/>
+         </apex:column>
+         
+<apex:column headerValue="Application Number">
+            <apex:outputField value="{!pitem.Application_Number__c}">
+           </apex:outputField> -   
+            <apex:outputField value="{!pitem.Click_to_Open__c}">
+            </apex:outputField>
+         </apex:column>
+         
+
+<apex:column headerValue="Floor">
+            <apex:outputText value="{!pitem.Floor__c}"/>
+         </apex:column>
+
+
+<apex:column headerValue="Type of Filing">
+            <apex:outputText value="{!pitem.Type_of_Filing__c}"/>
+         </apex:column>   
+         
+               
+<apex:column headerValue="Filed By">
+            <apex:outputText value="{!pitem.Filed_By__c}"/>
+            
+         </apex:column>         
+         
+    <apex:column headerValue="Filing Status">
+            <apex:outputField value="{!pitem.Filing_Status__c}">
+               <apex:inlineEditSupport event="onclick" showOnEdit="update"/>
+            </apex:outputField>
+         </apex:column>     
+  
+      
+      
+      
+   <apex:column headerValue="Signed Off By">
+            <apex:outputField value="{!pitem.Sign_Off_By__c}">
+               <apex:inlineEditSupport event="onclick" showOnEdit="update"/>
+            </apex:outputField>
+         </apex:column>                 
+            
+ <apex:column headerValue="Sign-Off Requirements">
+            <apex:outputText value="{!pitem.Sign_Off_Requirements__c}"/>
+         </apex:column> 
+         
+  <apex:column headerValue="Item Required">
+            <apex:outputText value="{!pitem.Item_Required__c}"/>
+         </apex:column>          
+            
+            
+<apex:column headerValue="Comments">
+            <apex:outputField value="{!pitem.Comnents__c}">
+               <apex:inlineEditSupport event="onclick" showOnEdit="update"/>
+            </apex:outputField>
+         </apex:column>               
+            
+            
+            
+                  
+         
+         
+</apex:dataTable>
+<br/>
+      <apex:commandButton id="update" action="{!quicksave}" value="Save Changes"  styleclass="updateButton"/>
+</apex:form>
+</apex:page>

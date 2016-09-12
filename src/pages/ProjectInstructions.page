@@ -1,0 +1,50 @@
+<apex:page standardController="Project_Profile__c" extensions="ProjectInstructionsController" sidebar="false" showHeader="false" showChat="false">
+  <apex:stylesheet value="{!URLFOR($Resource.ProposalWizardResources, 'proposalWizard.css')}"/>
+  <apex:form >
+  <div class="overlay" id="transparentOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"></div>
+  <apex:pageMessages id="msgs"/>
+    <apex:outputPanel > <!-- MRS 7292 -->
+      <div style="width: 100%; margin: 0 0 2px; max-height: 460px;" class="tableContainer"> <!-- MRS 6214 -->
+        <table class="generalTableStyle" style="width: 100%; margin-bottom: 0px; border-collapse: collapse;">
+          <thead>
+            <tr height="30px">
+              <th width="20%">Type</th>
+              <th width="20%">Name</th>
+              <th width="60%">Instruction</th>
+            </tr>
+          </thead>
+          <tbody>
+            <apex:repeat value="{!mainProjectInstructions}" var="inst">
+              <tr>  
+                <td style="vertical-align: middle; text-align: center;" width="20%">{!inst.type}</td>
+                <td style="vertical-align: middle; text-align: center;" width="20%">
+                  <apex:outputLink value="/{!inst.objectId}" target="_blank">{!inst.objectName}</apex:outputLink>
+                </td>
+                <td width="60%">
+                  <div style="display: block; padding-right:7px;">
+                    <apex:inputTextArea value="{!inst.instruction}" style="width: 100%; resize: vertical; color: green;" rows="3" readonly="true"/> <!-- MRS 7214 -->
+                  </div>
+                </td>
+              </tr>
+            </apex:repeat>
+            <apex:variable var="num" value="{!1}"/>
+            <apex:repeat value="{!rosterProjectInstructions}" var="inst">
+              <tr>
+                <td style="vertical-align: middle; text-align: center;" width="20%">Company {!num}</td>
+                <td style="vertical-align: middle; text-align: center;" width="20%">
+                  <apex:outputLink value="/{!inst.objectId}" target="_blank">{!inst.objectName}</apex:outputLink>
+                </td>
+                <td width="60%">
+                  <div style="display: block; padding-right:7px;">
+                    <apex:inputTextArea value="{!inst.instruction}" style="width: 100%; resize: vertical; color: green;" rows="3" readonly="true"/> <!-- MRS 7214 -->
+                  </div>
+                </td>
+                <apex:variable var="num" value="{!num+1}"/>
+              </tr>
+            </apex:repeat>
+          </tbody>
+        </table>
+      </div>
+    </apex:outputPanel>
+  </apex:form>
+</apex:page>

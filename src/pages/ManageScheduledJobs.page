@@ -1,0 +1,194 @@
+<apex:page cache="false" sidebar="false" controller="ManageScheduledJobsController">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.8.16/themes/smoothness/jquery-ui.css" />
+
+    <script type="text/javascript">
+        jQuery.noConflict();
+    </script>
+
+    <apex:form >
+        <apex:PageMessages id="msgs" />
+        <apex:actionFunction action="{!selectExisting}" name="selectE" rerender="pbtExisting, msgs" />
+        <apex:actionFunction action="{!selectHistory}" name="selectH" rerender="pbtHistory, msgs" />
+        <div align="center">
+            <apex:outputPanel id="debug" style="padding: 5px 10px;" layout="block" >
+                <apex:outputLink value="/08e" style="padding: 5px 10px;">Scheduled Jobs List</apex:outputLink>
+                <apex:outputLink value="/ui/setup/apex/batch/ScheduleBatchApexPage" style="padding: 5px 10px;">Schedule New Job</apex:outputLink>
+            </apex:outputPanel>
+        </div>
+        <apex:sectionHeader title="Manage Scheduled Jobs" />
+
+        <apex:outputPanel id="scheduledJobs" >
+            <apex:pageBlock title="Currently Scheduled Jobs" >
+                <apex:pageBlockButtons >
+                    <apex:commandButton value="Cancel Selected Jobs" action="{!cancelJobs}" status="statusAnim" rerender="scheduledJobs, msgs, history" rendered="{!hasScheduledJobs}"/>
+                </apex:pageBlockButtons>
+                <apex:actionStatus id="statusAnim">
+                    <apex:facet name="start"> <img src="/img/loading32.gif" /> </apex:facet>
+                    <apex:facet name="stop"> </apex:facet>
+                </apex:actionStatus>
+                
+                <apex:outputLabel value="{!noScheduledJobsMsg}" style="color:red" rendered="{!NOT(hasScheduledJobs)}" />
+                <apex:PageblockTable rendered="{!hasScheduledJobs}" id="pbtExisting" value="{!existingScheduledJobs}" var="scheduledJob" >
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:inputCheckbox value="{!selectAllExisting}" onClick="javascript:selectE();" />
+                        </apex:facet>
+                        <apex:inputCheckbox value="{!scheduledJob.isSelected}"/>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Scheduler"/>
+                        </apex:facet>
+                        <apex:outputLink value="/{!scheduledJob.record.Scheduler__r.Id}?noredirect=1">{!scheduledJob.record.Scheduler__r.Name}</apex:outputLink>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Time Zone"/>
+                        </apex:facet>
+                        <apex:outputField value="{!scheduledJob.record.TimeZoneSidKey__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Offset"/>
+                        </apex:facet>
+                        <apex:outputField value="{!scheduledJob.record.TimeZoneOffset__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Name"/>
+                        </apex:facet>
+                        <apex:outputLink value="/ui/setup/apex/batch/ScheduleBatchApexPage?job_name={!scheduledJob.record.Name}">{!scheduledJob.record.Name}</apex:outputLink>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Status"/>
+                        </apex:facet>
+                        <apex:outputLink rendered="{!scheduledJob.record.Status__c == 'SCHEDULED'}" value="/{!scheduledJob.record.Id}">{!scheduledJob.record.Status__c}</apex:outputLink>
+                        <apex:outputField rendered="{!scheduledJob.record.Status__c != 'SCHEDULED'}" value="{!scheduledJob.record.Status__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Active"/>
+                        </apex:facet>
+                        <apex:outputField value="{!scheduledJob.record.Active__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Full Name"/>
+                        </apex:facet>
+                        <apex:outputField value="{!scheduledJob.record.CompleteApexClassName__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Cron Expression"/>
+                        </apex:facet>
+                        <apex:outputField value="{!scheduledJob.record.CronExpression__c}" />
+                    </apex:column>
+                   
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Created Date"/>
+                        </apex:facet>
+                        <apex:outputText value="{0,date,dd.MM.yyyy HH:mm:ss z}">
+                            <apex:param value="{!scheduledJob.record.CreatedDate__c}" />
+                        </apex:outputText>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Class Name"/>
+                        </apex:facet>
+                        <apex:outputLink value="/{!scheduledJob.record.ApexClassId__c}">{!scheduledJob.record.ApexClassName__c}</apex:outputLink>
+                    </apex:column>
+                </apex:PageblockTable>
+            </apex:pageBlock>
+        </apex:outputPanel>
+        
+        <apex:outputPanel id="history">
+            <apex:pageBlock title="History" >
+                <apex:pageBlockButtons >
+                    <apex:commandButton value="Schedule Selected Jobs" action="{!scheduleJobs}" status="statusAnim" rerender="scheduledJobs, msgs, history" rendered="{!hasScheduledJobsHistory}"/>
+                    <apex:commandButton value="Clear Selected Jobs" action="{!clearHistory}" status="statusAnim" rerender="scheduledJobs, msgs, history" rendered="{!hasScheduledJobsHistory}"/>
+                    <apex:commandButton value="Clone Selected Jobs" action="{!cloneHistory}" status="statusAnim" rerender="scheduledJobs, msgs, history" rendered="{!hasScheduledJobsHistory}"/>
+                </apex:pageBlockButtons>
+                <apex:actionStatus id="statusAnim">
+                    <apex:facet name="start"> <img src="/img/loading32.gif" /> </apex:facet>
+                    <apex:facet name="stop"> </apex:facet>
+                </apex:actionStatus>
+                
+                <apex:outputLabel value="{!noSchedullableInHistoryMsg}" style="color:red" rendered="{!NOT(hasScheduledJobsHistory)}" />
+                <apex:PageblockTable rendered="{!hasScheduledJobsHistory}" id="pbtHistory" value="{!scheduledJobsHistory}" var="scheduledHistory" >
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:inputCheckbox value="{!selectAllHistory}" onClick="javascript:selectH();" />
+                        </apex:facet>
+                        <apex:inputCheckbox value="{!scheduledHistory.isSelected}"/>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Scheduler"/>
+                        </apex:facet>
+                        <apex:outputLink value="/{!scheduledHistory.record.Scheduler__r.Id}?noredirect=1">{!scheduledHistory.record.Scheduler__r.Name}</apex:outputLink>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Time Zone"/>
+                        </apex:facet>
+                        <apex:outputField value="{!scheduledHistory.record.TimeZoneSidKey__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Offset"/>
+                        </apex:facet>
+                        <apex:outputField value="{!scheduledHistory.record.TimeZoneOffset__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Name"/>
+                        </apex:facet>
+                        <apex:outputField value="{!scheduledHistory.record.Name}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Status"/>
+                        </apex:facet>
+                        <apex:outputLink value="/{!scheduledHistory.record.Id}">{!scheduledHistory.record.Status__c}</apex:outputLink>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Active"/>
+                        </apex:facet>
+                        <apex:outputField value="{!scheduledHistory.record.Active__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Full Name"/>
+                        </apex:facet>
+                        <apex:outputField value="{!scheduledHistory.record.CompleteApexClassName__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Cron Expression"/>
+                        </apex:facet>
+                        <apex:outputField value="{!scheduledHistory.record.CronExpression__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Created Date"/>
+                        </apex:facet>
+                        <apex:outputText value="{0,date,dd.MM.yyyy HH:mm:ss z}">
+                            <apex:param value="{!scheduledHistory.record.CreatedDate__c}" />
+                        </apex:outputText>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:outputLabel value="Class Name"/>
+                        </apex:facet>
+                        <apex:outputLink value="/{!scheduledHistory.record.ApexClassId__c}">{!scheduledHistory.record.ApexClassName__c}</apex:outputLink>
+                    </apex:column>
+                </apex:PageblockTable>
+            </apex:pageBlock>
+        </apex:outputPanel>
+    </apex:form>
+</apex:page>

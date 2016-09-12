@@ -1,0 +1,9 @@
+<apex:page sidebar="false" showHeader="false" >
+ 
+    <apex:pageBlock >
+        <apex:iframe src="/00OA0000005Kafx?isdtp=nv" height="600px" width="100%" scrolling="true" />
+        <br/>
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+        <br/>
+    </apex:pageBlock>
+</apex:page>

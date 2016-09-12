@@ -1,0 +1,13 @@
+<apex:page >
+  <!-- Begin Default Content REMOVE THIS -->
+  <apex:pageBlock title="A Block Title">
+  <apex:pageBlockSection title="A Section Title">
+  I am three components deep!
+  <p>I can add more info on this line</p>
+  <apex:pageBlocksection title="A Second Section">
+  More information
+  </apex:pageBlocksection></apex:pageBlocksection>
+  </apex:pageBlock>
+ 
+  <!-- End Default Content REMOVE THIS -->
+</apex:page>

@@ -1,0 +1,39 @@
+<apex:page standardController="Form_Meta_Data_Object_1__c"  extensions="CommonFormController" >
+<head>
+<script src="/soap/ajax/25.0/connection.js"></script>
+<script src="/soap/ajax/25.0/apex.js"></script>
+</head>
+
+
+<img src="/img/loading32.gif" id="SkyeditorLoagingImage" style="display:none;"/>
+
+<table border="0" cellpadding="0" cellspacing="0" style="width:100%;" ><tr><td>
+<apex:outputPanel rendered="{! NOT(hidePageBody)}" id="pagePanel" styleClass="base" layout="block">
+<apex:outputPanel style="position:relative;" >
+</apex:outputPanel><apex:form id="sve_form1"   styleClass="sve_form1"   >
+<apex:outputPanel layout="block"   style="position:relative;width:800px;height:1000px;" >
+<img   src="{!URLFOR($Resource.F120_1)}"   style="width:800px;height:1000px;left:0px;top:0px;position:absolute;" /><apex:commandButton action="{!cancelPage}"   id="Component4"   immediate="false"   value="Cancel"   style="left:220px;top:10px;position:absolute;width:66px;" >
+</apex:commandButton><apex:commandButton action="{!savePage}"   id="Component5"   immediate="false"   value="Save"   style="left:330px;top:10px;position:absolute;width:66px;" >
+</apex:commandButton><apex:commandButton action="{!updateDocAndDdp}"   id="Component6"   immediate="false"   value="Generate PDF"   style="left:450px;top:10px;position:absolute;width:95px;" >
+</apex:commandButton><apex:outputLabel escape="true"   id="Component7"   rendered="{!$ObjectType.Form_Meta_Data_Object_1__c.fields.Input_Field_DM12__c.accessible}"   style="left:182px;top:435px;position:absolute;color:#000000;font-size:8pt;font-weight:Bold;text-align:left;" value="Street Name" />
+<apex:outputLabel escape="true"   id="Component9"   rendered="{!$ObjectType.Form_Meta_Data_Object_1__c.fields.Input_Field_DM14__c.accessible}"   style="left:571px;top:439px;position:absolute;color:#000000;font-size:8pt;font-weight:Bold;text-align:left;" value="Street Name" />
+<apex:outputPanel styleclass="fieldwrapper " style="left:161px;top:454px;position:absolute;" >
+<apex:inputField id="Component2"   style="width:107px;height:77px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Input_Field_DM10__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputPanel styleclass="fieldwrapper " style="left:549px;top:454px;position:absolute;" >
+<apex:inputField id="Component3"   style="width:107px;height:77px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Input_Field_DM11__c}">
+</apex:inputField>
+</apex:outputPanel>
+ <apex:outputLabel escape="true"   id="Component8"   rendered="{!$ObjectType.Form_Meta_Data_Object_1__c.fields.Input_Field_DM13__c.accessible}"   style="left:381px;top:471px;position:absolute;color:#000000;font-size:8pt;font-weight:Bold;text-align:left;" value="Street Name" />
+<apex:outputPanel styleclass="fieldwrapper " style="left:291px;top:487px;position:absolute;" >
+<apex:inputField id="Component1"   style="width:234px;height:14px;color:#000000;font-size:8pt;font-weight:Normal;"   value="{!record.Input_Field_DM1__c}">
+</apex:inputField>
+</apex:outputPanel>
+ </apex:outputPanel></apex:form><script type="text/javascript">
+function aggregateCalc_all(triggerId) {
+}
+</script>
+</apex:outputPanel>
+</td></tr></table>
+</apex:page>

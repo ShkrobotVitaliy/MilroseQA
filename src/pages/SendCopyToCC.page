@@ -1,0 +1,78 @@
+<apex:page controller="AddContactToSendCC" sidebar="false" showHeader="false">
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    <style type="text/css">
+        body {
+            overflow: auto !important;
+        }
+        div.pbHeader table td.pbTitle {
+            width: 70px;
+        }
+        body .apexp .bPageBlock.apexDefaultPageBlock .pbBottomButtons {
+            margin-top: 1px;
+        }
+        .apexp .bPageBlock.apexDefaultPageBlock .pbBody {
+            margin: 0px 1px 0px;
+        }
+    </style>
+    <apex:form id="form">
+        <apex:pageMessages id="msgs"/>
+
+        <apex:pageBlock title="Contacts">
+            <apex:pageBlockButtons location="both" style="text-align: right;">
+                <apex:actionFunction name="addContact" action="{!addContact}" oncomplete="if( {!noErrorsAddingContacts} == true ) { closeWindow('{!emailToCC }'); } else { window.parent.parent.hideRightOverlay(); }"/>
+                <apex:commandButton styleClass="milroseBtnStyle" value="Add Contact(s) to Invoice CC" onclick="window.parent.parent.showRightOverlay(); addContact(); return false;"/>
+                <apex:commandButton styleClass="milroseBtnStyle" value="Cancel" onclick="window.parent.parent.showRightOverlay(); cancelWindow(); return false;" immediate="true"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockTable value="{!Contacts}" var="item">
+                <apex:column width="30px">
+                        <apex:facet name="header">
+                            <apex:inputCheckbox onclick="checkAll(this, 'checkedone')"/>
+                        </apex:facet>
+                        <apex:inputCheckbox value="{!item.selected}" id="checkedone"/>
+                </apex:column>
+
+                <apex:column >
+                    <apex:facet name="header">
+                        <apex:outputText value="First Name"/>
+                    </apex:facet>
+                    <apex:outputText value="{!item.contact.First_Name__c}"/>
+                </apex:column>
+
+                <apex:column >
+                    <apex:facet name="header">
+                        <apex:outputText value="Last Name"/>
+                    </apex:facet>
+                    <apex:outputText value="{!item.contact.LastName}"/>
+                </apex:column>
+
+                <apex:column >
+                    <apex:facet name="header">
+                        <apex:outputText value="Email"/>
+                    </apex:facet>
+                    <apex:outputText value="{!item.contact.Email}"/>
+                </apex:column>
+
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+    </apex:form>
+
+    <script>
+        function checkAll( cb, cbid ) {
+            var inputElem = document.getElementsByTagName("input");
+            for( var i = 0; i < inputElem.length; i++ ) {
+                if( inputElem[i].id.indexOf(cbid)!= -1 ) {
+                    inputElem[i].checked = cb.checked;
+                }
+            }
+        }
+
+        function closeWindow(emails) {
+           window.parent.parent.closeRightPanelToCopyToCC(emails);
+        }
+
+        function cancelWindow() {
+           window.parent.parent.cancelRightPanelToCopyToCC();
+        }
+    </script>
+
+</apex:page>

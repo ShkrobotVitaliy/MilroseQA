@@ -1,0 +1,395 @@
+<apex:page title="Documents" showHeader="false" sidebar="false" standardcontroller="Contact" extensions="LStore.storedDocInline,StoredDocContExt" id="aP">
+<apex:stylesheet value="/EXT/ext-2.1/resources/css/ext-all.css" />
+<apex:stylesheet value="{!URLFOR($Resource.LStore__Styles, 'css/common.css')}" />
+<script type="text/javascript" src="{!URLFOR($Resource.LibraryJSmod, 'jquery-1.7.1.min.js')}"></script>
+<script type="text/javascript" src="{!URLFOR($Resource.LibraryJSmod, 'utils-1.0.0.js')}"></script>
+<script type="text/javascript" src="{!URLFOR($Resource.LibraryJSmod, 'browserDetect-1.0.0.js')}"></script>
+<script type="text/javascript" src="{!URLFOR($Resource.LibraryJSmod, 'doclist-1.0.0.js')}"></script>
+<script type="text/javascript" src="{!URLFOR($Resource.LibraryJSmod, 'paginator-1.0.0.js')}"></script>
+<script type="text/javascript" src="{!$Resource.LStore__SWFUploadJS}"></script>
+<script type="text/javascript" src="{!$Resource.LStore__SWFUploadJQ}"></script>
+<script type="text/javascript">
+    flashUrl = "{!$Resource.LStore__SWFUpload}";
+    //swfSel = '#swfupload-control';
+    isSave = false;
+    swfSel = '#selFilesDiv';
+    loop = {
+        version: '{!JSENCODE(IF($Request.version != null, $Request.version, customController.version))}',
+        url: '{!JSENCODE(customController.loopurl)}',
+        package: '{!JSENCODE(customController.looppackage)}',
+        partnerServerUrl: '{!JSENCODE($Api.Partner_Server_URL_150)}',
+        relatedObjectId: '{!JSENCODE(customController.relatedObjectId)}',
+        folderId: '{!JSENCODE(customController.folderId)}',
+        recordId: '{!JSENCODE(customController.recordId)}',
+        recordTypeId: '{!JSENCODE(customController.docRType)}'
+    };
+    var docList = new DocList({
+        folderUrl: '{!JSENCODE(customController.newFldrPageStr)}',
+
+        // swf uploader
+        flashSelector: swfSel,
+        flashUrl: flashUrl,
+
+        // ajax
+        ajaxEndpoint: '{!$Page.LStore__Ajax}',
+        partnerServerUrl: loop.partnerServerUrl,
+        relatedObjectId: loop.relatedObjectId,
+        folderId: loop.folderId,
+        recordTypeId: loop.recordTypeId,
+        loopurl: loop.url,
+        looppackage: loop.package,
+        version: loop.version,
+
+        // download / delete
+        sessionId: "{!JSENCODE(customController.sessionId)}",
+        lss: "033a0000000kym5iac",
+        actionUrl: "{!JSENCODE(customController.actionUrl)}",
+        fileTypes: getQueryVariable("fileTypes"),
+        fileTypesName: getQueryVariable("fileTypesName")
+    });
+    window.pagination = { };
+    jQuery.noConflict();
+    jQuery(function($) {
+        docList.rowPostBack = updateRows;
+        $('.confirmIfPending').live('click', function() {
+            return docList.confirmIfPending();
+        });
+
+        // Search box
+        $searchText = $('[id$=\\:search]');
+        $searchBtn = $('[id$=\\:searchBtn]');
+
+        newDocBtn = $('[id$=selFilesDisplay]');
+        if(loop.folderId != '') {
+            newDocBtn.show();
+        } else {
+            newDocBtn.hide();
+        }
+
+        $searchText.keydown(function(e) {
+            if (e.keyCode == 13) {
+                $searchBtn.click();
+                return false;
+            }
+        });
+        $searchBtn.click(function() {
+            docList.setMainPanelOverlay(true);
+            var searchTerm = $searchText.val();
+            Utils.log('search documents: ' + searchTerm);
+            searchDocuments(searchTerm);
+            return false;
+        });
+    });
+
+    function reloadDocList() {
+        // if we are done, reload the page
+        //window.top.location = window.top.location;
+        if(isSave) {
+            saveOtherFieldAction();
+            isSave = false;
+        }
+    }
+
+    function reloadDocListAfterSaveOtherField() {
+        docList.cleanupUploader();
+        var $uploadPanel = jQuery('[id$=\\:uploadPanel]');
+        $uploadPanel.hide();
+        docList.setMainPanelOverlay(true);
+        refreshView();
+    } 
+
+    function initMainForm() {
+//      jQuery('.searchTextBox').unbind('keydown').keydown(noSubmitOnEnter);
+        jQuery('[id$=\\:saveBtn]').unbind('click').click(function() {
+            if(checkDescriptionLength(jQuery('.description').val())) {
+                alert('System does not allow enter more then 255 characters into the Description field.');
+            } else if(checkDescriptionLength(jQuery('.keyWords').val())) {
+                alert('System does not allow enter more then 255 characters into the Key words field.');
+            } else if( requiredFields() ) {
+                alert('Required field is missing.');
+            } else if (docList.checkUploadInProgress()) {
+                alert('You already have queued files uploading.');
+            } else {
+                var isValid = true,
+                    swfu = docList.getSWFU();
+                for (i in swfu.settings.files) {
+                    $field = jQuery('#' + swfu.settings.files[i].id + '_name');
+                    var filename = $field.val();
+                    if (!/[^\s]+/.test(filename)) {
+                        $field.addClass('error');
+                        isValid = false;
+                    } else {
+                        $field.removeClass('error');
+                    }
+                }
+                if (isValid) {
+                    docList.startNextQueuedUpload();
+                    isSave = true;
+                }
+            }
+            return false;
+        });
+        jQuery('[id$=\\:cancelBtn]').unbind('click').click(function() {
+            var stats = docList.getSWFU().getStats();
+            if (!(stats.in_progress || stats.files_queued) || confirm('This will cancel all currently uploading' +
+                    ' and pending queued files.' +
+                    '\n\nDo you wish to continue?')) {
+                if (stats.in_progress || stats.successful_uploads || stats.upload_errors || stats.upload_cancelled) {
+                    //window.top.location = window.top.location;
+                    reloadDocList();
+                }
+                docList.setUploader(false, true);
+            }
+            return false;
+        });
+        jQuery('span.unauthorized').closest('tr').addClass('unauthorized');
+    }
+    function initPagination() {
+        window.pagination.impl = new Paginator('[id$=docTable]', window.pagination.args);
+    }
+    function initMainPanel() {
+        docList.initUploader(swfSel);
+        docList.setUploader(false, true);
+        jQuery('[id$=\\:newFldrBtn]').click(function() {
+            if(docList.confirmIfPending()) {
+                //window.location.href = docList.folderUrl;
+                window.top.location.href = docList.folderUrl;
+            }
+            return false;
+        });
+        initPagination();
+        /*jQuery('[id$=selFilesDisplay]').click(function() {
+            (swfu.getStats().in_progress && alert('You must wait until all files have completed uploading' +
+                'before adding more to the queue.'));
+        });*/
+    };
+    function getQueryVariable(variable) {
+      var query = window.location.search.substring(1);
+      var vars = query.split("&");
+      for (var i=0;i<vars.length;i++) {
+        var pair = vars[i].split("=");
+        if (pair[0] == variable) {
+          var files = pair[1].split("%3B+").join("; ");
+          console.log('xxx files ' + files);
+          return files;
+        }
+      }
+      if( variable = 'fileTypes' ) return '*.*';
+      if( variable = 'fileTypesName' ) return 'All Files';
+      return '';
+    }
+    function checkDescriptionLength(words) {
+        var description = words;
+        console.log(description);
+        if(description != null && description.length > 255) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+</script>
+    <apex:sectionHeader title="Documents{! IF (customController.isTest, ' - Test', '')} " subtitle="Home" id="sheader" help="/apex/lstore__storedDocAbout" rendered="{!customController.showHeader}" />
+    <apex:pageMessages id="messages" />
+    <!-- apex:form >
+        <div class="bOverviewSearch">
+            Enter keywords to find matching documents:
+            <div class="pbSearch{!IF(customController.isSearchInline, ' searchInline', '')}">
+                <apex:inputText id="search" title="search" styleClass="searchTextBox" value="{!customController.searchTerm}" />
+                <apex:actionFunction name="searchDocuments" action="{!customController.returnNull}" rerender="mainPanel">
+                    <apex:param name="searchTerm" assignTo="{!customController.searchTerm}" value="{!customController.searchTerm}" />
+                </apex:actionFunction>
+                <apex:commandButton value="Find Document" id="searchBtn" rerender="mainPanel" />
+            </div>
+        </div>
+    </apex:form-->
+    <apex:form id="mainForm">
+        <apex:actionFunction name="refreshView" action="{!customController.refreshDocList}" rerender="mainForm" />
+        <apex:outputPanel id="uploadPanel" styleClass="invisible">
+            <div class="relative">
+                <div id="form_loading_img" class="invisible">
+                    <img alt="processing" src="https://apps.drawloop.com/images/widgets/throbber.gif" />
+                    processing
+                </div>
+                <div id="overlay" class="invisible"></div>
+                <apex:pageBlock >
+                    <apex:pageBlockButtons location="top">
+                        <apex:commandButton value="Save" id="saveBtn" />
+                        <apex:commandButton value="Cancel" id="cancelBtn" />
+                        <apex:actionFunction action="{!customController.setupRows}" name="updateRows" reRender="queuedFiles,messages,runSetupRows">
+                            <apex:param name="rowsStr" assignTo="{!customController.rowsToAddStr}" value="" />
+                        </apex:actionFunction>
+                    </apex:pageBlockButtons>
+                    <input type="hidden" name="relatedObjectId" value="{!JSENCODE(customController.relatedObjectId)}" />
+                    <apex:actionFunction name="saveOtherFieldAction" action="{!saveOtherFieldAction}" oncomplete="reloadDocListAfterSaveOtherField();" reRender="mainForm"/>
+                    <apex:actionFunction name="setFieldsByObjectAction" action="{!setFieldsByObjectAction}" reRender="hiddenLookupFieldBlockId, DrawingAuthorPanel"/>
+                    <apex:outputPanel rendered="{!customController.folderName == 'Drawings'}">
+                        <c:StoreDocumentExtension lStoreDocumentSObject="{!lStoreDocumentSObject}" workType="{!getWorkType}" isRequired="true" author="{!getAuthor}"/>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!customController.folderName != 'Drawings'}">
+                        <c:StoreDocumentAddDocExtension lStoreDocumentSObject="{!lStoreDocumentSObject}" isRequired="true" author="{!getAuthor}" authorSelect="{!authorSelect}"/>
+                    </apex:outputPanel>
+                    <div id="queuedFiles">
+                        <apex:pageBlockTable id="queuedFiles" styleClass="data" value="{!customController.uploadList}" var="file">
+                            <apex:column width="60">
+                                <apex:facet name="header">Action</apex:facet>
+                                <div class="actions">
+                                    <apex:outputPanel layout="inline" rendered="{!file.status == -1 }" styleClass="cancelRow action">
+                                        <apex:outputLink value="#"><span>Remove</span></apex:outputLink>
+                                    </apex:outputPanel>
+                                </div>
+                            </apex:column>
+                            <apex:column width="26">
+                                <apex:facet name="header">&nbsp;</apex:facet>
+                                <apex:image value="/s.gif" styleClass="documentType icon-{!file.documentType}" />
+                            </apex:column>
+                            <apex:column width="24%">
+                                <apex:facet name="header">{!IF(customController.isTest, 'File Name' , 'Name')}</apex:facet>
+                                <input type="text" id="{!HTMLENCODE(IF(file.id='', '', file.id + '_name'))}" value="{!file.name}" />
+                                <input type="hidden" id="{!HTMLENCODE(file.id)}" />
+                            </apex:column>
+                            <apex:column styleClass="statusCol" width="18%">
+                                <apex:facet name="header">Status</apex:facet>
+                                <apex:outputText value="" />
+                            </apex:column>
+                            <apex:column styleClass="sizeCol" width="125">
+                                <apex:facet name="header">File Size</apex:facet>
+                                <apex:outputText value="" />
+                            </apex:column>
+                            <apex:column width="40">
+                                <apex:facet name="header">Type</apex:facet>
+                                <apex:outputText value="{!file.extension}" />
+                            </apex:column>
+                        </apex:pageBlockTable>
+                    </div>
+                    <apex:outputPanel id="runSetupRows">
+                        <script type="text/javascript">docList.setupRows();</script>
+                    </apex:outputPanel>
+                </apex:pageBlock>
+            </div>
+        </apex:outputPanel>
+        <apex:outputPanel id="mainPanel" styleClass="listViewportWrapper">
+            <apex:outputLink styleClass="confirmIfPending" style="cursor:pointer;" rendered="{!customController.AncestorFolders.size > 0}" value="{!customController.docListUrlWithRelObj}&fid={!IF(customController.AncestorFolders.size > 1, customController.AncestorFolders[0], '')}">
+                    <apex:image value="/s.gif" styleClass="documentType icon-folder" />
+                    <apex:outputLabel escape="false" value="{!HTMLENCODE(IF(customController.AncestorFolders.size <= 1, '...', customController.AncestorFolders[0].LStore__File_Name_Calc__c))}" />
+                </apex:outputLink>
+            <apex:pageBlock title="{!customController.mainTitle}">
+                <apex:pageBlockButtons location="top">
+                    <apex:outputPanel id="mainBtnPanel">
+                        <div id="swfupload-control"></div>
+                        <div id="selFilesDiv">
+                            <div id="selFilesHolder">
+                                <input id="selFilesBtn" type="button" value="Select Files" />
+                            </div>
+                            <apex:commandButton styleClass="newDocumentClass" value="{!IF( customController.folderName == 'Drawings', 'New Drawings', 'New Document(s)' )}" id="selFilesDisplay" rendered="{!IF($Profile.Name == 'Platform System Admin' || $Profile.Name == 'Project Manager' || $Profile.Name ==  $Label.Director_of_Operations_Profile, true, false)}" onclick="return false;" />
+                        </div>
+                        <!-- <apex:commandButton value="New Folder" id="newFldrBtn" action="{!customController.newFolderPage}" /> -->
+                    </apex:outputPanel>
+                </apex:pageBlockButtons>
+                <apex:outputPanel id="docListPanel" styleClass="listViewport">
+                    <apex:pageBlockTable id="docTable" value="{!customController.docList}" var="doc" headerClass="x-grid3-header x-grid3-hd-row">
+                        <apex:column width="90" headerClass="x-grid3-header">
+                            <apex:facet name="header">Action</apex:facet>
+                            <span class="{!HTMLENCODE(If(!doc.allowAccess, 'unauthorized', ''))}" style="display: none;"></span>
+                            <div style="{!HTMLENCODE(If(!doc.allowAccess, 'display: none;', ''))}">
+                                <apex:outputPanel rendered="{!IF($Profile.Name == 'Platform System Admin' || $Profile.Name ==  $Label.Director_of_Operations_Profile, 'true', 'false')}">
+                                    <apex:outputLink value="{!doc.editUrl}" target="{!doc.editUrlTarget}">Edit</apex:outputLink>
+                                    <span>| </span><apex:commandLink action="{!customController.deleteIdAndUpdate}" value="Del" onclick="return docList.deleteDoc('{!HTMLENCODE(doc.d.Id)}');"><span eid="{!HTMLENCODE(doc.d.Id)}" rtype="{!HTMLENCODE(doc.d.RecordType.Name)}"></span>
+                                        <apex:param assignTo="{!customController.delId}" value="{!doc.d.Id}" name="folderId"/>
+                                    </apex:commandLink>
+                                </apex:outputPanel>
+                                <apex:outputPanel layout="inline" rendered="{!doc.d.RecordType.Name=='Document'}">
+                                    <apex:outputPanel rendered="{!IF($Profile.Name == 'Platform System Admin' || $Profile.Name ==  $Label.Director_of_Operations_Profile, 'true', 'false')}"><span>| </span></apex:outputPanel>
+                                    <apex:outputLink onclick="return docList.downloadDoc(this);" value="#"><span eid="{!HTMLENCODE(doc.d.Id)}" etype="{!HTMLENCODE(doc.d.LStore__Type__c)}">View</span></apex:outputLink>
+                                </apex:outputPanel>
+                            </div>
+                        </apex:column>
+                        <apex:column width="20">
+                            <apex:facet name="header">&nbsp;</apex:facet>
+                            <apex:image value="/s.gif" styleClass="documentType icon-{!doc.documentType}" />
+                        </apex:column>
+                        <apex:column headerClass="col-fname">
+                            <apex:facet name="header">Name<img class="invisible x-grid3-sort-icon" src="/s.gif"/></apex:facet>
+                             <apex:outputLink styleClass="confirmIfPending" value="{!doc.docLink}" target="{!doc.nameUrlTarget}" disabled="{!IF(AND($Request.disableActions == 'true', doc.d.RecordType.Name != 'Folder'), 'true', 'false')}">{!doc.d.LStore__File_Name_Calc__c}</apex:outputLink>
+                             {!HTMLENCODE(If(!doc.allowAccess, doc.msgNotAuthorized, ''))}
+                        </apex:column>
+                        <apex:column rendered="{!(customController.searchTerm!='')}">
+                            <apex:facet name="header">Folder<img class="invisible x-grid3-sort-icon" src="/s.gif"/></apex:facet>
+                            <apex:outputLink value="{!customController.docListUrlWithRelObj}&fid={!doc.d.LStore__Folder__c}" >{!doc.d.LStore__Folder__r.LStore__File_Name_Calc__c}</apex:outputLink>
+                        </apex:column>
+                        <apex:column headerClass="{!IF(ISBLANK(customController.ch.column1.sortBy), '', 'col-' & LOWER(customController.ch.column1.sortBy))}" rendered="{!!ISBLANK(customController.ch.column1)}">
+                            <apex:facet name="header">{!HTMLENCODE(customController.ch.column1.header)}<img class="invisible x-grid3-sort-icon" src="/s.gif"/></apex:facet>
+                            <apex:outputText value="{!doc.rh.cell1.value}" escape="{!customController.ch.column1.escapeOutput}" />&nbsp;
+                        </apex:column>
+                        <apex:column headerClass="{!IF(ISBLANK(customController.ch.column2.sortBy), '', 'col-' & LOWER(customController.ch.column2.sortBy))}" rendered="{!!ISBLANK(customController.ch.column2)}">
+                            <apex:facet name="header">{!HTMLENCODE(customController.ch.column2.header)}<img class="invisible x-grid3-sort-icon" src="/s.gif"/></apex:facet>
+                            <apex:outputText value="{!doc.rh.cell2.value}" escape="{!customController.ch.column2.escapeOutput}" />&nbsp;
+                        </apex:column>
+                        <apex:column headerClass="{!IF(ISBLANK(customController.ch.column3.sortBy), '', 'col-' & LOWER(customController.ch.column3.sortBy))}" rendered="{!!ISBLANK(customController.ch.column3)}">
+                            <apex:facet name="header">{!HTMLENCODE(customController.ch.column3.header)}<img class="invisible x-grid3-sort-icon" src="/s.gif"/></apex:facet>
+                            <apex:outputText value="{!doc.rh.cell3.value}" escape="{!customController.ch.column3.escapeOutput}" />&nbsp;
+                        </apex:column>
+                        <apex:column headerClass="{!IF(ISBLANK(customController.ch.column4.sortBy), '', 'col-' & LOWER(customController.ch.column4.sortBy))}" rendered="{!!ISBLANK(customController.ch.column4)}">
+                            <apex:facet name="header">{!HTMLENCODE(customController.ch.column4.header)}<img class="invisible x-grid3-sort-icon" src="/s.gif"/></apex:facet>
+                            <apex:outputText value="{!doc.rh.cell4.value}" escape="{!customController.ch.column4.escapeOutput}" />&nbsp;
+                        </apex:column>
+                        <!-- <apex:column headerClass="{!IF(ISBLANK(customController.ch.column5.sortBy), '', 'col-' & LOWER(customController.ch.column5.sortBy))}" rendered="{!!ISBLANK(customController.ch.column5)}">
+                            <apex:facet name="header">{!HTMLENCODE(customController.ch.column5.header)}<img class="invisible x-grid3-sort-icon" src="/s.gif"/></apex:facet>
+                            <apex:outputText value="{!doc.rh.cell5.value}" escape="{!customController.ch.column5.escapeOutput}" />&nbsp;
+                        </apex:column> --> <!-- MRS-6069 -->
+                        <apex:column headerClass="" rendered="{!!ISBLANK(customController.ch.column5)}">
+                            <apex:facet name="header">Created By</apex:facet>
+                            <a href="/{!documentOwners[doc.d.Id][1]}"><apex:outputText value="{!documentOwners[doc.d.Id][0]}" escape="true"/></a>&nbsp;
+                        </apex:column>
+                        <apex:column headerClass="{!IF(ISBLANK(customController.ch.column6.sortBy), '', 'col-' & LOWER(customController.ch.column6.sortBy))}" rendered="{!!ISBLANK(customController.ch.column6)}">
+                            <apex:facet name="header">{!HTMLENCODE(customController.ch.column6.header)}<img class="invisible x-grid3-sort-icon" src="/s.gif"/></apex:facet>
+                            <apex:outputText value="{!doc.rh.cell6.value}" escape="{!customController.ch.column6.escapeOutput}" />&nbsp;
+                        </apex:column>
+                    </apex:pageBlockTable>
+                    <div class="bottomNav">
+                        <div class="paginator">
+                            <span class="left">
+                                <span class="selectorTarget"><span class="pageStart">0</span>-<span class="pageEnd">0</span> of <span class="resultTotal">0</span></span>
+                            </span>
+                            <span class="prevNextLinks">
+                                <span class="prevNext">
+                                <img class="firstoff" src="/s.gif" />
+                                </span>
+                                <span class="prevNext">
+                                <img class="prevoff" src="/s.gif" />Previous</span>
+                                <span class="prevNext">Next<img class="nextoff" src="/s.gif" />
+                                </span>
+                                <span class="prevNext">
+                                <img class="lastoff" src="/s.gif" />
+                                </span>
+                            </span>
+                            <span class="right">Page<input value="1" maxlength="4" class="pageInput currentPageNumber" />of <span class="totalPages">1</span></span>
+                        </div>
+                        <div class="clearingBox">
+                        </div>
+                    </div>
+                    <script type="text/javascript">
+                        window.pagination.args = {
+                            pageStart: {!customController.pageStart},
+                            pageEnd: {!customController.pageEnd},
+                            pageSize: {!customController.pageSize},
+                            resultTotal: {!customController.resultTotal},
+                            currentPageNumber: {!customController.pageNumber},
+                            sortBy: '{!JSENCODE(customController.sortBy)}'
+                        };
+                    </script>
+                </apex:outputPanel>
+            </apex:pageBlock>
+            <script>initMainPanel();</script>
+        </apex:outputPanel>
+        <apex:actionFunction action="{!customController.clearDocList}" name="goTo" rerender="docListPanel" oncomplete="window.pagination.impl.init(window.pagination.args);">
+            <apex:param name="pageNum" assignTo="{!customController.pageNumber}" value="" />
+            <apex:param name="pageSize" assignTo="{!customController.pageSize}" value="" />
+        </apex:actionFunction>
+        <apex:actionFunction action="{!customController.forceReQuery}" name="updateList" rerender="docListPanel" oncomplete="window.pagination.impl.init(window.pagination.args);">
+            <apex:param name="sortBy" assignTo="{!customController.sortBy}" value="" />
+            <apex:param name="pageNum" assignTo="{!customController.pageNumber}" value="" />
+            <apex:param name="pageSize" assignTo="{!customController.pageSize}" value="" />
+        </apex:actionFunction>
+        <script type="text/javascript">initMainForm();</script>
+    </apex:form>
+</apex:page>

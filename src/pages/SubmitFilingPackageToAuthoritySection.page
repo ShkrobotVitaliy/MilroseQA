@@ -1,0 +1,84 @@
+<apex:page standardController="Task_Item__c" extensions="SubmitFilingPackageToAuthorityController">
+    <script src="{!$Resource.jquery_tablednd_js}"></script>
+    <apex:stylesheet value="{!$Resource.proposalWizard_css}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQuery_BlogForce9_162, 'js/jquery-1.6.2.min.js')}"/>
+    <script src="{!$Resource.jquery_tablednd_js}"></script>
+    <script src="{!URLFOR($Resource.jquery_vfFloatingHeaders)}"></script>
+    
+    <style>
+        .inputLabelFilter {
+            color: #4A4A56;
+            font-weight: bold;
+            padding-right: 4px;
+            padding-left: 10px;
+        }
+        .selestListRegion {
+            width: 138px;
+        }
+    </style>
+    
+    <apex:form id="form">
+        <apex:actionStatus id="allPanelsOverlay" onstart="$('#overlayContent').show().fadeTo('slow', 1.0); $('#AllPannelOverlay').show().fadeTo('slow', 0.7);" onstop="$('#AllPannelOverlay').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' }); $('#overlayContent').hide().css({ 'opacity': '0.2', 'filter': 'alpha(opacity=20)' });"/>
+    
+        <apex:actionFunction name="editPackageStatusAction" action="{!updateStatus}" status="allPanelsOverlay">
+            <apex:param name="selectedPredecessorServiceId" value="" assignTo="{!selectedPredecessorServiceId}"/>
+        </apex:actionFunction>
+    
+        <div class="overlay" id="AllPannelOverlay" style="opacity: 0.2; filter:alpha(opacity=20);"/>
+        <div class="overlayContent" id="overlayContent" style="display:none; opacity:0.2; filter:alpha(opacity=20); padding: 25px 35px; border-radius: 10px; border: 2px solid #24A; z-index: 1001; background-color: #E0F2FF; top: 35%;">
+            <div style="text-align: center;">
+                <img src="{!$Resource.loading_bar}" />
+                <p style="color: #000; margin-bottom: 0px; font-size: 24px;">Please wait</p>
+            </div>
+        </div>
+    
+        <apex:pageBlock >
+            <apex:pageBlockButtons location="bottom" style="text-align: right;" rendered="true">
+                <apex:outPutpanel id="updatePackageStatusPanel">
+                    <apex:commandButton value="Save" action="{!updateStatus}" id="btnSave" styleClass="milroseBtnStyle" style="display:none" status="allPanelsOverlay"/>
+                </apex:outPutpanel> 
+            </apex:pageBlockButtons>
+        
+            <apex:pageMessages id="msgError"/>
+        
+            <apex:outputPanel layout="block" id="formsTableOutputPanel" >
+                <div style="overflow-y:auto; max-height: 200px; overflow-y: scroll;" class="tableContainer">
+                    <table id="formsTable" class="generalTableStyle" >
+                        <thead class="rich-table-thead" border="solid 1px black">
+                            <tr >
+                                <th width="100px;">Form (Ref) </th>
+                                <th width="550px;">Form Name</th>
+                                <th >Package Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="name" style="width: 650px; align: left;" colspan="2">
+                                    <table class="generalTableStyle">
+                                        <apex:repeat value="{!formItemsList}" var="item">
+                                            <tr id="{!item.Id}">
+                                                <td class="name" align="left" width="100px;"><apex:outputField value="{!item.Form_Id__c}"/></td>
+                                                <td class="name" align="left" width="550px;"><apex:outputField value="{!item.Form_Name__c}"/></td>
+                                            </tr>
+                                        </apex:repeat>
+                                    </table>
+                                </td>
+                                <td class="name" style="align: left; vertical-align:top;">
+                                    <apex:inputField value="{!taskItem.Package_Status__c}"/>&nbsp;
+                                    <apex:commandLink action="{!updateStatus}">
+                                        <img src="/img/permissions_confirm16.gif" alt="apply" title="Apply" class="deleteItemImage" onmouseover="this.src='/img/permissions_confirm16.gif'" onmouseout="this.src='/img/permissions_confirm16.gif'"/>
+                                    </apex:commandLink>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </apex:outputPanel>
+        </apex:pageBlock>
+
+        <div style="{!$Label.CopyRightInfoStyle}">{!$Label.CopyrightInfo}</div>
+
+        <apex:inputField value="{!Task_Item__c.Service_Item__c}" rendered="false"/>
+        <apex:inputField value="{!Task_Item__c.Package_Status__c}" rendered="false"/>
+    </apex:form>
+</apex:page>

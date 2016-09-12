@@ -1,0 +1,88 @@
+<apex:page standardController="Proposal__c" extensions="ProjectRosterAtProposal" id="ProjectRosterAtProposalPage">
+    <script>
+        function doRedirect() {
+            window.parent.location.href = '{!redirectUrl}';
+        }
+    </script>
+    <style type="text/css">
+        tr.disabled td {
+            background-color: #D2D2D2;
+        }
+        tr.disabled.highlight td {
+            background-color: #99BBD2 !important;
+        }
+    </style>
+     <apex:form >
+        <apex:pageMessages id="msgs"></apex:pageMessages>
+        <div class="apexp">
+            <div class="individualPalette">
+                <div class="Custom43Block">
+                    <div class="bPageBlock brandSecondaryBrd apexDefaultPageBlock secondaryPalette">
+                        <div class="pbBody">
+                            <div style="height: 200px; overflow-y: auto;">
+                                <apex:outputPanel id="projectRosterOutputPanelId">
+	                                <table class="list" border="0" cellpadding="0" cellspacing="0">
+	                                    <thead class="">
+	                                        <tr class=" headerRow">
+	                                            <th class="headerRow" scope="col" colspan="1">
+	                                                <div>
+	                                                    <apex:commandLink action="{!sortAction}" value="Name {!IF(sortAssignmentExtension.sortExpression == 'Name__c', IF(sortAssignmentExtension.sortDirection == 'ASC', '▼', '▲'), '')}" rerender="projectRosterOutputPanelId, msgs">
+	                                                        <apex:param value="Name__c" name="column" assignTo="{!sortAssignmentExtension.sortExpression}" />
+	                                                    </apex:commandLink>
+	                                                 </div>
+	                                            </th>
+	                                            <th class="headerRow" scope="col" colspan="1">
+	                                                <div>
+	                                                    <apex:commandLink action="{!sortAction}" value="Role {!IF(sortAssignmentExtension.sortExpression=='Role__c',IF(sortAssignmentExtension.sortDirection='ASC','▼','▲'),'')}" rerender="projectRosterOutputPanelId, msgs">
+	                                                        <apex:param value="Role__c" name="column" assignTo="{!sortAssignmentExtension.sortExpression}" />
+	                                                    </apex:commandLink>
+	                                                </div>
+	                                            </th>
+	                                            <th class="headerRow" scope="col" colspan="1">
+	                                                <div>
+	                                                    <apex:commandLink action="{!sortAction}" value="Email {!IF(sortAssignmentExtension.sortExpression=='Email__c',IF(sortAssignmentExtension.sortDirection='ASC','▼','▲'),'')}" rerender="projectRosterOutputPanelId, msgs">
+	                                                        <apex:param value="Email__c" name="column" assignTo="{!sortAssignmentExtension.sortExpression}" />
+	                                                    </apex:commandLink>
+	                                                </div>
+	                                            </th>
+	                                            <th class="headerRow" scope="col" colspan="1">
+	                                                <div>
+	                                                    <apex:commandLink action="{!sortAction}" value="Phone {!IF(sortAssignmentExtension.sortExpression=='Phone__c',IF(sortAssignmentExtension.sortDirection='ASC','▼','▲'),'')}" rerender="projectRosterOutputPanelId, msgs">
+	                                                        <apex:param value="Phone__c" name="column" assignTo="{!sortAssignmentExtension.sortExpression}" />
+	                                                    </apex:commandLink>
+	                                                </div>
+	                                            </th>
+	                                        </tr>
+	                                    </thead>
+	                                    <tbody>
+	                                        <apex:repeat value="{!projectRosterList}" var="child">
+	                                            <tr class="dataRow{!IF(child.Active__c && child.User_Contact_IsActive__c, '', ' disabled')}" onmouseover="if (window.hiOn){hiOn(this);}" onmouseout="if (window.hiOff){hiOff(this);}" onblur="if (window.hiOff){hiOff(this);}" onfocus="if (window.hiOn){hiOn(this);}">
+	                                                <td class="dataCell" colspan="1">
+	                                                    <apex:outputLink target="_blank" value="/{!child.Contact__c}">{!child.Name__c}</apex:outputLink>
+	                                                </td>
+	                                                <td class="dataCell" colspan="1">
+	                                                    <span>{!child.Role__c}</span>
+	                                                </td>
+	                                                <td class="dataCell" colspan="1">
+	                                                    <span>{!child.Email__c}</span>
+	                                                </td>
+	                                                <td class="dataCell" colspan="1">
+	                                                    <span>{!child.Phone__c}</span>
+	                                                </td>
+	                                            </tr>
+	                                        </apex:repeat>
+	                                    </tbody>
+	                                </table>
+                                </apex:outputPanel>
+                            </div>
+                        </div>
+                        <div class="pbFooter secondaryPalette">
+                            <div class="bg"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <apex:inputField value="{!Proposal__c.Name}" rendered="false"/>
+    </apex:form>
+</apex:page>
