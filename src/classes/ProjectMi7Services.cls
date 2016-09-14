@@ -33,6 +33,14 @@ public with sharing class ProjectMi7Services {
         update projects;
     
     }
+
+	public static Map<Id, Project__c> filteredProjectsWithChangedAccManager(List<Project__c> newList, Map<Id, Project__c> oldMap) { //MRS 7540
+		Map<Id, Project__c> result = new Map<Id, Project__c>();
+		for(Project__c p : newList) {
+			if(oldMap == null || oldMap.get(p.Id) == null || p.Billing_Client_Company__c != oldMap.get(p.Id).Billing_Client_Company__c) result.put(p.Id, p); 
+		}
+		return result;
+	}
     
     /* ----------------------------- End Business Logic Methods -----------------------------------------------*/
 

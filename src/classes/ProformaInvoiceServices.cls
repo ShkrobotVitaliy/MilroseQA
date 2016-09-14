@@ -559,6 +559,37 @@ system.debug(LoggingLevel.Error,'bliForInvoicingRightNow ='+bliForInvoicingRight
         return reimbursableLineItems;
     }
 
+	public static void updateSecondContactOnProFormaInvoices(Map<Id, Project_Profile__c> newMap) { //MRS 7540
+		List<Pro_forma_Invoice__c> proFormaList = [SELECT Id, Project_Profile__c, Second_Contact_Person_Full_Name__c, Second_Contact_Person_Phone__c, Second_Contact_Type__c
+													FROM Pro_forma_Invoice__c WHERE Project_Profile__c IN :newMap.keySet()];
+		Map<Id, User> usersMap = new Map<Id, User>();
+		for(Project_Profile__c pp : newMap.values()) {
+			if(pp.Account_Executive__c != null) {
+				usersMap.put(pp.Account_Executive__c, new User());
+			}
+			if(pp.Production_Manager__c != null) {
+				usersMap.put(pp.Production_Manager__c, new User());
+			}
+		}
+		if(!usersMap.isEmpty()) usersMap = new Map<Id, User> ([SELECT Id, FirstName, LastName, Phone FROM User WHERE Id IN :usersMap.keySet()]);
+		for(Pro_forma_Invoice__c inv : proFormaList) {
+			if(newMap.get(inv.Project_Profile__c).Account_Executive__c != null) {
+				inv.Second_Contact_Person_Full_Name__c = usersMap.get(newMap.get(inv.Project_Profile__c).Account_Executive__c).FirstName + ' ' + usersMap.get(newMap.get(inv.Project_Profile__c).Account_Executive__c).LastName;
+				inv.Second_Contact_Person_Phone__c = usersMap.get(newMap.get(inv.Project_Profile__c).Account_Executive__c).Phone;
+				inv.Second_Contact_Type__c = 'Account';
+			} else if(newMap.get(inv.Project_Profile__c).Production_Manager__c != null) {
+				inv.Second_Contact_Person_Full_Name__c = usersMap.get(newMap.get(inv.Project_Profile__c).Production_Manager__c).FirstName + ' ' + usersMap.get(newMap.get(inv.Project_Profile__c).Production_Manager__c).LastName;
+				inv.Second_Contact_Person_Phone__c = usersMap.get(newMap.get(inv.Project_Profile__c).Production_Manager__c).Phone;
+				inv.Second_Contact_Type__c = 'Production';
+			} else {
+				inv.Second_Contact_Person_Full_Name__c = null;
+				inv.Second_Contact_Person_Phone__c = null;
+				inv.Second_Contact_Type__c = null;
+			}
+		}
+		if(!proFormaList.isEmpty()) UPSERT proFormaList;
+	}
+
     @TestVisible //this method doesn't used
     private static Map<Id, List<Billing_Line_Item__c>> getProformaInvoiceToLineItemsMap(List<Billing_Line_Item__c> lineItems) {
         Map<Id, List<Billing_Line_Item__c>> projectIdToLineItems = new Map<Id, List<Billing_Line_Item__c>>();
@@ -1055,19 +1086,19 @@ system.debug(LoggingLevel.Error,'bliForInvoicingRightNow ='+bliForInvoicingRight
 			Double remainingAmount = poInvoices.containsKey(invoice.Id) ? remainingPoAmount + amountFromBlisToBeCompared : remainingPoAmount; //MRS 7392 7527 7550 7551 7577
 
             if( !ProformaInvoiceServices.invoiceAmountHasBeenDeducated && invoice.Purchase_Order__c != null && !invoice.cl_Create_FFA_Invoice__c && amountFromBlisToBeCompared > remainingAmount && !purchaseOrdersMap.get(invoice.Purchase_Order__c).Override_Billing_Restrictions__c ){
-               invoice.Invoice_Exceeded_PO__c = true;
+                invoice.Invoice_Exceeded_PO__c = true;
             }
 
 			System.debug(LoggingLevel.ERROR, '### invoice.Id = ' + invoice.Id);
 			System.debug(LoggingLevel.ERROR, '### poInvoices.containsKey(invoice.Id) = ' + poInvoices.containsKey(invoice.Id));
 			System.debug(LoggingLevel.ERROR, '### invoice.Remaining_PO_Amount__c = ' + invoice.Remaining_PO_Amount__c);
-			System.debug(LoggingLevel.ERROR, '### amountFromBlisToBeCompared = ' + amountFromBlisToBeCompared);			
+			System.debug(LoggingLevel.ERROR, '### amountFromBlisToBeCompared = ' + amountFromBlisToBeCompared);
 			System.debug(LoggingLevel.ERROR, '### invoice.Subtotal__c = ' + invoice.Subtotal__c);
 			System.debug(LoggingLevel.ERROR, '### remainingAmount = ' + remainingAmount);
-			System.debug(LoggingLevel.ERROR, '############################################################################################################'); 
+			System.debug(LoggingLevel.ERROR, '############################################################################################################');
 			System.debug(LoggingLevel.ERROR, '### invoice.Purchase_Order__c = ' + invoice.Purchase_Order__c);
 			System.debug(LoggingLevel.ERROR, '### invoice.cl_Create_FFA_Invoice__c = ' + invoice.cl_Create_FFA_Invoice__c);
-			System.debug(LoggingLevel.ERROR, '### invoice.Invoice_Exceeded_PO__c = ' + invoice.Invoice_Exceeded_PO__c);	
+			System.debug(LoggingLevel.ERROR, '### invoice.Invoice_Exceeded_PO__c = ' + invoice.Invoice_Exceeded_PO__c);
 
         }
 		ProformaInvoiceServices.invoiceAmountHasBeenDeducated = true;
@@ -1102,7 +1133,7 @@ system.debug(LoggingLevel.Error,'bliForInvoicingRightNow ='+bliForInvoicingRight
                                       Tax__c = (Decimal)ar.get('sta'), Credit_1_Amount__c = (Decimal)ar.get('ca1'),
                                       Credit_2_Amount__c = (Decimal)ar.get('ca2'), Credit_1_Tax_Amount__c = (Decimal)ar.get('cta1'),
                                       Credit_2_Tax_Amount__c = (Decimal)ar.get('cta2'),
-			Total_Billed_Amount_Without_Recaped_BLIs__c = invoiceIdToTotalWithoutRecaped.get((Id)ar.get('pfi')) != null ? invoiceIdToTotalWithoutRecaped.get((Id)ar.get('pfi')): 0, 
+			Total_Billed_Amount_Without_Recaped_BLIs__c = invoiceIdToTotalWithoutRecaped.get((Id)ar.get('pfi')) != null ? invoiceIdToTotalWithoutRecaped.get((Id)ar.get('pfi')): 0,
 			Total_Billed_AmNoTax_Without_Recaped_BLI__c = invoiceIdToTotalWithoutRecaperNoTax.get((Id)ar.get('pfi')) != null ? invoiceIdToTotalWithoutRecaperNoTax.get((Id)ar.get('pfi')): 0 ) ); //MRS 7392 MRS-7577
         }
         if (billinLineItemToProFormaMap.keySet().size() > proFormaInvoiceList.size()){
@@ -1510,7 +1541,8 @@ system.debug(LoggingLevel.Error,'bliForInvoicingRightNow ='+bliForInvoicingRight
 
         List<Pro_forma_Invoice__c> proformaInvoiceUpdateList = new List<Pro_forma_Invoice__c>();
 
-        for (Pro_forma_Invoice__c proformaInvoiceItem : [SELECT Id, Project_Profile__c, Accounting_Contact__c, Accounting_Contact_Company__c, Billing_Contact__c, Billing_Client_Company__c
+        for (Pro_forma_Invoice__c proformaInvoiceItem : [SELECT Id, Project_Profile__c, Accounting_Contact__c, Accounting_Contact_Company__c, Billing_Contact__c, Billing_Client_Company__c,
+        														Client_Project__c, Account_Manager__c
                                                          FROM Pro_forma_Invoice__c
                                                          WHERE Project_Profile__c IN : newProjectMap.keySet() AND
                                                                 Amount_Due__c > 0]){
@@ -1531,6 +1563,14 @@ system.debug(LoggingLevel.Error,'bliForInvoicingRightNow ='+bliForInvoicingRight
             if ( (proformaInvoiceItem.Billing_Contact__c != newProjectProfile.Billing_Company_Contact__c && proformaInvoiceItem.Billing_Contact__c == oldProjectProfile.Billing_Company_Contact__c) &&
                   proformaInvoiceItem.Billing_Client_Company__c == newProjectProfile.Billing_Company_Name__c ){
                 proformaInvoiceItem.Billing_Contact__c = newProjectProfile.Billing_Company_Contact__c;
+                doUpdate = true;
+            }
+            if ( proformaInvoiceItem.Account_Manager__c != newProjectProfile.Account_Executive__c && proformaInvoiceItem.Account_Manager__c == oldProjectProfile.Account_Executive__c ){
+                proformaInvoiceItem.Account_Manager__c = newProjectProfile.Account_Executive__c;
+                doUpdate = true;
+            }
+            if ( proformaInvoiceItem.Client_Project__c != newProjectProfile.Client_Project__c && proformaInvoiceItem.Client_Project__c == oldProjectProfile.Client_Project__c ){
+                proformaInvoiceItem.Client_Project__c = newProjectProfile.Client_Project__c;
                 doUpdate = true;
             }
             if ( doUpdate ){

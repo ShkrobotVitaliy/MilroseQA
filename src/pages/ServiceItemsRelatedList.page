@@ -202,7 +202,7 @@
             </div>
 
             <apex:outputPanel layout="block" id="servicesCoTable">
-                <div style="max-height: 300px; overflow: auto; margin-bottom: 10px; ">
+                <div style="max-height: 300px; overflow: auto; margin-bottom: 10px;">
                 <!-- CO Services -->
                     <apex:repeat value="{!coServicesList}" var="co" id="rep1">
                         <table id="servicesCoTable" class="generalTableStyle" style="width:100%; padding: 0; margin: 0; border-collapse: collapse;">
@@ -467,11 +467,12 @@
                         <table id="milestonesTableHeader" class="generalTableStyle" style="margin: 0;">
                             <thead class="rich-table-thead">
                                 <tr class="headerRow">
-                                    <th class="headerRow" colspan="6">Project Milestones</th>
+                                    <th class="headerRow" colspan="7">Project Milestones</th>
                                 </tr>
                                 <tr class="headerRow">
                                     <th class="headerRow" style="width: 3% !important;">&nbsp;</th>
-                                    <th class="headerRow" style="width: 50% !important;">Milestone Name</th>
+                                    <th class="headerRow" style="width: 40% !important;">Milestone Name</th>
+                                    <th class="headerRow" style="width: 10% !important;">Delay Start Date</th>
                                     <th class="headerRow" style="width: 15% !important;">Planned Date</th>
                                     <th class="headerRow" style="width: 15% !important;">Expected Date</th>
                                     <th class="headerRow" style="width: 15% !important;">Actual Date</th>
@@ -484,11 +485,12 @@
                         <table id="milestonesTable" class="BlogForce generalTableStyle dataTable2">
                             <thead class="rich-table-thead">
                                 <tr class="headerRow">
-                                    <th class="headerRow" colspan="6">Project Milestones</th>
+                                    <th class="headerRow" colspan="7">Project Milestones</th>
                                 </tr>
                                 <tr class="headerRow">
                                     <th class="headerRow" width="3%">&nbsp;</th>
-                                    <th class="headerRow" width="50%">Milestone Name</th>
+                                    <th class="headerRow" width="40%">Milestone Name</th>
+                                    <th class="headerRow" width="10%">Delay Start Date</th>
                                     <th class="headerRow" width="15%">Planned Date</th>
                                     <th class="headerRow" width="15%">Expected Date</th>
                                     <th class="headerRow" width="15%">Actual Date</th>
@@ -512,6 +514,10 @@
                                         <td class="name">
                                             <apex:inputText value="{!milestone.record.Name}" rendered="{! AND(enableEditByUser, !milestone.isDisabled) }" style="width:400px;" styleClass="generalTableStyle"/>
                                             <apex:outputText value="{!milestone.record.Name}" rendered="{!milestone.isDisabled}" styleClass="generalTableStyle"/>
+                                        </td>
+                                        <td class="name">
+                                            <apex:inputField value="{!milestone.record.Delay_Start_Date__c}" rendered="{! AND(enableEditByUser, !milestone.isDisabled) }" styleClass="generalTableStyle"/>
+                                            <apex:outputField value="{!milestone.record.Delay_Start_Date__c}" rendered="{!milestone.isDisabled}" styleClass="generalTableStyle"/>
                                         </td>
                                         <td class="name"><apex:outputText value="{!milestone.plannedStartDate}"/></td>
                                         <td class="name"><apex:outputText value="{!milestone.expectedStartDate}"/></td>

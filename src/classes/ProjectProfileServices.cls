@@ -2729,13 +2729,21 @@ system.debug('!!! project.id = ' + project.id);
             Project_Profile__c oldProject = oldProjectMap.get(item.id);
             if ( item.Accounting_Contact__c != oldProject.Accounting_Contact__c ||
                  item.Accounting_Contact_Company__c != oldProject.Accounting_Contact_Company__c ||
-                 item.Billing_Company_Contact__c != oldProject.Billing_Company_Contact__c ) {
+                 item.Billing_Company_Contact__c != oldProject.Billing_Company_Contact__c) {
 
                 filteredProjectsMap.put( item.Id, item );
             }
         }
         return filteredProjectsMap;
     }
+
+	public static Map<Id, Project_Profile__c> filteredProjectsWithChangedAccOrProdManager(List<Project_Profile__c> newList, Map<Id, Project_Profile__c> oldMap) { //MRS 7540
+		Map<Id, Project_Profile__c> result = new Map<Id, Project_Profile__c>();
+		for(Project_Profile__c pp : newList) {
+			if(oldMap == null || oldMap.get(pp.Id) == null || pp.Account_Executive__c != oldMap.get(pp.Id).Account_Executive__c || pp.Production_Manager__c != oldMap.get(pp.Id).Production_Manager__c) result.put(pp.Id, pp); 
+		}
+		return result;
+	}
 
     //MRS-6683
     public static List<Project_Profile__c> filterProjectWithBillingCompanyHold( List<Project_Profile__c> projectProfileListNew, Map<Id, Project_Profile__c> projectProfileMapOld ) {

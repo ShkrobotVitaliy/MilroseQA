@@ -7,6 +7,7 @@ public with sharing class TaskManagementServices {
     public static Map<Id, Task_Item__c> taskIdToTask = new Map<Id, Task_Item__c>();
     public static Map<Id, Task_Item__c> tasksToNotProcess = new Map<Id, Task_Item__c>();
     public static Datetime expectedStartDateForEditedTask;
+    private static List<Task_Item__c> milestoneTaskItems;
 
     public static final String MILESTONE_RECORDTYPE_NAME = 'Milestone';
     public static final String MILESTONE_PROJECT_START = 'Project Start';
@@ -45,7 +46,7 @@ public with sharing class TaskManagementServices {
                 List<Integer> ranksList = new List<Integer>();
                 ranksList.addAll( orderedListOfTasks.keySet() );
                 ranksList.sort();
-System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices currentServiceItem.Name = ' + currentServiceItem.Name);
+
                 for( Integer sequenceNumber : ranksList ) {
                     Task_Item__c taskItem = orderedListOfTasks.get( sequenceNumber );
 
@@ -85,24 +86,24 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices currentServiceItem.
                 if( currentServiceItem.Actual_End_Date__c != null && !currentServiceItem.Actual_Start_Date_Is_From_Terminator__c ) {
                     continue;
                 }
-                
+
                 String serviceTotalDuration;
                 if( !currentServiceItem.Actual_Start_Date_Is_From_Terminator__c ){
                     serviceTotalDuration = getTotalDurationForService( orderedListOfTasks, taskItemIdStartFrom );
-                    currentServiceItem.Expected_Service_Duration__c = serviceTotalDuration;                
+                    currentServiceItem.Expected_Service_Duration__c = serviceTotalDuration;
                 } else {
                     serviceTotalDuration = getTotalDurationForServiceMi3( orderedListOfTasks, taskItemIdStartFrom, cameFromDateCalculation );
                     currentServiceItem.Expected_Service_Duration__c = serviceTotalDuration;
                 }
-
+System.debug(LoggingLevel.ERROR, '^^^ expectedStartDateForEditedTask = ' + expectedStartDateForEditedTask);
                 if( expectedStartDateForEditedTask != null ) {
                     if( !currentServiceItem.Actual_Start_Date_Is_From_Terminator__c || !cameFromDateCalculation ) {
                         currentServiceItem.Expected_Start_Date__c = expectedStartDateForEditedTask;
                     }
                     Datetime endDateWithShift = DateUtils.getDatetimeWithTimeShiftByBusinessHours( currentServiceItem.Expected_Start_Date__c, serviceTotalDuration );
-                    
+
                     currentServiceItem.Expected_End_Date__c = endDateWithShift;
-                    
+
                     if( !currentServiceItem.Project_Profile__r.Submitted_Planned_Dates__c ) {
                         currentServiceItem.Planned_Start_Date__c = currentServiceItem.Expected_Start_Date__c;
                         currentServiceItem.Planned_End_Date__c = currentServiceItem.Expected_End_Date__c;
@@ -130,7 +131,6 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices currentServiceItem.
 
         for( Integer sequenceNumber : ranksList ) {
             Task_Item__c taskItem = orderedListOfTasks.get( sequenceNumber );
-            
             if( outstandingSuccessorsForCurrentTask.contains( taskItem.Id ) ) {
                 continue;
             }
@@ -140,18 +140,18 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices currentServiceItem.
             }
 
             String currentDurrationSum = taskItem.Expected_Duration__c;
-
             currentDurrationSum = DateUtils.appendDurations( currentDurrationSum, taskItem.Delay_End_Date__c );
             serviceDuration = DateUtils.appendDurations( serviceDuration, currentDurrationSum );
-            if( taskItem.Id == taskItemIdStartFrom || 
+
+            if( taskItem.Id == taskItemIdStartFrom ||
                 ( fromDateCalculation && expectedStartDateForEditedTask == null ) /* First uncompleted task after terminated */) {
 
                 expectedStartDateForEditedTask = DateUtils.getDatetimeWithTimeShiftByBusinessHours ( taskItem.Project_Profile__r.Project_Start_Date__c, null );
 
                 Task_Item__c predecessorTask = orderedListOfTasks.get( Integer.valueOf( taskItem.Sequence_Number__c - 1 ) );
-                Datetime predecessorEndDate = DateTime.newInstance( predecessorTask.Expected_End_Date__c.year(), 
-                                                                    predecessorTask.Expected_End_Date__c.month(), 
-                                                                    predecessorTask.Expected_End_Date__c.day(), 
+                Datetime predecessorEndDate = DateTime.newInstance( predecessorTask.Expected_End_Date__c.year(),
+                                                                    predecessorTask.Expected_End_Date__c.month(),
+                                                                    predecessorTask.Expected_End_Date__c.day(),
                                                                     17, 0, 0 );
                 String newDuration = DateUtils.getDifferenceBetweanTwoDatetimes( predecessorEndDate,
                                                                                  expectedStartDateForEditedTask, true );
@@ -167,7 +167,6 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices currentServiceItem.
                         for( Task_Item__c slaveTask : successorsForCurrentTask ) {
                             if( someTask.Id != slaveTask.Id ) {
                                 String sequenceDuration = slaveTask.Expected_Duration__c;
-
                                 if( slaveTask.Delay_End_Date__c != null ) {
                                     sequenceDuration = DateUtils.appendDurations( sequenceDuration, slaveTask.Delay_End_Date__c );
                                 }
@@ -179,11 +178,9 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices currentServiceItem.
                                     tempSetOfSuccessors.add( successorIdForSuccessor );
 
                                     sequenceDuration = DateUtils.appendDurations( sequenceDuration, taskIdToTask.get( successorIdForSuccessor ).Expected_Duration__c );
-
                                     if( taskIdToTask.get( successorIdForSuccessor ).Delay_End_Date__c != null ) {
                                         sequenceDuration = DateUtils.appendDurations( sequenceDuration, taskIdToTask.get( successorIdForSuccessor ).Delay_End_Date__c );
                                     }
-
                                     successorIdForSuccessor = taskIdToTask.get( successorIdForSuccessor ).Successor_Task__c;
                                     noSequence = ( taskIdToTask.get( successorIdForSuccessor ).Successor_Task__c == null );
                                 }
@@ -228,7 +225,7 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices currentServiceItem.
             if( outstandingSuccessorsForCurrentTask.contains( taskItem.Id ) ) {
                 continue;
             }
-System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices sequenceNumber = ' + sequenceNumber);
+
             String currentDurrationSum = taskItem.Expected_Duration__c;
 
             currentDurrationSum = DateUtils.appendDurations( currentDurrationSum, taskItem.Delay_End_Date__c );
@@ -237,7 +234,7 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices sequenceNumber = ' 
 
             if( taskItem.Sequence_Number__c == FIRST_TASK_IN_SEQUENCE ) {
                 tmpDatetime = taskItem.Expected_Start_Date__c;
-                
+
                 if( taskItem.Id == taskItemIdStartFrom ) {
                     expectedStartDateForEditedTask = tmpDatetime;
                 }
@@ -287,6 +284,7 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices sequenceNumber = ' 
                                     if( slaveTask.Delay_End_Date__c != null ) {
                                         sequenceDuration = DateUtils.appendDurations( sequenceDuration, slaveTask.Delay_End_Date__c );
                                     }
+
                                     Id successorIdForSuccessor = slaveTask.Successor_Task__c;
                                     Boolean noSequence = ( successorIdForSuccessor == null );
                                     tempSetOfSuccessors = new Set<Id> ();
@@ -294,11 +292,9 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices sequenceNumber = ' 
                                         tempSetOfSuccessors.add( successorIdForSuccessor );
 
                                         sequenceDuration = DateUtils.appendDurations( sequenceDuration, taskIdToTask.get( successorIdForSuccessor ).Expected_Duration__c );
-
                                         if( taskIdToTask.get( successorIdForSuccessor ).Delay_End_Date__c != null ) {
                                             sequenceDuration = DateUtils.appendDurations( sequenceDuration, taskIdToTask.get( successorIdForSuccessor ).Delay_End_Date__c );
                                         }
-
                                         successorIdForSuccessor = taskIdToTask.get( successorIdForSuccessor ).Successor_Task__c;
                                         noSequence = ( !taskIdToTask.containsKey( successorIdForSuccessor ) || taskIdToTask.get( successorIdForSuccessor ).Successor_Task__c == null );
                                     }
@@ -349,29 +345,35 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices sequenceNumber = ' 
     }
 
     public static void calculatePlannedExpectedDatesForServices( Map<Id, Service_Item__c> serviceItemMap, Id serviceIdDoNotUpdate, Id processingTaskItemId ) {
+        //MRS-7582
+        Map<String, String> milstoneTasksWithDelayStartDay = new Map<String, String>();
+        Id projectId = null;
         Map<String, List<Service_Item__c>> predecessorMilestoneForServices = new Map<String, List<Service_Item__c>>();
         Map<String, List<Service_Item__c>> successorMilestoneForServices = new Map<String, List<Service_Item__c>>();
         List<Service_Item__c> startProjectServices = new List<Service_Item__c>();
-        
+
         Map<String, Map<String, List<Service_Item__c>> > predecessorSuccessorSortedServiceItmList = new Map<String, Map<String, List<Service_Item__c>> >();
-        
+
         Datetime currentEndDate;
         String projectStartMilestone;
 
         // Set Successor/Predecessor Milestone for Service block
         for( Id serviceId : serviceItemMap.keySet() ) {
             Service_Item__c serviceItem = serviceItemMap.get( serviceId );
-System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices serviceItem.Name = ' + serviceItem.Name);
+            //MRS-7582
+            milstoneTasksWithDelayStartDay.put(serviceItem.Predecessor_Milestone__c, null);
+            milstoneTasksWithDelayStartDay.put(serviceItem.Successor_Milestone__c, null);
+            projectId = serviceItem.Project_Profile__c;
             // Clean up Dates for new recalculation
             if( serviceId != serviceIdDoNotUpdate &
                 ( serviceItem.Actual_Start_Date__c == null || serviceItem.Actual_Start_Date_Is_From_Terminator__c ) ) {
                 if( !serviceItem.Actual_Start_Date_Is_From_Terminator__c ) serviceItem.Expected_Start_Date__c = null;
                 serviceItem.Expected_End_Date__c = null;
             }
-            
+
             if( !TaskManagementServices.seqNumberToTaskItemForService.containsKey( serviceId ) ||
                  TaskManagementServices.seqNumberToTaskItemForService.get( serviceId ).isEmpty() ) continue;
-            
+
             Map<Integer, Task_Item__c> tasksForService = TaskManagementServices.seqNumberToTaskItemForService.get( serviceId );
 
             if( tasksForService.isEmpty() && tasksForService.get(1) != null ) continue;
@@ -412,7 +414,8 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices serviceItem.Name = 
                 if( serviceId != serviceIdDoNotUpdate ) {
                     if( serviceItem.Actual_Start_Date__c == null  || serviceItem.Actual_Start_Date_Is_From_Terminator__c ) {
                         if( !serviceItem.Actual_Start_Date_Is_From_Terminator__c ) {
-                            serviceItem.Expected_Start_Date__c = DateUtils.getDatetimeWithTimeShiftByBusinessHours ( serviceItem.Project_Profile__r.Project_Start_Date__c, null );
+                            String delayMilestone = milstoneTasksWithDelayStartDay.get( serviceItem.Predecessor_Milestone__c );
+                            serviceItem.Expected_Start_Date__c = DateUtils.getDatetimeWithTimeShiftByBusinessHours ( serviceItem.Project_Profile__r.Project_Start_Date__c, delayMilestone );
                         }
                         serviceItem.Expected_End_Date__c = DateUtils.getDatetimeWithTimeShiftByBusinessHours( serviceItem.Expected_Start_Date__c, serviceItem.Expected_Service_Duration__c );
                     }
@@ -437,9 +440,15 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices serviceItem.Name = 
             if( !predecessorSuccessorSortedServiceItmList.get( serviceItem.Predecessor_Milestone__c ).containsKey( serviceItem.Successor_Milestone__c ) ){
                 predecessorSuccessorSortedServiceItmList.get( serviceItem.Predecessor_Milestone__c ).put( serviceItem.Successor_Milestone__c, new List<Service_Item__c>() );
             }
-            
+
             predecessorSuccessorSortedServiceItmList.get( serviceItem.Predecessor_Milestone__c ).get( serviceItem.Successor_Milestone__c ).add( serviceItem );
-        }
+        system.debug('serviceItem.Predecessor_Milestone__c='+serviceItem.Predecessor_Milestone__c);
+                system.debug('serviceItem.Id='+serviceItem.Id);
+                system.debug('processingTaskItemId='+processingTaskItemId);
+                system.debug('serviceItemMap='+serviceItemMap);
+                }
+
+system.debug('projectStartMilestone='+projectStartMilestone);
         if( projectStartMilestone == null ) {
             generateErrorMessage( 'At least one Service should have Project Start Predecessor Milestone (Milestone that contains "Project Start" text)', processingTaskItemId );
         }
@@ -457,9 +466,9 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices serviceItem.Name = 
                 currentLevelServices.addAll( servicesWithSuccessors.get( milestone ) );
             }
         }
-        
+
         debugLogs( '@@@@@@@@@@@ predecessorSuccessorSortedServiceItmList = ' + predecessorSuccessorSortedServiceItmList, true );
-                
+
         if( currentLevelServices != null && !currentLevelServices.isEmpty() ){
             debugLogs( '@@@@@@@@@@@ currentLevelServices: LEVEL = ' + currentLevelServices[0].Predecessor_Milestone__c, true );
             debugLogs( '@@@@@@@@@@@ currentLevelServices.size() = ' + currentLevelServices.size(), true );
@@ -470,7 +479,14 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices serviceItem.Name = 
         } else {
             debugLogs( '@@@@@@@@@@@ currentLevelServices is EMPTY!', true );
         }
-       
+
+        //MRS-7582
+        milestoneTaskItems = TaskItemServices.milstoneTaskItemsForProjects(new Set<Id>{projectId});
+
+        for (Task_Item__c ti : milestoneTaskItems){
+            milstoneTasksWithDelayStartDay.put(ti.Name, ti.Delay_Start_Date__c);
+        }
+
         while( currentLevelServices != null ) {
             theClosestDateForMilestoneMap = new Map<Datetime, String>();
             Boolean noMoreSuccessors = true;
@@ -492,10 +508,10 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices serviceItem.Name = 
                     debugLogs( '@@@@@@@@@@@ ******** ++++++++++++++ 1) nextAfterCurrentService.Expected_Start_Date__c = ' + nextAfterCurrentService.Expected_Start_Date__c, true );
                     if( firstMilestoneService == null ){
                         firstMilestoneService = nextAfterCurrentService;
-                        if( nextAfterCurrentService.Expected_Start_Date__c != null && 
+                        if( nextAfterCurrentService.Expected_Start_Date__c != null &&
                             ( nextAfterCurrentService.Actual_Start_Date__c == null ) &&
                             nextAfterCurrentService.Id != serviceIdDoNotUpdate ) {
-                            
+
                             theClosestDateForMilestoneMap.put( nextAfterCurrentService.Expected_Start_Date__c, nextAfterCurrentService.Predecessor_Milestone__c );
                             continue; // Already calculated
                         }
@@ -509,8 +525,11 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices serviceItem.Name = 
                                 break;
                             }
                             if( nextAfterCurrentService.Predecessor_Milestone__c.equals( predForNextAfterCurrentService.Successor_Milestone__c ) ) {
-                                longestDate = ( ( longestDate == null || longestDate < predForNextAfterCurrentService.Expected_End_Date__c )
-                                                        ? predForNextAfterCurrentService.Expected_End_Date__c
+                                String delayMilestone = milstoneTasksWithDelayStartDay.get( predForNextAfterCurrentService.Successor_Milestone__c );//MRS-7582
+                                DateTime withDelay = String.isEmpty( delayMilestone ) ? predForNextAfterCurrentService.Expected_End_Date__c : DateUtils.getDatetimeWithTimeShiftByBusinessHours( predForNextAfterCurrentService.Expected_End_Date__c, delayMilestone);
+
+                                longestDate = ( ( longestDate == null || longestDate < withDelay )
+                                                        ? withDelay
                                                         : longestDate );
                             }
                         }
@@ -523,18 +542,16 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices serviceItem.Name = 
                                 if( !nextAfterCurrentService.Actual_Start_Date_Is_From_Terminator__c ){
                                     nextAfterCurrentService.Expected_Start_Date__c = DateUtils.getDatetimeWithTimeShiftByBusinessHours ( longestDate, null );
                                 }
-                                nextAfterCurrentService.Expected_End_Date__c = DateUtils.getDatetimeWithTimeShiftByBusinessHours( nextAfterCurrentService.Expected_Start_Date__c, nextAfterCurrentService.Expected_Service_Duration__c );   
+                                nextAfterCurrentService.Expected_End_Date__c = DateUtils.getDatetimeWithTimeShiftByBusinessHours( nextAfterCurrentService.Expected_Start_Date__c, nextAfterCurrentService.Expected_Service_Duration__c );
                             }
                         }
-debugLogs( '@@@@@@@@@@@ 1) firstMilestoneService.Expected_Start_Date__c = ' + firstMilestoneService.Expected_Start_Date__c, true );
                     } else {
                         if( nextAfterCurrentService.Id != serviceIdDoNotUpdate ) {
                             if( nextAfterCurrentService.Actual_Start_Date__c == null || nextAfterCurrentService.Actual_Start_Date_Is_From_Terminator__c ) {
                                 if( !nextAfterCurrentService.Actual_Start_Date_Is_From_Terminator__c ){
-debugLogs( '@@@@@@@@@@@ 2) firstMilestoneService.Expected_Start_Date__c = ' + firstMilestoneService.Expected_Start_Date__c, true );
                                     nextAfterCurrentService.Expected_Start_Date__c = firstMilestoneService.Expected_Start_Date__c;
                                 }
-                                nextAfterCurrentService.Expected_End_Date__c = DateUtils.getDatetimeWithTimeShiftByBusinessHours( nextAfterCurrentService.Expected_Start_Date__c, nextAfterCurrentService.Expected_Service_Duration__c );   
+                                nextAfterCurrentService.Expected_End_Date__c = DateUtils.getDatetimeWithTimeShiftByBusinessHours( nextAfterCurrentService.Expected_Start_Date__c, nextAfterCurrentService.Expected_Service_Duration__c );
                             }
                         }
                     }
@@ -545,13 +562,10 @@ debugLogs( '@@@@@@@@@@@ 2) firstMilestoneService.Expected_Start_Date__c = ' + fi
                         nextAfterCurrentService.Planned_End_Date__c = nextAfterCurrentService.Expected_End_Date__c;
                         nextAfterCurrentService.Total_Planned_Service_Duration__c = nextAfterCurrentService.Expected_Service_Duration__c;
                     }
-debugLogs( '@@@@@@@@@@@ nextAfterCurrentService.Expected_Start_Date__c = ' + nextAfterCurrentService.Expected_Start_Date__c + ' nextAfterCurrentService.Predecessor_Milestone__c = ' + String.valueOf(nextAfterCurrentService.Predecessor_Milestone__c), true );
+
                     theClosestDateForMilestoneMap.put( nextAfterCurrentService.Expected_Start_Date__c, nextAfterCurrentService.Predecessor_Milestone__c );
                 }
             }
-for (DateTime dt : theClosestDateForMilestoneMap.keySet()){
-    debugLogs( '@@@@@@@@@@@ theClosestDateForMilestoneMap.get(dt) = ' + theClosestDateForMilestoneMap.get(dt) + ' dt = ' + String.valueOf(dt), true );
-}
             debugLogs( '@@@@@@@@@@@ noMoreSuccessors = ' + noMoreSuccessors, true );
             if( noMoreSuccessors ) break;
             currentLevelServices = null;
@@ -590,27 +604,27 @@ for (DateTime dt : theClosestDateForMilestoneMap.keySet()){
         Map<Id, Datetime> milestoneSuccessorsToPlannedDatetime = new Map<Id, Datetime>();
         Map<Id, Datetime> milestoneSuccessorsToExpectedDatetime = new Map<Id, Datetime>();
         Datetime prevTaskPlannedEndDate;
-        
+
         for( Id serviceId : seqNumberToTaskItemForService.keySet() ) {
             // Get ordered (by sequence number) list of Tasks for appropriate Service
             orderedListOfTasks = seqNumberToTaskItemForService.get( serviceId );
             List<Integer> ranksList = new List<Integer>();
             ranksList.addAll( orderedListOfTasks.keySet() );
             ranksList.sort();
-System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices serviceId = ' + serviceId +' TaskManagementServices serviceId = ' + incomingServiceItems.get( serviceId ).Name + ' SI.Expected_Start_Date__c = ' + incomingServiceItems.get( serviceId ).Expected_Start_Date__c);
+
             Task_Item__c lastTerminatedTask;
             for( Integer sequenceNumber : ranksList ) {
                 Task_Item__c taskItem = orderedListOfTasks.get( sequenceNumber );
 
-                if( incomingServiceItems.get( taskItem.Service_Item__c ).Actual_Start_Date_Is_From_Terminator__c && 
-                    taskItem.Actual_End_Date__c != null && 
+                if( incomingServiceItems.get( taskItem.Service_Item__c ).Actual_Start_Date_Is_From_Terminator__c &&
+                    taskItem.Actual_End_Date__c != null &&
                     taskItem.Name.contains('(TERMINATED)') ) {
                         lastTerminatedTask = taskItem;
                         continue;
                 }
-System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices sequenceNumber = ' + sequenceNumber + ' Id = ' + taskItem.Id);
+
                 // TASK TERMINATOR CASE
-                if( cameFromDateCalculation && 
+                if( cameFromDateCalculation &&
                     incomingServiceItems.get( taskItem.Service_Item__c ).Actual_Start_Date_Is_From_Terminator__c &&
                     taskItem.Predecessor_Task__c == lastTerminatedTask.Id ) {
                         if( taskItem.Actual_Start_Date__c == null ) {
@@ -626,15 +640,13 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices sequenceNumber = ' 
                             prevTaskPlannedEndDate = Datetime.now();
                         } else {
                             if( taskIdWithPredecessors.containsKey( taskItem.Id ) ) {  // Check if current task has Predecessors
-                                System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices Check if current task has Predecessors sequenceNumber = ' + sequenceNumber);
                                 prevTaskPlannedEndDate = findLongestDateForTask( taskIdWithPredecessors.get( taskItem.Id ), incomingServiceItems.get( serviceId ).Name, taskIdDoNotUpdate );
                             } else if ( taskIdWithSuccessors.containsKey( taskItem.Id ) ) { // Task w/o Predecessors but maybe with Successors
-                                System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices Task w/o Predecessors but maybe with Successors sequenceNumber = ' + sequenceNumber);
                                 prevTaskPlannedEndDate = findLongestDateForTask( taskIdWithSuccessors.get( taskItem.Id ), incomingServiceItems.get( serviceId ).Name, taskIdDoNotUpdate );
                             }
                         }
 
-                        if( prevTaskPlannedEndDate == null ) {System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices prevTaskPlannedEndDate == null sequenceNumber = ' + sequenceNumber);
+                        if( prevTaskPlannedEndDate == null ) {
                             generateErrorMessage( 'Expected Start Date cannot be calculated for Task in [' + incomingServiceItems.get( serviceId ).Name + ']' + ' Service. Check Services that are predecessors for current Service.', taskIdDoNotUpdate);
                         }
                         if( taskItem.Actual_Start_Date__c == null && taskItem.Id != taskItemIdStartFrom ) {
@@ -647,11 +659,9 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices sequenceNumber = ' 
                     taskItem.Expected_End_Date__c = DateUtils.getDatetimeWithTimeShiftByBusinessHours( taskItem.Expected_Start_Date__c, taskItem.Expected_Duration__c );
                 }
                 prevTaskPlannedEndDate = taskItem.Expected_End_Date__c;
-
-                if( taskItem.Delay_End_Date__c != null) {
+                if( taskItem.Delay_End_Date__c != null ) {
                     prevTaskPlannedEndDate = DateUtils.getDatetimeWithTimeShiftByBusinessHours( prevTaskPlannedEndDate, taskItem.Delay_End_Date__c );
                 }
-
                 if( !taskItem.Project_Profile__r.Submitted_Planned_Dates__c ) {
                     taskItem.Planned_Start_Date__c = taskItem.Expected_Start_Date__c;
                     taskItem.Planned_End_Date__c = taskItem.Expected_End_Date__c;
@@ -693,7 +703,7 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices sequenceNumber = ' 
                         incomingServiceItems.get( serviceId ).Expected_End_Date__c = taskItem.Expected_End_Date__c;
 
                         incomingServiceItems.get( serviceId ).Expected_Service_Duration__c = DateUtils.getDifferenceBetweanTwoDatetimes(
-                                                                                        incomingServiceItems.get( serviceId ).Expected_Start_Date__c, 
+                                                                                        incomingServiceItems.get( serviceId ).Expected_Start_Date__c,
                                                                                         incomingServiceItems.get( serviceId ).Expected_End_Date__c, !cameFromDateCalculation);
                         if( !incomingServiceItems.get( serviceId ).Project_Profile__r.Submitted_Planned_Dates__c ) {
                             incomingServiceItems.get( serviceId ).Planned_Start_Date__c = incomingServiceItems.get( serviceId ).Expected_Start_Date__c;
@@ -701,7 +711,7 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices sequenceNumber = ' 
                             incomingServiceItems.get( serviceId ).Total_Planned_Service_Duration__c = incomingServiceItems.get( serviceId ).Expected_Service_Duration__c;
                         }
                     }
-                }
+                }System.Debug(LoggingLevel.ERROR, '^^^ taskItem = ' + taskItem);
             }
             Service_Item__c si = incomingServiceItems.get( serviceId );
             si.Expected_Start_Date__c = null;
@@ -719,13 +729,23 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices sequenceNumber = ' 
             }
             if (doRecalculate){si.Expected_Service_Duration__c = DateUtils.getDifferenceBetweanTwoDatetimes(si.Expected_Start_Date__c, si.Expected_End_Date__c, true);}
         }
+
+        if ( milestoneTaskItems == null ){//MRS-7582
+            Id projectId = incomingServiceItems.values()[0].Project_Profile__c;
+            milestoneTaskItems = TaskItemServices.milstoneTaskItemsForProjects(new Set<Id>{projectId});
+        }
+        Map<Id, Task_Item__c> milestoneTaskItemsWithDelay = new Map<Id, Task_Item__c>(milestoneTaskItems);
+
         for( Id milId : milestoneSuccessorsToUpdate.keySet() ) {
             if( milestonePredecessorsToUpdate.containsKey( milId ) ) {
                 milestoneSuccessorsToUpdate.remove( milId );
             } else {
                 Task_Item__c mil = milestoneSuccessorsToUpdate.get( milId );
-                mil.Planned_Start_Date__c = milestoneSuccessorsToPlannedDatetime.get( mil.Id );
-                mil.Expected_Start_Date__c = milestoneSuccessorsToExpectedDatetime.get( mil.Id );
+
+                String delayMilestone = milestoneTaskItemsWithDelay.get( milId ).Delay_Start_Date__c;
+
+                mil.Planned_Start_Date__c = String.isEmpty( delayMilestone ) ? milestoneSuccessorsToPlannedDatetime.get( mil.Id ) : DateUtils.getDatetimeWithTimeShiftByBusinessHours( milestoneSuccessorsToPlannedDatetime.get( mil.Id ), delayMilestone);
+                mil.Expected_Start_Date__c = String.isEmpty( delayMilestone ) ? milestoneSuccessorsToExpectedDatetime.get( mil.Id ) :  DateUtils.getDatetimeWithTimeShiftByBusinessHours( milestoneSuccessorsToExpectedDatetime.get( mil.Id ), delayMilestone);
             }
         }
         List<Task_Item__c> tasksToInsert = new List<Task_Item__c>();
@@ -738,14 +758,14 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices sequenceNumber = ' 
         }
         tasksToInsert.addAll( milestonePredecessorsToUpdate.values() );
         tasksToInsert.addAll( milestoneSuccessorsToUpdate.values() );
-        
+
         try{
             update tasksToInsert;
         } catch (Exception ex ) {
             generateErrorMessage( ex.getMessage(), taskIdDoNotUpdate);
         }
     }
-    
+
     public static Datetime findLongestDateForTask( Set<Id> taskSet, String serviceName, Id processingTaskItemId ) {
         Datetime prevTaskPlannedEndDate;
         String delayForLongestTask = null;
@@ -756,10 +776,7 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices sequenceNumber = ' 
             if( prevTaskPlannedEndDate == null ||
                ( taskIdToTask.get( taskId ).Actual_Start_Date__c == null &&
                  prevTaskPlannedEndDate < taskIdToTask.get( taskId ).Expected_End_Date__c ) ) {
-				System.debug(LoggingLevel.ERROR, '### prevTaskPlannedEndDate = ' + prevTaskPlannedEndDate);
-				System.debug(LoggingLevel.ERROR, '### taskIdToTask.get( taskId ).Actual_Start_Date__c = ' + taskIdToTask.get( taskId ).Actual_Start_Date__c);
-                System.debug(LoggingLevel.ERROR, '### taskIdToTask.get( taskId ).Expected_End_Date__c = ' + taskIdToTask.get( taskId ).Expected_End_Date__c);
-				prevTaskPlannedEndDate = taskIdToTask.get( taskId ).Expected_End_Date__c;
+                prevTaskPlannedEndDate = taskIdToTask.get( taskId ).Expected_End_Date__c;
                 delayForLongestTask = taskIdToTask.get( taskId ).Delay_End_Date__c;
             }
         }
@@ -775,7 +792,7 @@ System.Debug(LoggingLevel.ERROR, '^^^ TaskManagementServices sequenceNumber = ' 
         }
         return prevTaskPlannedEndDate;
     }
-    
+
     private static void generateErrorMessage( String errorText, Id recordId ){
         if( Trigger.isExecuting ){
             Trigger.newMap.get( recordId ).addError( errorText );

@@ -83,10 +83,10 @@ public with sharing class ServiceItemServices {
         List<Service_Item__c> res = new List<Service_Item__c> ();
         for(Service_Item__c si : newList) {
             if(si.Tax_Code_1__c != oldMap.get(si.Id).Tax_Code_1__c || si.Tax_Code_2__c != oldMap.get(si.Id).Tax_Code_2__c) {
-                res.add(si);        
+                res.add(si);
             } else {
                 si.Tax_Percent_1__c = oldMap.get(si.Id).Tax_Percent_1__c;
-                si.Tax_Percent_2__c = oldMap.get(si.Id).Tax_Percent_2__c;      
+                si.Tax_Percent_2__c = oldMap.get(si.Id).Tax_Percent_2__c;
             }
         }
         return res;
@@ -162,7 +162,7 @@ public with sharing class ServiceItemServices {
                                                      Project_Profile__r.Submitted_Planned_Dates__c, Name, Actual_Start_Date__c,
                                                      Successor_Milestone__c, Predecessor_Milestone__c, Planned_End_Date__c,
                                                      Actual_Start_Date_Is_From_Terminator__c, Actual_End_Date__c, Applied_Amendment__c,
-                                                     Submitted_CO_Planned_Dates__c,
+                                                     Submitted_CO_Planned_Dates__c, Project_Profile__c,
                                                      Custom_Work_Type_Service__c, /* +MRS-7053 */
                                                      ( SELECT Id, Planned_Durration__c, Name, Predecessor_Milestone__c,
                                                               Sequence_Number__c, Successor_Milestone__c, Predecessor_Task__c,
@@ -502,7 +502,7 @@ public with sharing class ServiceItemServices {
         populateServiceItemFromServiceTemplateFields(serviceTemplate, si, false);
 
         if(!String.isBlank(si.Work_Type__c) )  {
-          si.Service_Name_Full__c += ' ' + si.Work_Type__c.replace(';', ' ');
+            si.Service_Name_Full__c += ' ' + si.Work_Type__c.replace(';', ' ');
         }
 
         return si;
@@ -637,7 +637,7 @@ public with sharing class ServiceItemServices {
 				}
 			}
 		}
-    }
+	}
 
     public static Map<Id, Service_Item__c> filteredServiceItemWithChangedOwner(List<Service_Item__c> serviceItemListNew, Map<Id, Service_Item__c> serviceItemMapOld){
         Map<Id, Service_Item__c> filteredServiceItemMap = new Map<Id, Service_Item__c>();
@@ -1249,5 +1249,5 @@ public with sharing class ServiceItemServices {
 				}
 			}
 		}
-	}
+    }
 }

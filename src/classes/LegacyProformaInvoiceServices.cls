@@ -225,6 +225,32 @@ public with sharing class LegacyProformaInvoiceServices {
         LegacyBillingItemServices.updateAggregatedFieldsOnLegacyProformInvoice(new Map<Id, Legacy_Pro_forma_Invoice__c>(invoicesToCreate));
     
     }
+
+	public static void updateSecondContactOnLegacyInvoices(Map<Id, Project__c> newMap) { //MRS 7540
+		List<Legacy_Pro_forma_Invoice__c> proFormaList = [SELECT Id, Project_Native__c, Second_Contact_Person_Full_Name__c, Second_Contact_Person_Phone__c, Second_Contact_Type__c
+													FROM Legacy_Pro_forma_Invoice__c WHERE Project_Native__c IN :newMap.keySet()];
+		Map<Id, Account> accountsMap = new Map<Id, Account>();
+		for(Project__c p : newMap.values()) {
+			if(p.Billing_Client_Company__c != null) {
+				accountsMap.put(p.Billing_Client_Company__c, new Account());
+			}
+		}
+		if(!accountsMap.isEmpty())  accountsMap = new Map<Id, Account> ([SELECT Id, Account_Manager__c, Account_Manager__r.FirstName, Account_Manager__r.LastName, Account_Manager__r.Phone FROM Account WHERE Id IN :accountsMap.keySet()]);
+
+		for(Legacy_Pro_forma_Invoice__c inv : proFormaList) {
+			if(newMap.get(inv.Project_Native__c).Billing_Client_Company__c != null &&
+				accountsMap.get(newMap.get(inv.Project_Native__c).Billing_Client_Company__c).Account_Manager__c != null) {
+				inv.Second_Contact_Person_Full_Name__c = accountsMap.get(newMap.get(inv.Project_Native__c).Billing_Client_Company__c).Account_Manager__r.FirstName + ' ' + accountsMap.get(newMap.get(inv.Project_Native__c).Billing_Client_Company__c).Account_Manager__r.LastName;
+				inv.Second_Contact_Person_Phone__c = accountsMap.get(newMap.get(inv.Project_Native__c).Billing_Client_Company__c).Account_Manager__r.Phone;
+				inv.Second_Contact_Type__c = 'Account';
+			} else {
+				inv.Second_Contact_Person_Full_Name__c = null;
+				inv.Second_Contact_Person_Phone__c = null;
+				inv.Second_Contact_Type__c = null;
+			}
+		}
+		if(!proFormaList.isEmpty()) UPSERT proFormaList;
+	}
     
     @testVisible
     private static Date getLastValidBillingDate(final Legacy_Billing_Item__c lbi) {

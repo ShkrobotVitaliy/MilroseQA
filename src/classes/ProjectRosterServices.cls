@@ -661,7 +661,7 @@ public with sharing class ProjectRosterServices {
         		}
         	}
         }
-
+		ProjectRosterServices.rosterIsGoingFromWizard = false;
         if( !newRostersList.isEmpty() ) insert newRostersList;
     }
 

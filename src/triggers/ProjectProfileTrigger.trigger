@@ -79,4 +79,8 @@ trigger ProjectProfileTrigger on Project_Profile__c (before insert, after insert
             ProjectProfileServices.updateChangeOrderIfCloseProject( ProjectProfileServices.filteredChangeClosedProject( Trigger.new, Trigger.oldMap ) );
         }
     }
+	
+	if(Trigger.isAfter && (Trigger.isUpdate || Trigger.isInsert)) { //MRS 7540
+		ProformaInvoiceServices.updateSecondContactOnProFormaInvoices(ProjectProfileServices.filteredProjectsWithChangedAccOrProdManager(Trigger.new, Trigger.oldMap));
+	}
 }

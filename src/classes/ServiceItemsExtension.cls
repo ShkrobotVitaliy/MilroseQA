@@ -207,7 +207,7 @@ public with sharing class ServiceItemsExtension {
         projectMilestonesList = new Set<String>();
         milestoneNameSelectOptionsList = new List<SelectOption>{ new SelectOption(NONE_VALUE, NONE_VALUE) };
         try {
-            for (Task_Item__c milestoneTaskItem : [ SELECT Id, Name, Expected_Start_Date__c, Planned_Start_Date__c, Actual_Start_Date__c
+            for (Task_Item__c milestoneTaskItem : [ SELECT Id, Name, Expected_Start_Date__c, Planned_Start_Date__c, Actual_Start_Date__c, Delay_Start_Date__c
                                                     FROM Task_Item__c
                                                     WHERE RecordType.Name =: TaskManagementServices.MILESTONE_RECORDTYPE_NAME
                                                         AND Project_Profile__c = : project.Id

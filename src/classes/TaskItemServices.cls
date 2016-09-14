@@ -125,7 +125,7 @@ public without sharing class TaskItemServices{
             }
 
         	if( !task.Billing_Trigger__c ) billingLineItemCreationPreventor = true;
-        }System.Debug(LoggingLevel.ERROR, '^^^ TaskItemServices.filterTaskItemsForBillingLineItemsCreation taskItemMap = ' + taskItemMap);
+        }
         return taskItemMap;
     }
 
@@ -403,7 +403,9 @@ public without sharing class TaskItemServices{
         Map<Id, Map<String, Decimal>> projectIdToAmountTypeToAmount; //holds remaining percentages and previously billed amounts for projects
 
         //MRS-5799: Collection for fix bug: invalid query location
+		System.debug(LoggingLevel.ERROR, '### projectProfileMap.keySet(): ' + projectProfileMap.keySet());
         Map<Id, List<Service_Item__c>> projectIdToServiceItems = ServiceItemServices.groupServiceItemsByProjectId(projectProfileMap.keySet());
+		System.debug(LoggingLevel.ERROR, '### projectIdToServiceItems: ' + projectIdToServiceItems);
         Map<Id, List<Task_Item__c>> projectIdToTaskItems       = ProjectProfileServices.groupTaskItemsByProjectIdForBillingDate(projectProfileMap.keySet());
 
         for( Billing_Date__c billingDate : billingDateList ) {
@@ -411,14 +413,14 @@ public without sharing class TaskItemServices{
 
             if( ( ( projectProfile.Billing_Method__c == ProjectProfileServices.BILLINGMETHODPERCENTAGE && projectProfile.Interval__c ) ||
                   ( projectProfile.Billing_Method__c == ProjectProfileServices.BILLINGMETHODINSTALLMENT ) ) &&
-                ( billingDate.Percentage__c != null && billingDate.Percentage__c > 0 ) ) {System.Debug(LoggingLevel.ERROR, '^^^ 414 = ');
+                ( billingDate.Percentage__c != null && billingDate.Percentage__c > 0 ) ) {
                 if( !projectProfile.Billing_Dates_Blocked__c ) { //this checkbox forbids the creation of new BLIs from Billing Dates
                     if( projectIdToAmountTypeToAmount == null ) { //init the map only if needed (when there is at least one task item with the % w/o Interval method), since it performs a DML
                         projectIdToAmountTypeToAmount = ProjectProfileServices.getProjectIdToAmountTypeToAmount( projectProfileMap.keySet(), isCurrentlyPrebilling );
                     }
                     billingLineItem = BillingLineItemServices.initBillingLineItem( null, null, null, projectProfile, billingDate );
                     BillingLineItemServices.calculateAmountsForBLI( projectProfile, billingLineItem, null, billingDate, null, projectIdToAmountTypeToAmount.get( billingDate.Project_Profile__c ) );
-System.Debug(LoggingLevel.ERROR, '^^^ billingLineItem = ' + billingLineItem);
+
                     if( billingLineItem.Quantity__c > 0 ) {
                         billingLineItem.Billing_Date__c = billingDate.Id; //set billing date lookup for BLI
                         billingLineItems.add( billingLineItem );
@@ -430,7 +432,7 @@ System.Debug(LoggingLevel.ERROR, '^^^ billingLineItem = ' + billingLineItem);
                     billingDate.Billed__c = true;
                     billingDate.Amount__c = billingLineItem.Amount__c;
                     billingDateForUpdate.add( billingDate );
-System.Debug(LoggingLevel.ERROR, '^^^ billingDateForUpdate = ' + billingDateForUpdate);
+
                 }
 
             }
@@ -465,7 +467,7 @@ System.Debug(LoggingLevel.ERROR, '^^^ billingDateForUpdate = ' + billingDateForU
                 if( !serviceItemUpdateList.isEmpty() ) {
                     update new List<Service_Item__c>(serviceItemUpdateList);
                 }
-            } catch( Dmlexception dmlE ) {System.Debug(LoggingLevel.ERROR, '^^^ dmlE = ' + dmlE.getMessage());
+            } catch( Dmlexception dmlE ) {
                 Database.rollback( sp );
                 errorMessage += 'Inserting of Billing Line Item failed.\n';
                 for( Integer index = 0; index < dmlE.getNumDml(); index++ ) {
@@ -557,10 +559,7 @@ System.Debug(LoggingLevel.ERROR, '^^^ billingDateForUpdate = ' + billingDateForU
                     projectIdToMilestone.put( proposalItem.Project_Profile__c, new Map<String, Task_Item__c>() );
                 }
             }
-            for ( Task_Item__c taskItemItem : [SELECT Id, Name, Project_Profile__c
-                                               FROM Task_Item__c
-                                               WHERE Project_Profile__c IN : projectIdToMilestone.keySet() AND
-                                                    RecordType.Name = : TaskManagementServices.MILESTONE_RECORDTYPE_NAME] ) {
+            for ( Task_Item__c taskItemItem : milstoneTaskItemsForProjects( projectIdToMilestone.keySet() ) ) {//MRS-7582
                 projectIdToMilestone.get( taskItemItem.Project_Profile__c ).put( taskItemItem.Name, taskItemItem );
             }
         }
@@ -2684,8 +2683,15 @@ System.Debug(LoggingLevel.ERROR, '^^^ billingDateForUpdate = ' + billingDateForU
 					ti.Actual_End_Date__c  != null && oldMap.get(ti.Id).Actual_End_Date__c != null) {
 						ti.OwnerId = oldMap.get(ti.Id).OwnerId;
 						ti.addError('You can not change Owner once Task is completed.');
-				}
+					}
 			}
         }
+    }
+
+    public static List<Task_Item__c> milstoneTaskItemsForProjects(Set<Id> projectIds){//MRS-7582
+        return projectIds == null || projectIds.isEmpty() ? new List<Task_Item__c>() : [SELECT Id, Name, Delay_Start_Date__c, Project_Profile__c
+                                                                                        FROM Task_Item__c
+                                                                                        WHERE RecordType.Name = : TaskManagementServices.MILESTONE_RECORDTYPE_NAME AND
+                                                                                            Project_Profile__c IN : projectIds];
     }
 }
